@@ -14,15 +14,15 @@ If your Zip-archive is greater than 2GB, and has to be extracted on a platform t
 
 If you want to just extract the JSON files, you can use this instead:
 
-`7z x takeout-20181025T124927Z-001.zip *.json -r`
+`7z x takeout-20181025T124927Z-001.zip '*.json' -r`
 
 To extract them to a different directory (while retaining their directory structure):
 
-`7z x takeout-20181025T124927Z-001.zip *.json -r -o/path/to/output/dir/`
+`7z x takeout-20181025T124927Z-001.zip '*.json' -r -o/path/to/output/dir/`
 
 To extract them to a different directory (without creating sub-directories):
 
-`7z e takeout-20181025T124927Z-001.zip *.json -r -o/path/to/output/dir/`
+`7z e takeout-20181025T124927Z-001.zip '*.json' -r -o/path/to/output/dir/`
 
 ## Filtering JSON data with a jq library
 One of those tools is [plexodus-tools.jq](plexodus-tools.jq), a library of filter methods for the excellent commandline JSON processor [jq](https://github.com/stedolan/jq). With the library you'll be able to chain filters and sort methods to limit your Google+ Takeout JSON files to a subset of data you can then pass on to other tools or services.
