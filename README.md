@@ -76,23 +76,24 @@ jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . ' /path/to/combined_
 You specify the directory in which the `plexodus-tools.jq` library is located with: `-L /path/to/Plexodus-Tools/` and then load it by specifying `include "plexodus-tools";` before your actual jq query.
 
 #### Filter Methods:
-Filter Name | Description
------------ | -----------
-`not_empty` | Exclude empty results
-`withComments` | Only return Activity results that have Comments
-`withImage` | Only return Activity results that have an Image Attachment
-`withVideo` | Only return Activity results that have a Video Attachment
-`withAudio` | Only return Activity results that have an Audio Attachment
-`withMedia` | Only return Activity results that have any kind of Media Attachment
-`withoutMedia` | Exclude Activity items without any kind of Media Attachment from the results 
-`isPublic` | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_PUBLIC` as `visibleToStandardAcl` 'circle' type.` `withInteractionWith(displayNames)` | Only return Activity items that have some form of interaction with users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
-`withCommentBy(displayNames)` | Only return Activity items as results when they have Comments by any of the users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
-`urlFromDomain(domains)` | Only return Activity results with url items that match any of the specified `domains`. `domains` can be either a string, or an array of strings.
-`sort_by_creation_time` | Sort results by the Activity's `creationTime`.
-`sort_by_update_time` | Sort results by the Activity's `updateTime`.
-`sort_by_last_modified` | Alias for `sort_by_update_time`.
-`sort_by_url` | Sort results by the Activity's `url` item.
-`sort_activity_log_by_ts` | Sort ActivityLog items by their `timestampMs` timestamp item.
+Filter Name                         | Description
+-----------------------------------:| :-----------------------------------
+`not_empty`                         | Exclude empty results
+`withComments`                      | Only return Activity results that have Comments
+`withImage`                         | Only return Activity results that have an Image Attachment
+`withVideo`                         | Only return Activity results that have a Video Attachment
+`withAudio`                         | Only return Activity results that have an Audio Attachment
+`withMedia`                         | Only return Activity results that have any kind of Media Attachment
+`withoutMedia`                      | Exclude Activity items without any kind of Media Attachment from the results 
+`isPublic`                          | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_PUBLIC` as `visibleToStandardAcl` 'circle' type.`
+`withInteractionWith(displayNames)` | Only return Activity items that have some form of interaction with users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
+`withCommentBy(displayNames)`       | Only return Activity items as results when they have Comments by any of the users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
+`urlFromDomain(domains)`            | Only return Activity results with url items that match any of the specified `domains`. `domains` can be either a string, or an array of strings.
+`sort_by_creation_time`             | Sort results by the Activity's `creationTime`.
+`sort_by_update_time`               | Sort results by the Activity's `updateTime`.
+`sort_by_last_modified`             | Alias for `sort_by_update_time`.
+`sort_by_url`                       | Sort results by the Activity's `url` item.
+`sort_activity_log_by_ts`           | Sort ActivityLog items by their `timestampMs` timestamp item.
 
 #### Examples
 Return just the activities that are marked as 'public', and have comments by a user whose displayName is "FiXato", and sort the results by the creation time of the Actvity:
