@@ -9,25 +9,30 @@ This repository will hopefully provide some of those tools.
 
 ## Extract files from a Zip/Zip64 archive
 If your Zip-archive is greater than 2GB, and has to be extracted on a platform that doesn't support extracting zip64 files natively, I suggest you install [p7zip](http://p7zip.sourceforge.net/), a port of [7-Zip](https://www.7-zip.org/) for POSIX systems. On macOS the easiest would be to install it through [Homebrew](https://brew.sh) with `brew install p7zip`. Once (p)7-Zip has been installed, you can extract all files while retaining their directory structure with:
-
-`7z x takeout-20181025T124927Z-001.zip`
+```bash
+7z x takeout-20181025T124927Z-001.zip
+```
 
 If you want to just extract the JSON files, you can use this instead:
-
-`7z x takeout-20181025T124927Z-001.zip '*.json' -r`
+```bash
+7z x takeout-20181025T124927Z-001.zip '*.json' -r
+```
 
 To extract them to a different directory (while retaining their directory structure):
-
-`7z x takeout-20181025T124927Z-001.zip '*.json' -r -o/path/to/output/dir/`
+```bash
+7z x takeout-20181025T124927Z-001.zip '*.json' -r -o/path/to/output/dir/
+```
 
 To extract them to a different directory (without creating sub-directories):
-
-`7z e takeout-20181025T124927Z-001.zip '*.json' -r -o/path/to/output/dir/`
-
+```bash
+7z e takeout-20181025T124927Z-001.zip '*.json' -r -o/path/to/output/dir/
+```
 
 Extract all *.json, *.html, *.csv, *.vcf and *.ics files from multi-part Zip-archives
 
-`7z x -an -ai'!takeout-20181111T153533Z-00*.zip' '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -oextracted/2018-11-11/`
+```bash
+7z x -an -ai'!takeout-20181111T153533Z-00*.zip' '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -oextracted/2018-11-11/
+```
 
 Explanation of commonly used arguments and flags for `7z` command:
 
@@ -57,13 +62,16 @@ For instance, it will allow you to limit your Activity data to just public posts
 
 ### Combine all the JSON activity files into a single file
 It's useful to combine all the separate JSON activity files into a single JSON file:
-
-`jq -s '.' "Takeout/Google+ Stream/Posts/*.json" > combined_activities.json`
+```bash
+jq -s '.' "Takeout/Google+ Stream/Posts/*.json" > combined_activities.json
+```
 
 This way you can directly use this single file for your future `jq` filter commands.
 
 ### How to use the library
-`jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools";.' /path/to/combined_activities.json`
+```bash
+jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . ' /path/to/combined_activities.json
+```
 
 You specify the directory in which the `plexodus-tools.jq` library is located with: `-L /path/to/Plexodus-Tools/` and then load it by specifying `include "plexodus-tools";` before your actual jq query.
 
@@ -89,11 +97,15 @@ Filter Name | Description
 #### Examples
 Return just the activities that are marked as 'public', and have comments by a user whose displayName is "FiXato", and sort the results by the creation time of the Actvity:
 
-`jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools";.|isPublic|withCommentBy("FiXato")|sort_by_creation_time' combined_activities.json`
+```bash
+jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | isPublic | withCommentBy("FiXato") | sort_by_creation_time' combined_activities.json
+```
 
 Return just the activities that have any kind of interaction with a users whose displayName is either "FiXato" or "Filip H.F. Slagter", have some form of media attachment, and sort the results by the last modified (updateTime) time of the Actvity:
 
-`jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools";.|withInteractionWith(["FiXato", "Filip H.F. Slagter"])|with_media|sort_by_last_modified' combined_activities.json`
+```bash
+jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | withInteractionWith(["FiXato", "Filip H.F. Slagter"]) | with_media | sort_by_last_modified' combined_activities.json
+```
 
 ## Export to other formats
 Some of the other tools will assist in converting the (filtered) data to other formats, such as for instance HTML, or possibly Atom of json-ld, for import into other platforms.
@@ -103,11 +115,15 @@ Some of the other tools will assist in converting the (filtered) data to other f
 
 Just the last file extension:
 
-`7z l -an -ai'!takeout-20181111T153533Z-00*.zip'| gsed -E 's/\s+/ /g' | gcut -d' ' -f1,2,3,4,5 --complement | ggrep -E -o '\.([^.]+)$' | sort -u`
+```bash
+7z l -an -ai'!takeout-20181111T153533Z-00*.zip' | gsed -E 's/\s+/ /g' | gcut -d' ' -f1,2,3,4,5 --complement | ggrep -E -o '\.([^.]+)$' | sort -u
+```
 
 Up to the last 3 file extensions, of which the first 2 can be at most 4 characters long, while the last (primary) file extension can be of arbitrary length:
 
-`7z l -an -ai'!takeout-20181111T153533Z-00*.zip'| gsed -E 's/\s+/ /g' | gcut -d' ' -f1,2,3,4,5 --complement | ggrep -E -o '(\.[^.]{1,4}){0,2}\.([^.]+)$' | sort -u`
+```bash
+7z l -an -ai'!takeout-20181111T153533Z-00*.zip' | gsed -E 's/\s+/ /g' | gcut -d' ' -f1,2,3,4,5 --complement | ggrep -E -o '(\.[^.]{1,4}){0,2}\.([^.]+)$' | sort -u
+```
 
 _Note: I'm using `gsed`, `gcut` and `ggrep` here to indicate I'm using the GNU versions of the utilities, rather than the BSD versions supplied by macOS. These versions can be installed (and linked with `g`-prefixes) through Homebrew on macOS. For instance with `brew install sed cut grep`. On other platforms such as Linux and Windows Cygwin, you're likely installing the GNU versions anyway._
 
