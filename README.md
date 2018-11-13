@@ -81,7 +81,7 @@ Filter Name                         | Description
 `withAudio`                         | Only return Activity results that have an Audio Attachment
 `withMedia`                         | Only return Activity results that have any kind of Media Attachment
 `withoutMedia`                      | Exclude Activity items without any kind of Media Attachment from the results 
-`isPublic`                          | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_PUBLIC` as `visibleToStandardAcl` 'circle' type.`
+`isPublic`                          | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_PUBLIC` as `visibleToStandardAcl` 'circle' type.<br/> Note that this might not (yet) include posts that were posted to public Collections.
 `withInteractionWith(displayNames)` | Only return Activity items that have some form of interaction with users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
 `withCommentBy(displayNames)`       | Only return Activity items as results when they have Comments by any of the users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
 `urlFromDomain(domains)`            | Only return Activity results with url items that match any of the specified `domains`. `domains` can be either a string, or an array of strings.
@@ -92,21 +92,17 @@ Filter Name                         | Description
 `sort_activity_log_by_ts`           | Sort ActivityLog items by their `timestampMs` timestamp item.
 
 #### Examples
-Return just the activities that are marked as 'public', and have comments by a user whose displayName is "FiXato", and sort the results by the creation time of the Actvity:
+Return just the activities that are marked as 'public', and have comments by a user whose displayName is `FiXato`, and sort the results by the creation time of the Actvity:
 
 ```bash
 jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | isPublic | withCommentBy("FiXato") | sort_by_creation_time' combined_activities.json
 ```
 
-Return just the activities that have any kind of interaction with a users whose displayName is either "FiXato" or "Filip H.F. Slagter", have some form of media attachment, and sort the results by the last modified (updateTime) time of the Actvity:
+Return just the activities that have any kind of interaction with a users whose displayName is either `FiXato` or `Filip H.F. Slagter`, have some form of media attachment, and sort the results by the last modified (updateTime) time of the Actvity:
 
 ```bash
 jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | withInteractionWith(["FiXato", "Filip H.F. Slagter"]) | with_media | sort_by_last_modified' combined_activities.json
 ```
-
-## Export to other formats
-Some of the other tools will assist in converting the (filtered) data to other formats, such as for instance HTML, or possibly Atom of json-ld, for import into other platforms.
-
 
 ## Get all file extensions from archives
 
@@ -123,6 +119,10 @@ Up to the last 3 file extensions, of which the first 2 can be at most 4 characte
 ```
 
 _Note: I'm using `gsed`, `gcut` and `ggrep` here to indicate I'm using the GNU versions of the utilities, rather than the BSD versions supplied by macOS. These versions can be installed (and linked with `g`-prefixes) through Homebrew on macOS. For instance with `brew install sed cut grep`. On other platforms such as Linux and Windows Cygwin, you're likely installing the GNU versions anyway._
+
+## Export to other formats
+Some of the other tools will assist in converting the (filtered) data to other formats, such as for instance HTML, or possibly Atom of json-ld, for import into other platforms.
+
 
 ## License
 This project is [licensed under the terms of the GPLv3 license](LICENSE).
