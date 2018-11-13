@@ -34,27 +34,23 @@ Extract all *.json, *.html, *.csv, *.vcf and *.ics files from multi-part Zip-arc
 7z x -an -ai'!takeout-20181111T153533Z-00*.zip' '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -oextracted/2018-11-11/
 ```
 
-Explanation of commonly used arguments and flags for `7z` command:
+### Explanation of commonly used arguments and flags for `7z` command:
 
-```
-  e eXtract archive into current folder, *without* retaining folder structure.
-  x eXtract archive while retaining folder structure.
-  t Test (matched) contents of archive.
-  l List (matched) contents of archive.
-  -an No Archive Name matching. Recommended since we're doing a 'wildcard' archive match with -ai!.
-  -ai Use Archive Include to define the input archives.
-      We're wrapping the (masked/wildcarded) filename in quotes to prevent shell interpretation of the exclamation (!) mark.
-      The filename is prefixed with an exclamation (!) mark to allow for wildcards with the asterisk (*) character.
-  '*.json'  apply archive operation (eXtract) on archived files matching '*.json' (JavaScript Object Notation) filename pattern.
-  '*.html'  apply archive operation (eXtract) on archived files matching '*.html' (HyperText Markup Language) filename pattern.
-  '*.csv' apply archive operation (eXtract) on archived files matching '*.csv' (Comma Separated Values) filename pattern.
-  '*.vcf' apply archive operation (eXtract) on archived files matching '*.vcf' (Virtual Contact File vCards) filename pattern.
-  '*.ics' apply archive operation (eXtract) on archived files matching '*.ics' (Internet Calendaring and Scheduling) filename pattern.
-  -r  Recurse through the archive. Needed to match the wildcard filename patterns through the entire archive.
-  -o  Specify Output path. Files will be extracted with this folder as their root folder.
-      It should be directly followed by the path; no space between the flag (-o) and the path (extracted/2018-11-11).
-      If the path does not exist yet, it will be automatically created.
-```
+Argument          | Explanation
+-----------------:|:-----------------
+`e`               | eXtract archive into current folder, *without* retaining folder structure.
+`x`               | eXtract archive while retaining folder structure.
+`t`               | Test (matched) contents of archive.
+`l`               | List (matched) contents of archive.
+`-an`             | No Archive Name matching. Recommended since we're doing a 'wildcard' archive match with `-ai!`.
+`-ai`             | Use Archive Include to define the input archives.<br/> We're wrapping the (masked/wildcarded) filename in quotes to prevent shell interpretation of the exclamation (!) mark.<br/> The filename is prefixed with an exclamation (`!`) mark to allow for wildcards with the asterisk (`*`) character.
+`-r`              | Recurse through the archive. Needed to match the wildcard filename patterns through the entire archive.
+`-o`              | Specify Output path. Files will be extracted with this folder as their root folder.<br/> It should be directly followed by the path; no space between the flag (`-o`) and the path (`extracted/2018-11-11`).<br/> If the path does not exist yet, it will be automatically created.
+`*.json`          | apply archive operation on archived files matching `*.json` (JavaScript Object Notation) filename pattern.
+`*.html`          | apply archive operation on archived files matching `*.html` (HyperText Markup Language) filename pattern.
+`*.csv`           | apply archive operation on archived files matching `*.csv` (Comma Separated Values) filename pattern.
+`*.vcf`           | apply archive operation on archived files matching `*.vcf` (Virtual Contact File vCards) filename pattern.
+`*.ics`           | apply archive operation on archived files matching `*.ics` (Internet Calendaring and Scheduling) filename pattern.
 
 ## Filtering JSON data with a jq library
 One of those tools is [plexodus-tools.jq](plexodus-tools.jq), a library of filter methods for the excellent commandline JSON processor [jq](https://github.com/stedolan/jq). With the library you'll be able to chain filters and sort methods to limit your Google+ Takeout JSON files to a subset of data you can then pass on to other tools or services.
