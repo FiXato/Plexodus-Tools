@@ -28,7 +28,7 @@ To extract them to a different directory (without creating sub-directories):
 7z e takeout-20181025T124927Z-001.zip '*.json' -r -o/path/to/output/dir/
 ```
 
-Extract all *.json, *.html, *.csv, *.vcf and *.ics files from multi-part Zip-archives
+Extract all `*.json`, `*.html`, `*.csv`, `*.vcf` and `*.ics` files from multi-part Zip-archives:
 
 ```bash
 7z x -an -ai'!takeout-20181111T153533Z-00*.zip' '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -oextracted/2018-11-11/
