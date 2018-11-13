@@ -28,6 +28,15 @@ def withInteractionWith(displayNames):
 def withCommentBy(displayNames):
   [.[]?|select(.comments?|..|.author?.displayName?| IN(([displayNames]|flatten)[]))]|not_empty;
 
+def fromCollection(collectionDisplayNames):
+  [.[]?|select(.postAcl.collectionAcl?.collection?.displayName?| IN(([collectionDisplayNames]|flatten)[]))]|not_empty;
+
+def fromCollectionWithResourceName(resourceNames):
+  [.[]?|select(.postAcl.collectionAcl?.collection?.resourceName?| IN(([resourceNames]|flatten)[]))]|not_empty;
+
+def fromCollectionWithResourceId(resourceIds):
+  [.[]?|select(.postAcl.collectionAcl?.collection?.resourceName?| IN(([resourceIds]|flatten|map("collections/\(.)"))[]))]|not_empty;
+
 def urlFromDomain(domains):
   [.[]|select(..|.url?|sub("^https?://(?<domain>[^/]+).*"; .domain)?| IN(([domains]|flatten)[]))];
 

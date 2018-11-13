@@ -91,6 +91,9 @@ Filter Name                         | Description
 `withInteractionWith(displayNames)` | Only return Activity items that have some form of interaction with users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
 `withCommentBy(displayNames)`       | Only return Activity items as results when they have Comments by any of the users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
 `urlFromDomain(domains)`            | Only return Activity results with url items that match any of the specified `domains`. `domains` can be either a string, or an array of strings.
+`fromCollection(displayNames)`| Only return Activity results that were posted to a Collection of which the `displayName` is an exact match for one of the specified displayNames. The supplied `displayNames` can be either a string, or an array of strings. Note that collections by different owners could have the same name. If you only want to match activities in a specific collection, you'll have to find its resourceName and use that with the `fromCollectionWithResourceName(resourceNames)` filter instead.
+`fromCollectionWithResourceName(resourceNames)`| Similar to `fromCollection`, but rather than compare to the `displayName` of the Collection, compares items to the unique `resourceName` instead. 
+`fromCollectionWithResourceId(resourceNames)`| Similar to `fromCollectionWithResourceNames`, but only needs a `resourceId` rather that the `resourceName`; i.e. it doesn't need the `collections/` prefix.
 `sort_by_creation_time`             | Sort results by the Activity's `creationTime`.
 `sort_by_update_time`               | Sort results by the Activity's `updateTime`.
 `sort_by_last_modified`             | Alias for `sort_by_update_time`.
@@ -108,6 +111,12 @@ Return just the activities that have any kind of interaction with a users whose 
 
 ```bash
 jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | withInteractionWith(["FiXato", "Filip H.F. Slagter"]) | with_media | sort_by_last_modified' combined_activities.json
+```
+
+Return just the activities that were posted to a Collection with the name `Google Plus Revisited` and sort by their creation time:
+
+```bash
+jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | fromCollection("Google Plus Revisited") | sort_by_creation_time' combined_activities.json
 ```
 
 ## Get all file extensions from archives
