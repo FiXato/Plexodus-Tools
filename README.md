@@ -24,6 +24,33 @@ To extract them to a different directory (without creating sub-directories):
 
 `7z e takeout-20181025T124927Z-001.zip '*.json' -r -o/path/to/output/dir/`
 
+
+Extract all *.json, *.html, *.csv, *.vcf and *.ics files from multi-part Zip-archives
+
+`7z x -an -ai'!takeout-20181111T153533Z-00*.zip' '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -oextracted/2018-11-11/`
+
+Explanation of commonly used arguments and flags for `7z` command:
+
+```
+  e eXtract archive into current folder, *without* retaining folder structure.
+  x eXtract archive while retaining folder structure.
+  t Test (matched) contents of archive.
+  l List (matched) contents of archive.
+  -an No Archive Name matching. Recommended since we're doing a 'wildcard' archive match with -ai!.
+  -ai Use Archive Include to define the input archives.
+      We're wrapping the (masked/wildcarded) filename in quotes to prevent shell interpretation of the exclamation (!) mark.
+      The filename is prefixed with an exclamation (!) mark to allow for wildcards with the asterisk (*) character.
+  '*.json'  apply archive operation (eXtract) on archived files matching '*.json' (JavaScript Object Notation) filename pattern.
+  '*.html'  apply archive operation (eXtract) on archived files matching '*.html' (HyperText Markup Language) filename pattern.
+  '*.csv' apply archive operation (eXtract) on archived files matching '*.csv' (Comma Separated Values) filename pattern.
+  '*.vcf' apply archive operation (eXtract) on archived files matching '*.vcf' (Virtual Contact File vCards) filename pattern.
+  '*.ics' apply archive operation (eXtract) on archived files matching '*.ics' (Internet Calendaring and Scheduling) filename pattern.
+  -r  Recurse through the archive. Needed to match the wildcard filename patterns through the entire archive.
+  -o  Specify Output path. Files will be extracted with this folder as their root folder.
+      It should be directly followed by the path; no space between the flag (-o) and the path (extracted/2018-11-11).
+      If the path does not exist yet, it will be automatically created.
+```
+
 ## Filtering JSON data with a jq library
 One of those tools is [plexodus-tools.jq](plexodus-tools.jq), a library of filter methods for the excellent commandline JSON processor [jq](https://github.com/stedolan/jq). With the library you'll be able to chain filters and sort methods to limit your Google+ Takeout JSON files to a subset of data you can then pass on to other tools or services.
 For instance, it will allow you to limit your Activity data to just public posts, or those with comments or other interactions with one or more specific users.
@@ -71,6 +98,18 @@ Return just the activities that have any kind of interaction with a users whose 
 ## Export to other formats
 Some of the other tools will assist in converting the (filtered) data to other formats, such as for instance HTML, or possibly Atom of json-ld, for import into other platforms.
 
+
+## Get all file extensions from archives
+
+Just the last file extension:
+
+`7z l -an -ai'!takeout-20181111T153533Z-00*.zip'| gsed -E 's/\s+/ /g' | gcut -d' ' -f1,2,3,4,5 --complement | ggrep -E -o '\.([^.]+)$' | sort -u`
+
+Up to the last 3 file extensions, of which the first 2 can be at most 4 characters long, while the last (primary) file extension can be of arbitrary length:
+
+`7z l -an -ai'!takeout-20181111T153533Z-00*.zip'| gsed -E 's/\s+/ /g' | gcut -d' ' -f1,2,3,4,5 --complement | ggrep -E -o '(\.[^.]{1,4}){0,2}\.([^.]+)$' | sort -u`
+
+_Note: I'm using `gsed`, `gcut` and `ggrep` here to indicate I'm using the GNU versions of the utilities, rather than the BSD versions supplied by macOS. These versions can be installed (and linked with `g`-prefixes) through Homebrew on macOS. For instance with `brew install sed cut grep`. On other platforms such as Linux and Windows Cygwin, you're likely installing the GNU versions anyway._
 
 ## License
 This project is [licensed under the terms of the GPLv3 license](LICENSE).
