@@ -62,6 +62,12 @@ It's useful to combine all the separate JSON activity files into a single JSON f
 jq -s '.' "Takeout/Google+ Stream/Posts/*.json" > combined_activities.json
 ```
 
+If you run into the 'argument list too long' error, you can instead use this solution:
+```bash
+gfind 'Takeout/Google+ Stream/Posts/' -iname '*.json' -exec cat {} + | jq -s '.' > combined_activities.json
+```
+_(Using `gfind` rather than `find` to indicate I'm using GNU's `find` which I've installed through Homebrew, rather than the default BSD `find` available on macOS._
+
 This way you can directly use this single file for your future `jq` filter commands.
 
 ### How to use the library
