@@ -140,7 +140,7 @@ jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | from_collection("G
 
 Get a list of all the unique Circle types in your JSON archive:
 ```bash
-jq -L$HOME/.jq/library 'include "plexodus-tools";get_all_circle_types' all_activities_2011-2018.json
+jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools";get_all_circle_types' combined_activities.json
 ```
 
 The result of this is likely:
