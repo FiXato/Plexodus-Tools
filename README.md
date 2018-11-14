@@ -81,42 +81,76 @@ You specify the directory in which the `plexodus-tools.jq` library is located wi
 Filter Name                         | Description
 -----------------------------------:| :-----------------------------------
 `not_empty`                         | Exclude empty results
-`withComments`                      | Only return Activity results that have Comments
-`withImage`                         | Only return Activity results that have an Image Attachment
-`withVideo`                         | Only return Activity results that have a Video Attachment
-`withAudio`                         | Only return Activity results that have an Audio Attachment
-`withMedia`                         | Only return Activity results that have any kind of Media Attachment
-`withoutMedia`                      | Exclude Activity items without any kind of Media Attachment from the results 
-`isPublic`                          | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_PUBLIC` as `visibleToStandardAcl` 'circle' type.<br/> Note that this might not (yet) include posts that were posted to public Collections.
-`withInteractionWith(displayNames)` | Only return Activity items that have some form of interaction with users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
-`withCommentBy(displayNames)`       | Only return Activity items as results when they have Comments by any of the users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
-`urlFromDomain(domains)`            | Only return Activity results with url items that match any of the specified `domains`. `domains` can be either a string, or an array of strings.
-`fromCollection(displayNames)`| Only return Activity results that were posted to a Collection of which the `displayName` is an exact match for one of the specified displayNames. The supplied `displayNames` can be either a string, or an array of strings. Note that collections by different owners could have the same name. If you only want to match activities in a specific collection, you'll have to find its resourceName and use that with the `fromCollectionWithResourceName(resourceNames)` filter instead.
-`fromCollectionWithResourceName(resourceNames)`| Similar to `fromCollection`, but rather than compare to the `displayName` of the Collection, compares items to the unique `resourceName` instead. 
-`fromCollectionWithResourceId(resourceNames)`| Similar to `fromCollectionWithResourceNames`, but only needs a `resourceId` rather that the `resourceName`; i.e. it doesn't need the `collections/` prefix.
-`sort_by_creation_time`             | Sort results by the Activity's `creationTime`.
-`sort_by_update_time`               | Sort results by the Activity's `updateTime`.
-`sort_by_last_modified`             | Alias for `sort_by_update_time`.
-`sort_by_url`                       | Sort results by the Activity's `url` item.
-`sort_activity_log_by_ts`           | Sort ActivityLog items by their `timestampMs` timestamp item.
+`with_comments`                  | Only return Activity results that have Comments
+`without_comments`            | Only return Activity results that lack any Comments
+`with_image`                       | Only return Activity results that have an Image Attachment
+`with_video`                       | Only return Activity results that have a Video Attachment
+`with_audio`                       | Only return Activity results that have an Audio Attachment
+`with_media`                       | Only return Activity results that have any kind of Media Attachment
+`without_media`                 | Exclude Activity items without any kind of Media Attachment from the results 
+`has_legacy_acl`               | Only return Activity results whose `postAcl` contains an `isLegacyAcl` item.
+`has_collection_acl`        | Only return Activity results whose `postAcl` contains a `collectionAcl` item.
+`has_community_acl`          | Only return Activity results whose `postAcl` contains a `communityAcl` item.
+`has_event_acl`                  | Only return Activity results whose `postAcl` contains an `eventAcl` item.
+`has_circle_acl`                | Only return Activity results whose `postAcl`.`visibleToStandardAcl` contains a `circles` item.
+`has_public_circles_acl` | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_PUBLIC` as `visibleToStandardAcl` 'circle' type.
+`is_public`                          | For now an alias for `has_public_circles_acl`.<br/> Note that this might not (yet) include posts that were posted to public Collections or publicly accessible Communities; this may change in the future.
+`has_extended_circles_acl` | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_EXTENDED_CIRCLES` as `visibleToStandardAcl` 'circle' type. These are posts that were set to only be visible to your 'Extended Circles'.
+`has_own_circles_acl`       | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_YOUR_CIRCLES` as `visibleToStandardAcl` 'circle' type. These are posts that were set to only be visible to your 'Your Circles'.
+`has_your_circles_acl`     | Alias for `has_own_circles_acl`.
+`with_interaction_with(displayNames)` | Only return Activity items that have some form of interaction with users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
+`with_comment_by(displayNames)`   | Only return Activity items as results when they have Comments by any of the users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
+`url_from_domain(domains)`            | Only return Activity results with url items that match any of the specified `domains`. `domains` can be either a string, or an array of strings.
+`from_collection(displayNames)`| Only return Activity results that were posted to a Collection of which the `displayName` is an exact match for one of the specified displayNames. The supplied `displayNames` can be either a string, or an array of strings. Note that collections by different owners could have the same name. If you only want to match activities in a specific collection, you'll have to find its resourceName and use that with the `from_collection_with_resource_name(resourceNames)` filter instead.
+`from_collection_with_resource_name(resourceNames)`| Similar to `from_collection`, but rather than compare to the `displayName` of the Collection, compares items to the unique `resourceName` instead. 
+`from_collection_with_resource_id(resourceNames)`| Similar to `from_collection_with_resource_name`, but only needs a `resourceId` rather that the `resourceName`; i.e. it doesn't need the `collections/` prefix.
+`sort_by_creation_time`          | Sort results by the Activity's `creationTime`.
+`sort_by_update_time`              | Sort results by the Activity's `updateTime`.
+`sort_by_last_modified`          | Alias for `sort_by_update_time`.
+`sort_by_url`                             | Sort results by the Activity's `url` item.
+`sort_activity_log_by_ts`      | Sort ActivityLog items by their `timestampMs` timestamp item.
+`get_circles`                            | Get list of all unique circles items from the current results.
+`get_all_circle_types`           | Get list of all unique circle types from the current results.
+`get_all_circle_display_names`| Get list of all unique circle displayNames from the current results.
+`get_all_circle_resource_names`| Get list of all unique circle resourceNames from the current results.
+`get_all_acl_keys`                  | Get list of all unique Access Control List keys from the current results.
+`get_all_community_names`     | Get list of all unique Community displayNames from the current results.
+`get_all_collection_names`   | Get list of all unique Collection displayNames from the current results.
+`get_all_event_resource_names` | Get list of all unique Event resourceNames from the current results.
+`get_all_media_content_types`| Get list of all unique media content-types from the current results.
 
 #### Examples
 Return just the activities that are marked as 'public', and have comments by a user whose displayName is `FiXato`, and sort the results by the creation time of the Actvity:
 
 ```bash
-jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | isPublic | withCommentBy("FiXato") | sort_by_creation_time' combined_activities.json
+jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | is_public | with_comment_by("FiXato") | sort_by_creation_time' combined_activities.json
 ```
 
 Return just the activities that have any kind of interaction with a users whose displayName is either `FiXato` or `Filip H.F. Slagter`, have some form of media attachment, and sort the results by the last modified (updateTime) time of the Actvity:
 
 ```bash
-jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | withInteractionWith(["FiXato", "Filip H.F. Slagter"]) | with_media | sort_by_last_modified' combined_activities.json
+jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | with_interaction_with(["FiXato", "Filip H.F. Slagter"]) | with_media | sort_by_last_modified' combined_activities.json
 ```
 
 Return just the activities that were posted to a Collection with the name `Google Plus Revisited` and sort by their creation time:
 
 ```bash
-jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | fromCollection("Google Plus Revisited") | sort_by_creation_time' combined_activities.json
+jq -L /path/to/Plexodus-Tools/ 'include "plexodus-tools"; . | from_collection("Google Plus Revisited") | sort_by_creation_time' combined_activities.json
+```
+
+Get a list of all the unique Circle types in your JSON archive:
+```bash
+jq -L$HOME/.jq/library 'include "plexodus-tools";get_all_circle_types' all_activities_2011-2018.json
+```
+
+The result of this is likely:
+```json
+[
+  "CIRCLE_TYPE_EXTENDED_CIRCLES",
+  "CIRCLE_TYPE_PUBLIC",
+  "CIRCLE_TYPE_USER_CIRCLE",
+  "CIRCLE_TYPE_YOUR_CIRCLES"
+]
 ```
 
 ## Get all file extensions from archives
