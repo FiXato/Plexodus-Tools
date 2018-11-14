@@ -345,7 +345,7 @@ In JSON this would be equivalent to:
 ## Legend
 
 * `ACTIVITY_USER_ID` is the numeric Person ID of the user who posts the Activity;
-* `ACTIVITY_ID` a unique identifier consisting of alpha-numeric characters (`[a-zA-Z0-9]`);
+* `ACTIVITY_ID` a unique identifier consisting of alpha-numeric characters (`[a-zA-Z0-9]`); do note that this id is not the same as the `Activity#id` used by the [Google+ REST API](https://developers.google.com/+/web/api/rest/latest/activities). In fact, none of the `id`s and `resourceName`s supplied in the JSON file seem to be usable through the API.
 * `USER_ID` is the numeric Person ID of the user within the scope of the current content. For instance, within the scope of 'comments', it is the Person ID of the user who posted the comment;
 * `DISPLAY_NAME_WITHOUT_NICKNAME` is the display name of the profile, however the nickname does not seem to be included, even if the user had set his nickname to be included within his display name. 
 * `HTML_FORMATTED_CONTENT` is the content (post's or comment's body) formatted using HTML, rather than containing Google's own markdown-like markup/formatting language.
