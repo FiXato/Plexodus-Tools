@@ -20,17 +20,16 @@ def withoutMedia:
   [.[]|select(.media == null)];
 
 def isPublic:
-  [.[]|select(.postAcl.visibleToStandardAcl.circles[0]["type"] == "CIRCLE_TYPE_PUBLIC")];
+  [.[]|select(.postAcl.visibleToStandardAcl.circles|not_empty|any(.type == "CIRCLE_TYPE_PUBLIC"))];
 
 def hasExtendedCirclesAcl:
-  [.[]|select(.postAcl.visibleToStandardAcl.circles[0]["type"] == "CIRCLE_TYPE_EXTENDED_CIRCLES")];
+  [.[]|select(.postAcl.visibleToStandardAcl.circles|not_empty|any(.type == "CIRCLE_TYPE_EXTENDED_CIRCLES"))];
 
 def hasOwnCirclesAcl:
-  [.[]|select(.postAcl.visibleToStandardAcl.circles[0]["type"] == "CIRCLE_TYPE_YOUR_CIRCLES")];
+  [.[]|select(.postAcl.visibleToStandardAcl.circles|not_empty|any(.type == "CIRCLE_TYPE_YOUR_CIRCLES"))];
 
-#FIXME: look for any of the circles, rather than the first.
 def hasUserCirclesAcl:
-  [.[]|select(.postAcl.visibleToStandardAcl.circles[0]["type"] == "CIRCLE_TYPE_USER_CIRCLE")];
+  [.[]|select(.postAcl.visibleToStandardAcl.circles|not_empty|any(.type == "CIRCLE_TYPE_USER_CIRCLE"))];
 
 def withInteractionWith(displayNames):
   [.[]?|select(..|.displayName?, .authorDisplayName?| IN(([displayNames]|flatten)[]))]|not_empty|unique;
