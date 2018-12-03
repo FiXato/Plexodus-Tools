@@ -15,6 +15,29 @@ gppe_options.set_from_argv(:errors_filename, '--errors-filename') # relative to 
 gppe_options.set_from_argv(:client_id_filename, '--client-id-filename') # relative to data directory
 gppe_options.set_from_argv(:token_store_filename, '--token-store-filename') # relative to data directory
 
+def section_header(header_text)
+  output = ['']
+  output << section_separator
+  output << header_text
+  output << section_separator('-')
+  output.join("\n")
+end
+
+def section_separator(str = '=')
+  str*80
+end
+
+def indent(indent_level: 1, content: nil)
+  output = ' ' * indent_level
+  if content.kind_of?(Array)
+    output = content.map{|str| "#{output}#{str}" }
+  else
+    output += content.to_s
+  end
+  output
+end
+
+Site.restore_known_sites(filepath: File.join('data', 'sites.yaml'), format: :yaml)
 
 gppe = GooglePlusProfileExporter.new(**gppe_options)
 
@@ -24,10 +47,13 @@ if (profile_url = cli_option('--lookup-profile'))
 end
 
 if cli_flag('--parse-takeout-circles')
+  puts section_header('Parsing Takeout Circles:')
   gppe.add_gplus_people_api_data_to_takeout_circle_files
+  puts section_separator
 end
 
 if cli_flag('--users-with-missing-profiles')
+  puts section_header('Users with Missing Profiles:')
   if gppe.users.empty?
     puts "No users found. Maybe run --parse-takeout-circles first?"
   else
@@ -35,9 +61,11 @@ if cli_flag('--users-with-missing-profiles')
     puts "Found #{users_without_profiles.keys.size} users without GPlus profiles:"
     puts users_without_profiles.map{|uid,u|u.display_name}.sort_by{|uname|uname.downcase}
   end
+  puts section_separator
 end
 
 if cli_flag('--users-with-lookup-errors')
+  puts section_header('Users with Lookup Errors:')
   if gppe.users.empty?
     puts "No users found. Maybe run --parse-takeout-circles first?"
   else
@@ -49,6 +77,35 @@ if cli_flag('--users-with-lookup-errors')
       puts users_with_lookup_errors.map{|uid,u|u.display_name}.sort_by{|uname|uname.downcase}
     end
   end
+  puts section_separator
+end
+
+show_urls = cli_flag('--urls-by-site')
+if show_urls || cli_flag('--site-stats')
+  puts section_header('URLs by Platform results:')
+
+  url_items_grouped_by_site = gppe.url_items_grouped_by_site(sort_by: :unique_canonical_urls_count, supported_types: [:undefined, :profile, :blog, :social_media_network])
+  puts "Found #{url_items_grouped_by_site.keys.size} sites: "
+  url_items_grouped_by_site.each do |site_name, url_items|
+    grouped_by_canonical_urls = GooglePlusProfileExporter.group_url_items_by_canonical_url(url_items: url_items, sort_by: :reverse_item_count)
+    total_urls = url_items.size
+    total_unique_urls = grouped_by_canonical_urls.keys.size
+    puts indent(indent_level: 1, content: "— #{site_name} (#{url_items.size} items#{" / #{total_unique_urls} unique items" if total_urls != total_unique_urls})#{':' if show_urls}")
+
+    if show_urls
+      grouped_by_canonical_urls.each do |canonical_url, canonical_url_items|
+        puts indent(indent_level: 2, content: "– #{canonical_url}:") if canonical_url_items.size > 1
+
+        canonical_url_items.each do |url_item|
+          text = url_item.user.display_name
+          text += ", #{url_item.label}" unless url_item.label.downcase == site_name.downcase || url_item.label.downcase == url_item.user.display_name.downcase
+          text += ": #{url_item.value}"
+          puts indent(indent_level: 2 + (canonical_url_items.size > 1 ? 1 : 0), content: text)
+        end
+      end
+    end
+  end
+  puts section_separator
 end
 
 #gppe.store_users # save the default (yaml format)

@@ -13,7 +13,10 @@ require 'pathname'
 
 require_relative 'google_takeout/user.rb'
 require_relative 'google_takeout/circle.rb'
+require_relative 'google_takeout/reference.rb'
+require_relative 'google_takeout/uri_utils.rb'
 require_relative 'error_hash.rb'
+require_relative 'site.rb'
 
 class GooglePlusProfileExporter
   DEBUG   = ENV['DEBUG'] || false
@@ -30,6 +33,7 @@ class GooglePlusProfileExporter
     :logger,
     :data_directory
 
+  #FIXME: use a logger module instead: https://stackoverflow.com/a/23508304 or https://github.com/thisismydesign/easy_logging
   def initialize(
     client_user_id: 'me',
     logger: Logger.new(STDOUT),
@@ -156,6 +160,76 @@ class GooglePlusProfileExporter
 
   def users_with_gplus_lookup_errors
     users_with_api_state(state: :lookup_error, api: :gplus_people)
+  end
+
+  def get_users_by_site
+    users_by_site = {all: Hash.new{|h,k|h[k] = []}, unique: Hash.new{|h,k|h[k] = []}}
+    users.each do |uid, user|
+      user.urls.each do |url|
+        url.extend GoogleTakeout::UriUtils
+        url.uri = (url&.value||url[:value])
+        domain = url.canonical_host
+
+        site_name = Site.find(domain: domain, path: url.uri.path)&.name
+        unless site_name.nil?
+          users_by_site[:all][site_name] << [user, url]
+          users_by_site[:unique][site_name] << [user, url]
+        else
+          users_by_site[:unique][domain] << [user, url]
+        end
+        users_by_site[:all][domain] << [user, url]
+      end
+    end
+    users_by_site
+  end
+
+  def url_items_for_all_users
+    url_items = []
+    users.each do |uid, u|
+      url_items += u.urls.map do |url|
+        url_item = url.dup
+        url_item.extend GoogleTakeout::Reference
+        url_item.user = u
+        url_item.extend GoogleTakeout::UriUtils
+        url_item.uri = url.value
+        url_item
+      end
+    end
+    return url_items
+  end
+
+  def url_items_grouped_by_site(sort_by: nil, supported_types: nil)
+    items = url_items_for_all_users.group_by do |item|
+      domain = item.canonical_host
+      site = Site.find(domain: domain, path: item.uri.path)
+      # binding.pry
+      next if site && supported_types && !supported_types.include?(site.type)
+      site&.name || domain
+    end
+    items.delete(nil)
+
+    case sort_by
+    when :site_name
+      items = items.sort_by{|k,v|k.downcase}
+    when :urls_count
+      items = items.sort_by{|k,v|v.size}
+    when :unique_urls_count
+      items = items.sort_by{|k,v|v.uniq.size}
+    when :unique_canonical_urls_count
+      items = items.sort_by do |k,v|
+        [v.map{|url|url.canonical_url.gsub(/^https?:\/\//,'')}.uniq.size,
+        v.size,
+        k.include?('.').to_s, k]
+      end.reverse.to_h
+    end
+
+    return items
+  end
+
+  def self.group_url_items_by_canonical_url(url_items:, sort_by: nil)
+    url_items_by_canonical_url = url_items.group_by(&:canonical_url)
+    url_items_by_canonical_url = url_items_by_canonical_url.sort_by{|canonical_url, items|items.size}.reverse.to_h if sort_by == :reverse_item_count
+    return url_items_by_canonical_url
   end
 
 protected

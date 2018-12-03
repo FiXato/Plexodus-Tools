@@ -17,6 +17,10 @@ gem 'tilt'
 # Interactive Debugging Interface
 gem 'pry'
 
+# Improved URI support
+gem 'addressable'
+
+
 #gem 'nokogiri'
 #gem 'nokogiri-styles'
 #gem 'slim'
@@ -32,5 +36,4 @@ gem 'pry'
 #gem 'http-cookie'
 #gem 'httpclient'
 #gem 'query_params'
-#gem 'addressable'
 #gem 'mime-types'

@@ -60,6 +60,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  addressable
   clipboard
   ffi
   google-api-client

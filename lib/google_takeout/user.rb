@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
+require 'addressable'
+
 module GoogleTakeout
   KNOWN_APIS = {
     gplus_people: {
@@ -72,14 +74,6 @@ module GoogleTakeout
     def gplus_people_data
       @data[:api][:gplus_people] rescue nil
     end
-    #
-    # def api_data_hash
-    #   api_data_clone = @data[:api].clone
-    #   # We just want pure data, without object classes
-    #   # TODO: see if this still is needed now that I use Oj's :custom mode...
-    #   api_data_clone[:gplus_people] = gplus_people_data.to_h
-    #   return api_data_clone.to_h
-    # end
 
     def from_takeout
       @data[:takeout]
@@ -117,19 +111,17 @@ module GoogleTakeout
       @errors << error_hash
     end
 
-    # def to_hash
-    #   {
-    #     user_id: user_id,
-    #     data: {
-    #       api: api_data_hash,
-    #       takeout: {
-    #         circles: from_takeout[:circles].to_h,
-    #         contacts: from_takeout[:contacts].to_h
-    #       },
-    #       circles: circles.to_h,
-    #       file_references: file_references.to_a
-    #     }
-    #   }
-    # end
+    def urls
+      gplus_people_data&.urls || []
+    end
+
+    def urls_by_site
+      urls.group_by do |url|
+        uri = Addressable::URI.parse(url&.value||url[:value])
+        domain = uri.host.gsub(/^www\./, '')
+        #FIXME: use UriUtils and #canonical_host?
+        Site.find(domain: domain, path: uri.path)&.name||domain
+      end
+    end
   end
 end
