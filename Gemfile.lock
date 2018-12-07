@@ -7,6 +7,7 @@ GEM
     coderay (1.1.2)
     declarative (0.0.10)
     declarative-option (0.1.0)
+    easy_logging (0.4.0)
     faraday (0.15.3)
       multipart-post (>= 1.2, < 3)
     google-api-client (0.25.0)
@@ -62,6 +63,7 @@ PLATFORMS
 DEPENDENCIES
   addressable
   clipboard
+  easy_logging
   ffi
   google-api-client
   googleauth

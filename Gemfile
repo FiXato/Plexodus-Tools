@@ -20,6 +20,8 @@ gem 'pry'
 # Improved URI support
 gem 'addressable'
 
+# Logging
+gem 'easy_logging'
 
 #gem 'nokogiri'
 #gem 'nokogiri-styles'

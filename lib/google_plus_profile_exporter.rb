@@ -8,9 +8,10 @@ require 'clipboard'
 require 'oj'
 require 'yaml'
 require 'pry'
-require 'logger'
 require 'pathname'
+require 'easy_logging'
 
+require_relative 'data_storage/data_storage.rb'
 require_relative 'google_takeout/user.rb'
 require_relative 'google_takeout/circle.rb'
 require_relative 'google_takeout/reference.rb'
@@ -19,7 +20,10 @@ require_relative 'error_hash.rb'
 require_relative 'site.rb'
 
 class GooglePlusProfileExporter
-  DEBUG   = ENV['DEBUG'] || false
+  include EasyLogging
+  include DataStorage
+  
+  DEBUG   = ENV['DEBUG']
   OOB_URI = 'urn:ietf:wg:oauth:2.0:oob'
   Plus    = Google::Apis::PlusV1
 
@@ -30,13 +34,10 @@ class GooglePlusProfileExporter
     :client_user_id,
     :takeout_directory,
     :takeout_circles_directory,
-    :logger,
     :data_directory
 
-  #FIXME: use a logger module instead: https://stackoverflow.com/a/23508304 or https://github.com/thisismydesign/easy_logging
   def initialize(
     client_user_id: 'me',
-    logger: Logger.new(STDOUT),
     data_directory: Pathname.getwd.join('data'),
     takeout_path: Pathname.getwd.join('Takeout'),
     users_filename: 'processed_users.yaml',
@@ -45,7 +46,6 @@ class GooglePlusProfileExporter
     client_id_filename: 'client_id.json'
   )
     @client_user_id     = client_user_id
-    @logger             = logger
     @data_directory     = Pathname.new(File.expand_path(data_directory))
     @takeout_directory  = Pathname.new(File.expand_path(takeout_path))
     @takeout_circles_directory = takeout_directory.join('Google+ Circles')
@@ -290,32 +290,6 @@ protected
     user = GoogleTakeout::User.new(user_id: user_id)
     users[user_id] = user
     return user
-  end
-
-  def read_data_file(filepath:, format: :json)
-    return nil unless File.exist?(filepath)
-    logger.info "Reading data from #{filepath}"
-    if format == :json
-      Oj.load(File.read(filepath), {symbol_keys: true, mode: :custom})
-    elsif format == :yaml
-      YAML.load_file(filepath)
-    else
-      raise "Unsupported Format: #{format}"
-    end
-  end
-
-  def save_data_file(filepath:, data:, format: :json, json_indent: 0)
-    logger.info "Saving data to #{filepath} in #{format.to_s} format"
-
-    if format == :json
-      string = Oj.dump(data, {mode: :custom, indent: json_indent.to_i})
-    elsif format == :yaml
-      string = data.to_yaml
-    else
-      raise "Unsupported data format: #{format}"
-    end
-    # TODO: support backing up data file.
-    File.open(filepath, 'w+') { |f| f.write(string)}
   end
 
   def query_gplus_people_api_for_user_data(user:, person:)

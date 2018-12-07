@@ -1,9 +1,18 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
-require_relative File.join('lib', 'google_plus_profile_exporter.rb')
+require 'fileutils'
 require_relative File.join('lib', 'cli_toolkit', 'cli_toolkit.rb')
-
 extend CliToolkit::CliOptions
+
+require 'easy_logging'
+log_path = (cli_option('--log-file') || 'logs/plexodus-tools.log')
+FileUtils.mkdir_p(File.dirname(log_path)) unless File.exist?(File.dirname(log_path))
+EasyLogging.log_destination = log_path
+EasyLogging.level = ENV['DEBUG'] ? Logger::DEBUG : Logger::Warn
+include EasyLogging
+logger.info "Log level: #{EasyLogging.level}"
+
+require_relative File.join('lib', 'google_plus_profile_exporter.rb')
 
 gppe_options = {}
 gppe_options.extend CliToolkit::CliHash

@@ -3,8 +3,11 @@
 require 'oj'
 require 'yaml'
 require 'addressable'
+require 'easy_logging'
 
 class Site
+  include ::EasyLogging
+
   @@known_sites = {}
 
   attr_reader :name, :domains, :profile_template, :homepage, :api_documentation, :path, :defunct, :type
@@ -56,8 +59,7 @@ class Site
 
   #FIXME: modularise data storage/retrieval
   def self.store_known_sites(filepath:, format: :yaml, json_indent: 0)
-    #FIXME: use Logger instead
-    puts "Saving data to #{filepath} in #{format.to_s} format"
+    logger.info "Saving data to #{filepath} in #{format.to_s} format"
 
     if format == :json
       string = Oj.dump(@@known_sites, {mode: :custom, indent: json_indent.to_i})
@@ -72,8 +74,7 @@ class Site
 
   def self.restore_known_sites(filepath:, format: :yaml)
     return nil unless File.exist?(filepath)
-    #FIXME: use Logger instead
-    puts "Reading data from #{filepath}"
+    logger.info "Reading data from #{filepath}"
     if format == :json
       @@known_sites = Oj.load(File.read(filepath), {symbol_keys: true, mode: :custom})
     elsif format == :yaml
