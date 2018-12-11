@@ -4,9 +4,11 @@ require 'oj'
 require 'yaml'
 require 'addressable'
 require 'easy_logging'
+require_relative 'data_storage/data_storage'
 
 class Site
   include ::EasyLogging
+  extend ::DataStorage
 
   @@known_sites = {}
 
@@ -57,30 +59,11 @@ class Site
     end
   end
 
-  #FIXME: modularise data storage/retrieval
-  def self.store_known_sites(filepath:, format: :yaml, json_indent: 0)
-    logger.info "Saving data to #{filepath} in #{format.to_s} format"
-
-    if format == :json
-      string = Oj.dump(@@known_sites, {mode: :custom, indent: json_indent.to_i})
-    elsif format == :yaml
-      string = @@known_sites.to_yaml
-    else
-      raise "Unsupported data format: #{format}"
-    end
-    # TODO: support backing up data file.
-    File.open(filepath, 'w+') { |f| f.write(string)}
+  def self.store_known_sites(filepath:, format: :yaml, json_indent: 0, auto_append_extension: :auto)
+    save_data_file(filepath: filepath, data: @@known_sites, format: format, json_indent: json_indent, auto_append_extension: auto_append_extension)
   end
 
-  def self.restore_known_sites(filepath:, format: :yaml)
-    return nil unless File.exist?(filepath)
-    logger.info "Reading data from #{filepath}"
-    if format == :json
-      @@known_sites = Oj.load(File.read(filepath), {symbol_keys: true, mode: :custom})
-    elsif format == :yaml
-      @@known_sites = YAML.load_file(filepath)
-    else
-      raise "Unsupported Format: #{format}"
-    end
+  def self.restore_known_sites(filepath:, format: :yaml, auto_append_extension: :auto)
+    @@known_sites = read_data_file(filepath: filepath, format: format, auto_append_extension: auto_append_extension)||{}
   end
 end

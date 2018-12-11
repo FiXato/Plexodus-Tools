@@ -118,7 +118,7 @@ if show_urls || cli_flag('--site-stats')
 end
 
 #gppe.store_users # save the default (yaml format)
-gppe.store_users(format: :json, filepath: gppe.users_file.to_s.gsub(/\.yaml$/,'.json'), json_indent: 2) #Save another copy as json
+gppe.store_users(format: :json, filepath: gppe.users_file, json_indent: 2) #Save another copy as json
 gppe.store_errors
 
 

@@ -40,8 +40,8 @@ class GooglePlusProfileExporter
     client_user_id: 'me',
     data_directory: Pathname.getwd.join('data'),
     takeout_path: Pathname.getwd.join('Takeout'),
-    users_filename: 'processed_users.yaml',
-    errors_filename: 'errors.yaml',
+    users_filename: 'processed_users',
+    errors_filename: 'errors',
     token_store_filename: 'tokens.yaml',
     client_id_filename: 'client_id.json'
   )
