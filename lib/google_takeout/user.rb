@@ -19,6 +19,23 @@ module GoogleTakeout
     # },
   }
   class User
+    extend ::DataStorage
+    class << self
+      attr_accessor :users_filepath
+
+      def users_filepath
+        @users_filepath ||= File.join('data', 'users')
+      end
+
+      def []
+        @users ||= load_users_from_file
+      end
+
+      def load_users_from_file
+        (read_data_file(filepath: users_filepath, format: :yaml, auto_append_extension: :auto) || {})
+      end
+    end
+
     attr_reader :data, :user_id, :api_states
 
     def initialize(user_id: nil)

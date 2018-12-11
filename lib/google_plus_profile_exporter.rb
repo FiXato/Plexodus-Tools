@@ -27,8 +27,7 @@ class GooglePlusProfileExporter
   OOB_URI = 'urn:ietf:wg:oauth:2.0:oob'
   Plus    = Google::Apis::PlusV1
 
-  attr_reader :users_file,
-    :errors_file,
+  attr_reader :errors_file,
     :authorizer,
     :gplus_client,
     :client_user_id,
@@ -49,7 +48,7 @@ class GooglePlusProfileExporter
     @data_directory     = Pathname.new(File.expand_path(data_directory))
     @takeout_directory  = Pathname.new(File.expand_path(takeout_path))
     @takeout_circles_directory = takeout_directory.join('Google+ Circles')
-    @users_file         = data_directory.join(users_filename)
+    GoogleTakeout::User.users_filepath = data_directory.join(users_filename)
     @errors_file        = data_directory.join(errors_filename)
     @token_store_file     = data_directory.join(token_store_filename)
     @client_id_file     = data_directory.join(client_id_filename)
@@ -58,7 +57,7 @@ class GooglePlusProfileExporter
   end
 
   def users
-    @users ||= (read_data_file(filepath: users_file, format: :yaml) || {})
+    @users ||= GoogleTakeout::User[]
   end
 
   def errors
@@ -131,6 +130,10 @@ class GooglePlusProfileExporter
     save_data_file(filepath: circle[:filepath], data: data, format: :json, json_indent: 2)
 
     # binding.pry
+  end
+
+  def users_file
+    GoogleTakeout::User.users_filepath
   end
 
   def store_users(format: :yaml, filepath: users_file, json_indent: 0)
