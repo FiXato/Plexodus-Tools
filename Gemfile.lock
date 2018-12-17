@@ -10,6 +10,7 @@ GEM
     easy_logging (0.4.0)
     faraday (0.15.3)
       multipart-post (>= 1.2, < 3)
+    filesize (0.2.0)
     google-api-client (0.25.0)
       addressable (~> 2.5, >= 2.5.1)
       googleauth (>= 0.5, < 0.7.0)
@@ -32,6 +33,7 @@ GEM
     mime-types (3.2.2)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2018.0812)
+    mimemagic (0.3.2)
     multi_json (1.13.1)
     multipart-post (2.0.0)
     oj (3.7.1)
@@ -45,6 +47,7 @@ GEM
       declarative-option (< 0.2.0)
       uber (< 0.2.0)
     retriable (3.1.2)
+    ruby-magic (0.2.0)
     signet (0.11.0)
       addressable (~> 2.3)
       faraday (~> 0.9)
@@ -65,10 +68,14 @@ DEPENDENCIES
   clipboard
   easy_logging
   ffi
+  filesize
   google-api-client
   googleauth
+  mime-types
+  mimemagic
   oj
   pry
+  ruby-magic
   slim
   tilt
 

@@ -23,6 +23,12 @@ gem 'addressable'
 # Logging
 gem 'easy_logging'
 
+# File metadata
+gem 'filesize'
+gem 'mime-types'
+gem 'mimemagic'
+gem 'ruby-magic'
+
 #gem 'nokogiri'
 #gem 'nokogiri-styles'
 #gem 'slim'
@@ -38,4 +44,3 @@ gem 'easy_logging'
 #gem 'http-cookie'
 #gem 'httpclient'
 #gem 'query_params'
-#gem 'mime-types'

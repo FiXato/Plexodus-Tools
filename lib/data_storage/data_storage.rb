@@ -12,9 +12,9 @@ module DataStorage
 
     logger.info "Reading data from #{filepath_with_extension}"
 
-    if format == :json
+    if format.to_sym == :json
       return Oj.load(File.read(filepath_with_extension), {symbol_keys: true, mode: :custom})
-    elsif format == :yaml
+    elsif format.to_sym == :yaml
       return YAML.load_file(filepath_with_extension)
     else
       raise "Unsupported Format: #{format}"
