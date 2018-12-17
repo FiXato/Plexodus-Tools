@@ -1,5 +1,18 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
+
+# Example usage syntax: 
+# DEBUG=true bundle exec ruby plexodus-tools.rb \
+# --takeout-path "/Volumes/Storage1/Backups/Takeout/extracted/Contacts-Circles-Profiles/2018-11-16/Takeout/" \
+# --users-with-missing-profiles \
+# --users-with-lookup-errors \
+# --site-stats \
+# --urls-by-site \
+# --client-id-filename oauth-client_id.json \
+# --log-file logs/plexodus-tools-`date "+%Y%m%d"`.log \
+# --parse-takeout-circles \
+# --users-filename processed_users-`date "+%Y%m%d"`
+
 require 'fileutils'
 require_relative File.join('lib', 'cli_toolkit', 'cli_toolkit.rb')
 extend CliToolkit::CliOptions
