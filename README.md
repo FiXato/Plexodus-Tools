@@ -3,8 +3,8 @@ A collection of tools to process the Google Plus-related data from Google Takeou
 
 Copyright (C) 2018 Filip H.F. "FiXato" Slagter
 
-## Google+ Shutting down August 2019
-With the [announcement of Google+ shutting its doors for consumers](https://www.blog.google/technology/safety-security/project-strobe/), those of us who've accumulated a large collection of posts and other data over the lifetime of the platform, are in need of tools to process the data archives that Google are providing us through [Google Takeout](https://takeout.google.com), and possibly live data through the Google+ API.
+## Google+ Shutting down April 2019
+With the [announcement of Google+ shutting its doors for consumers](https://www.blog.google/technology/safety-security/project-strobe/), and the [second announcement of Google+ expediting its shutdown](https://www.blog.google/technology/safety-security/expediting-changes-google-plus/), those of us who've accumulated a large collection of posts and other data over the lifetime of the platform, are in need of tools to process the data archives that Google are providing us through [Google Takeout](https://takeout.google.com), and possibly live data through the Google+ API.
 This repository will hopefully provide some of those tools.
 
 ## Extract files from a Zip/Zip64 archive
