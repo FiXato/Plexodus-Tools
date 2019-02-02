@@ -1,6 +1,6 @@
 # CLI tool to archive Google+ Comments frame for Blogger blogs
 
-This tool uses `jq`, `sed`, `curl` and Blogger API V3 (you'll need to get an API key from https://developers.google.com/blogger/docs/3.0/using#APIKey) and the web integration API of Google+ to store the frame of Goofle+ comments locally for a Blogger blog with Google+ comments enabled.
+This tool uses `jq`, `sed`, `curl` and Blogger API V3 (you'll need to get an API key from https://developers.google.com/blogger/docs/3.0/using#APIKey) and the web integration API of Google+ to store the frame of Google+ comments locally for a Blogger blog with Google+ comments enabled.
 
 The scripts rely on the ENV variable BLOGGER_APIKEY to be set to your Blogger v3 API key:  
 `export BLOGGER_APIKEY=aBcDEfGhIJKlMNoPQr283Z`
