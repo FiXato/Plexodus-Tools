@@ -6,9 +6,14 @@ mkdir -p $DATADIR
 stdin=$(cat)
 while read -r post_url
 do
+  domain=$(echo "$post_url"| sed -r 's/https?:\/\/([^/]+)\/.+/\1/gi' -| sed 's/[^-a-z0-9_.]/-/ig' -)
+  #echo "$domain"
   url="$BASE_URL$post_url"
   #echo "$post_url"
   filename=$(echo "$post_url" | sed 's/[^-a-z0-9_.]/-/ig' -)
   #echo $filename
-  curl -s "$url" > "$DATADIR/$filename"
+  mkdir -p "$DATADIR/$domain"
+  path="$DATADIR/$domain/$filename"
+  echo "Storing comments for $post_url to $path"
+  curl "$url" > "$path"
 done <<< $stdin

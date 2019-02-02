@@ -18,8 +18,9 @@ https://your.blogger.blog.example/2019/01/second-blog-title.html
 ```
 
 ### Store Google+ Comments frame for blog post with given URL(s)
-`echo "https://blog.trilemma.com/2019/01/the-wagoners-table.html" |bash store_comments_frame.sh` 
-Files will be stored in ./data/output/
+`echo "https://your.blogger.blog.example/2018/01/blog-title.html" |bash store_comments_frame.sh` 
+
+Files will be stored in ./data/output/your.blogger.blog.example/ with almost all special characters replaced by dashes
 
 ### Everything combined
 ```bash 
