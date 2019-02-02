@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # encoding: utf-8
 DATADIR="./data/output"
-BASE_URL="https://apis.google.com/u/0/_/widget/render/comments?first_party_property=BLOGGER&query="
 mkdir -p $DATADIR
+BASE_URL="https://apis.google.com/u/0/_/widget/render/comments?first_party_property=BLOGGER&query="
 stdin=$(cat)
 
 
