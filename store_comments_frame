@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# encoding: utf-8
+DATADIR="./data/output"
+BASE_URL="https://apis.google.com/u/0/_/widget/render/comments?first_party_property=BLOGGER&query="
+mkdir -p $DATADIR
+stdin=$(cat)
+while read -r post_url
+do
+  url="$BASE_URL$post_url"
+  #echo "$post_url"
+  filename=$(echo "$post_url" | sed 's/[^-a-z0-9_.]/-/ig' -)
+  #echo $filename
+  curl -s "$url" > "$DATADIR/$filename"
+done <<< $stdin

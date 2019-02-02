@@ -1,0 +1,22 @@
+## CLI tool to archive Google+ Comments frame for Blogger blogs
+
+This tool uses `jq`, `sed`, `curl` and Blogger API V3 (you'll need to get an API key from https://developers.google.com/blogger/docs/3.0/using#APIKey) and the web integration API of Google+ to store the frame of Goofle+ comments locally for a Blogger blog with Google+ comments enablrd.
+
+### Get Blog ID for Blog URL
+`sh ./getblogid.sh https:://your.blogger.blog.example #=> 12345`
+
+### Get URLs for sll blog posts for Blogger blog with given id
+`bash ./getposturls.sh 1234`
+```
+https://your.blogger.blog.example/2018/01/blog-title.html
+https://your.blogger.blog.example/2019/01/second-blog-title.html
+```
+
+### Store Google+ Comments frame for blog post with given URL(s)
+`echo "https://blog.trilemma.com/2019/01/the-wagoners-table.html" |bash store_comments_frame.sh`
+Files will be stored in ./data/output/
+
+### Everything combined
+```bash 
+bash ./getposturls.sh `sh ./getblogid.sh https://your.blogger.blog.example/`| bash store_comments_frame.sh
+```
