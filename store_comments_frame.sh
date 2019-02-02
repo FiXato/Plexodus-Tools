@@ -1,29 +1,24 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-DATADIR="./data/output"
-mkdir -p $DATADIR
 BASE_URL="https://apis.google.com/u/0/_/widget/render/comments?first_party_property=BLOGGER&query="
 stdin=$(cat)
 
+source ./_functions.sh
 
-function gnused() {
-  if hash gsed 2>/dev/null; then
-      gsed -E "$@"
-  else
-      sed -E "$@"
-  fi
-}
-
-while read -r post_url
+while IFS= read -r post_url
 do
-  domain=$(echo "$post_url" | gnused 's/https?:\/\/([^/]+)\/.+/\1/g' | gnused 's/[^-a-zA-Z0-9_.]/-/g')
+  domain=$(echo "$post_url" | gnused 's/https?:\/\/([^/]+)\/.+/\1/g' | sanitise_filename)
   #echo "$domain"
   url="$BASE_URL$post_url"
   #echo "$post_url"
-  filename=$(echo "$post_url" | gnused 's/[^-a-zA-Z0-9_.]/-/g')
+  filename=$(echo "$post_url" | gnused 's/https?:\/\/([^/]+)\/(.+)$/\2/g' | sanitise_filename)
   #echo $filename
-  mkdir -p "$DATADIR/$domain"
-  path="$DATADIR/$domain/$filename"
-  echo "Storing comments for $post_url to $path"
-  curl "$url" > "$path"
+  mkdir -p "data/comments_frames/$domain"
+  mkdir -p "./logs/$domain"
+  path="data/comments_frames/$domain/$filename"
+  if [ ! -f "$path" ]; then
+    echo "Storing comments for $post_url to $path" >> "./logs/$domain/$(date +"%y-%m-%d").log"
+    curl "$url" > "$path"
+  fi
+  echo "$path"
 done <<< $stdin
