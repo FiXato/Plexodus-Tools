@@ -2,7 +2,7 @@
 
 This tool uses `jq`, `sed`, `curl` and Blogger API V3 (you'll need to get an API key from https://developers.google.com/blogger/docs/3.0/using#APIKey) and the web integration API of Google+ to store the frame of Goofle+ comments locally for a Blogger blog with Google+ comments enabled.
 
-The scripts rely on the ENV variable BLOGGER_APIKEY to be set to your Blogger v3 API key:
+The scripts rely on the ENV variable BLOGGER_APIKEY to be set to your Blogger v3 API key:  
 `export BLOGGER_APIKEY=aBcDEfGhIJKlMNoPQr283Z`
 
 (This key is obviously a sample one; you need to replace it with your own actual key.)
@@ -18,7 +18,7 @@ https://your.blogger.blog.example/2019/01/second-blog-title.html
 ```
 
 ### Store Google+ Comments frame for blog post with given URL(s)
-`echo "https://blog.trilemma.com/2019/01/the-wagoners-table.html" |bash store_comments_frame.sh`
+`echo "https://blog.trilemma.com/2019/01/the-wagoners-table.html" |bash store_comments_frame.sh` 
 Files will be stored in ./data/output/
 
 ### Everything combined
