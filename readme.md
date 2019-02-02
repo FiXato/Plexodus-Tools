@@ -1,11 +1,13 @@
 # CLI tool to archive Google+ Comments frame for Blogger blogs
 
-This tool uses `jq`, `sed`, `curl` and Blogger API V3 (you'll need to get an API key from https://developers.google.com/blogger/docs/3.0/using#APIKey) and the web integration API of Google+ to store the frame of Google+ comments locally for a Blogger blog with Google+ comments enabled.
+This tool uses `jq`, `sed`, `curl`, Blogger API V3 (you'll need to get an API key from https://developers.google.com/blogger/docs/3.0/using#APIKey), Google Plus API (you'll need an API key from https://developers.google.com/+/web/api/rest/oauth#apikey) and the Google+ web integration API to store the frame of Google+ comments locally for a Blogger blog with Google+ comments enabled.
 
-The scripts rely on the ENV variable BLOGGER_APIKEY to be set to your Blogger v3 API key:  
-`export BLOGGER_APIKEY=aBcDEfGhIJKlMNoPQr283Z`
+The scripts rely on the following ENV variables to be set:
 
-(This key is obviously a sample one; you need to replace it with your own actual key.)
+* `BLOGGER_APIKEY` for your Blogger v3 API key:  `export BLOGGER_APIKEY=aBcDEfGhIJKlMNoPQr283Z`
+* `GPLUS_APIKEY` for your Google Plus API key:  `export GPLUS_APIKEY=Z382rQPoNMlKJIhGfEDc_Ba`
+
+(These above key values are obviously a example one; you need to replace them with your own actual keys.)
 
 ## sed
 `sed` the Stream EDitor is used for regular expression substitution. Since the BSD version of sed that comes with macOS is rather limited, you might need to install GNU sed instead with `brew install gsed` and replace calls to `sed` with `gsed`
