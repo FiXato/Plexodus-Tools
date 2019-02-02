@@ -14,7 +14,8 @@ The scripts rely on the ENV variable BLOGGER_APIKEY to be set to your Blogger v3
 `curl` is a CLI tool for retrieving online resources. Here I use it to send HTTP GET requests to the APIs.
 
 ## jq
-`jq` is a CLI tool for parsing and filtering jquery: https://stedolan.github.io/jq/
+`jq` is an excellent CLI tool for parsing and filtering JSON: 
+https://stedolan.github.io/jq/
 
 It can be downloaded from its website, or through your package manager.
 
