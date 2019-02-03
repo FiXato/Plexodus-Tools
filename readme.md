@@ -1,25 +1,44 @@
 # CLI tool to archive Google+ Comments frame for Blogger blogs
 
-This tool uses `jq`, `sed`, `curl`, Blogger API V3 (you'll need to get an API key from https://developers.google.com/blogger/docs/3.0/using#APIKey), Google Plus API (you'll need an API key from https://developers.google.com/+/web/api/rest/oauth#apikey) and the Google+ web integration API to store the frame of Google+ comments locally for a Blogger blog with Google+ comments enabled.
+## Requirements
+The scripts in this repository rely heavily on a variety of CLI utilities, and services:
 
-The scripts rely on the following ENV variables to be set:
+This tool uses `jq`, `sed`, `curl`, ,  and the Google+ web integration API to store the frame of Google+ comments locally for a Blogger blog with Google+ comments enabled.
 
-* `BLOGGER_APIKEY` for your Blogger v3 API key:  `export BLOGGER_APIKEY=aBcDEfGhIJKlMNoPQr283Z`
-* `GPLUS_APIKEY` for your Google Plus API key:  `export GPLUS_APIKEY=Z382rQPoNMlKJIhGfEDc_Ba`
+### API access
 
-(These above key values are obviously a example one; you need to replace them with your own actual keys.)
+#### Blogger API V3
+I use Blogger's official API to retrieve the Blog#id based on the Blog's URL, as well as to retrieve all blog post URLs based on the Blog#id.
 
-## sed
-`sed` the Stream EDitor is used for regular expression substitution. Since the BSD version of sed that comes with macOS is rather limited, you might need to install GNU sed instead with `brew install gsed` and replace calls to `sed` with `gsed`
+* Blogger API V3 requires an API key.  You can find [official developers.google.com instructions](https://developers.google.com/blogger/docs/3.0/using#APIKey) on how to request an API key from: https://developers.google.com/blogger/docs/3.0/using#APIKey
+* You also need to set the `BLOGGER_APIKEY` ENVironment variable for your Blogger v3 API key:  `export BLOGGER_APIKEY=aBcDEfGhIJKlMNoPQr283Z`
 
-## curl
-`curl` is a CLI tool for retrieving online resources. Here I use it to send HTTP GET requests to the APIs.
+#### Google+ API
+I use the official Google Plus API to retrieve the top level posts (`Activities`, as they are called in the API) used in the Google+ Comments for Blogger widget, as well as their `Comments` resources.
 
-## jq
+* Google+ `Activities` and `Comments` API endpoints require an API key (or OAuth workflow).  You can find [official developers.google.com instructions](https://developers.google.com/+/web/api/rest/oauth#apikey) on how to request an API key from: https://developers.google.com/+/web/api/rest/oauth#apikey
+* You also need to set the `GPLUS_APIKEY` ENVironment variable for your Google Plus API key:  `export GPLUS_APIKEY=Z382rQPoNMlKJIhGfEDc_Ba`
+
+(These above key values are obviously example ones; you'll need to replace them with your own actual keys.)
+
+### grep
+`grep` is a CLI tool for regular expression-based filtering of files and data. Since the BSD version of grep that comes with macOS is rather limited, please install GNU grep instead. Not sure if it's through `brew install grep` or `brew install gnu-grep`.
+
+Once installed on macOS, you should have access to GNU's version of grep via the `g`-prefix: `ggrep`. The scripts in this repository will automatically use `ggrep` rather than `grep` if they find it available on your system.
+
+### sed
+`sed` the Stream EDitor is used for regular expression substitution. Since the BSD version of sed that comes with macOS is rather limited, you will likely need to install GNU sed instead with `brew install gsed` and replace calls to `sed` with `gsed`
+
+Once installed on macOS, you should have access to GNU's version of sed via the `g`-prefix: `gsed`. The scripts in this repository will automatically use `gsed` rather than `sed` if they find it available on your system.
+
+### curl
+`curl` is a CLI tool for retrieving online resources. For the tools in this project, I use it to send HTTP GET requests to the APIs.
+
+### jq
 `jq` is an excellent CLI tool for parsing and filtering JSON: 
 https://stedolan.github.io/jq/
 
-It can be downloaded from its website, or through your package manager.
+It can be downloaded from its [website](https://stedolan.github.io/jq/), or through your package manager (for instance on macOS through `brew install jq`).
 
 ## Usage:
 
