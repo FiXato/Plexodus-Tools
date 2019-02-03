@@ -10,6 +10,7 @@ mkdir -p "./data/output/$domain/html"
 #FIXME: Make it so that you aren't basically repeating all these lookups, even though they are cached...
 for filename in $(find "data/comments_frames/$domain/"* )
 do
+  #FIXME: keep track of where you are, so you can abort, and continue again at a later time without having to restart.
   echo "$filename"
   echo $(basename "$filename")
   echo "$filename" | ./get_activity_ids_from_comments_frame.sh | ./get_comments_from_google_plus_api_by_activity_id.sh > "data/output/$domain/html/$(basename "$filename")"

@@ -17,6 +17,7 @@ do
   get_activity_api_url="https://www.googleapis.com/plus/v1/activities/$activity_id?key=$GPLUS_APIKEY"
   debug "Activity.get API URL: $get_activity_api_url"
   # TODO: make comments per-page count also configurable via ENV var. Not sure if the same one should be recycled.
+  # FIXME: comments should be ordered by published dates...
   list_comments_api_url="https://www.googleapis.com/plus/v1/activities/$activity_id/comments?key=$GPLUS_APIKEY&maxResults=500&sortOrder=ascending"
   debug "Comments.list API URL: $list_comments_api_url"
 
@@ -28,9 +29,12 @@ do
     debug "Cache hit for ${get_activity_api_url}: $response_file"
   fi
 
+  #FIXME: HTML generation should probably be split off to a separate file, and possibly be done in a more suitable language. 
+
   title=$(jq -r ' .title' "$response_file")
   displayName=$(jq -r ' .actor | .displayName' "$response_file")
   authorPicture=$(jq -r ' .actor | .image | .url' "$response_file")
+  #TODO: store authorPictures locally (permanently)
   permaLink=$(jq -r ' .url' "$response_file")
   published=$(jq -r ' .published' "$response_file")
   updated=$(jq -r ' .updated' "$response_file")
@@ -41,6 +45,8 @@ do
   resharesLink=$(jq -r ' .object | .resharers | .selfLink ' "$response_file")
   commentsCount=$(jq -r ' .object | .replies | .totalItems ' "$response_file")
   commentsLink=$(jq -r ' .object | .replies | .selfLink ' "$response_file")
+  
+  #TODO: add Attachment data and also store that locally if possible
 
   html="<!doctype html>\n"
   html="$html"'<html class="no-js" lang=""><head><meta charset="utf-8"><meta http-equiv="x-ua-compatible" content="ie=edge">'"<title>Comments for ${activity_id}</title>"'<meta name="description" content=""><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>'
@@ -59,8 +65,10 @@ do
   html="${html}<p>$content</p>\n"
   html="${html}<div class='interaction'>"
   html="${html}<span class='plusones'>+$plusOnesCount</span> <a href='$plusOnesLink'>plus-ones</a>"
+  #TODO: expand the list of plusoners
   html="${html}<div class='reshares'>"
   html="${html}<span class='reshareCount'>+$resharesCount</span> <a href='$resharesLink'>reshares</a>"
+  #TODO: expand the list of resharers
   html="${html}</div>"
   html="${html}<div class='comments'>"
   html="${html}<span class='commentsCount'>$commentsCount</span> <a href='$commentsLink'>comments</a>"
