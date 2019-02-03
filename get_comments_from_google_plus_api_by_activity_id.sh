@@ -7,6 +7,7 @@ check_help "$1" "$usage" || exit 255
 stdin=$(cat)
 while IFS= read -r activity_id
 do
+  # TODO: Add an activity counter; combined with size messages in other scripts that could give a rough estimate of how many items still left to go
   if [ -z "$activity_id" -o "$activity_id" == "" ]; then
     debug "Missing activity id: $activity_id"
     continue
@@ -73,6 +74,7 @@ do
       debug "Cache hit for Comments.list for Activity with ID $activity_id: $comments_file_path"
     fi
     for row in $(cat "$(comments_file $activity_id)" | jq -r '.items[] | @base64'); do
+      # TODO: Add a counter: "Processing comment [1/xx]"
       _jq() {
         echo ${row} | base64 --decode | jq -r "$@"
       }
