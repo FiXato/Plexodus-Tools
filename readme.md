@@ -48,7 +48,9 @@ It can be downloaded from its [website](https://stedolan.github.io/jq/), or thro
 ### Get a complete archive:
 While you can manually pipe results into the fairly self-contained CLI scripts, it's easiest to just use the `export_blog.sh` script which does everything for you:
 
-`DEBUG=1 REQUEST_THROTTLE=1 PER_PAGE=500 ./export_blog.sh https://your.blogger.blog.example`
+```bash
+DEBUG=1 REQUEST_THROTTLE=1 PER_PAGE=500 ./export_blog.sh https://your.blogger.blog.example
+```
 
 * `DEBUG=1` enables the new debug messages on stderr
 * `REQUEST_THROTTLE=1` will sleep in some cases for a single second, to throttle the API requests. Could probably be reduced to `0.5` or even just `0` to disable it.
@@ -57,12 +59,20 @@ While you can manually pipe results into the fairly self-contained CLI scripts, 
 The script tries to cache queries for a day to reduce needless re-querying of the APIs.
 
 ### Get Blog ID for Blog URL
-`./getblogid.sh https://your.blogger.blog.example #=> 12345`
+```bash
+./getblogid.sh https://your.blogger.blog.example
+#=> 12345
+```
 
 This will also store the blog_id in `data/blog_ids/${domain}.txt`.
 
 ### Get URLs for all blog posts for Blogger blog with given id
-`./getposturls.sh 1234`
+```bash
+./getposturls.sh 1234
+```
+
+Which will output a newline-separated list of Blogger blog post URLs:
+
 ```
 https://your.blogger.blog.example/2018/01/blog-title.html
 https://your.blogger.blog.example/2019/01/second-blog-title.html
@@ -75,7 +85,7 @@ This will also store the Blogger.posts JSON responses  in `data/blog_post_urls/$
 echo -e "https://your.blogger.blog.example/2018/01/blog-title.html\nhttps://your.blogger.blog.example/2018/01/another-blog-title.html" | ./store_comments_frame.sh
 ``` 
 
-Google+ Comments Widget responses will be stored in ./data/comments_frames/your.blogger.blog.example/ with almost all special characters replaced by dashes
+Google+ Comments Widget responses will be stored in `./data/comments_frames/your.blogger.blog.example/` with almost all special characters replaced by dashes
 
 ### List Google+ ActivityIDs from Google+ Comments widget files/dumps
 This tries to list all Activity IDs it can find in the Google+ Comments widget result.
