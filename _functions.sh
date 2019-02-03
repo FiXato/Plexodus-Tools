@@ -6,36 +6,48 @@ REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 
 function gnused() {
   if hash gsed 2>/dev/null; then
-      gsed -E "$@"
+    debug "gsed -E \"$@\""
+    gsed -E "$@"
   else
-      sed -E "$@"
+    debug "sed -E \"$@\""
+    sed -E "$@"
   fi
 }
 #export -f gnused
 
 function gnugrep() {
   if hash ggrep 2>/dev/null; then
-      ggrep "$@"
+    debug "ggrep -E \"$@\""
+    ggrep "$@"
   else
-      grep "$@"
+    debug "grep -E \"$@\""
+    grep "$@"
   fi
 }
 #export -f gnugrep
 
 function sanitise_filename() {
+  debug "sanitising filename $@"
   gnused 's/[^-a-zA-Z0-9_.]/-/g'
 }
 
 
 function domain_from_url() {
-  echo "$1" | gnused 's/https?:\/\/([^/]+)\/.+/\1/g'
+  debug "Retrieving domain from URL $1"
+  domain="$(echo "$1" | gnused 's/https?:\/\/([^/]+)\/.+/\1/g')"
+  debug "Domain: $domain"
+  echo "$domain"
 }
 
 function path_from_url() {
-  echo "$1" | gnused 's/https?:\/\/([^/]+)\/(.+)$/\2/g'
+  debug "Retrieving path from URL $1"
+  path="$(echo "$1" | gnused 's/https?:\/\/([^/]+)\/(.+)$/\2/g')"
+  debug "Path: $path"
+  echo "$path"
 }
 
 function ensure_path() {
+  debug "ensure_path called with: $@ "
   if [ -z "$1" -o "$1" == "" ]; then
     echo "ensure_path called with an undefined path \$1" 1>&2
     exit 255
