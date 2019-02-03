@@ -8,7 +8,7 @@ For instance, this tool uses `jq`, `(g)sed`, `(g)grep`, `curl`, and various APIs
 ### API access
 
 #### Blogger API V3
-I use Blogger's official API to retrieve the Blog#id based on the Blog's URL, as well as to retrieve all blog post URLs based on the Blog#id.
+I use Blogger's official API to retrieve the `Blog#id` based on the Blog's URL, as well as to retrieve all blog post URLs based on the `Blog#id`.
 
 * Blogger API V3 requires an API key.  You can find [official developers.google.com instructions](https://developers.google.com/blogger/docs/3.0/using#APIKey) on how to request an API key from: https://developers.google.com/blogger/docs/3.0/using#APIKey
 * You also need to set the `BLOGGER_APIKEY` ENVironment variable for your Blogger v3 API key:  `export BLOGGER_APIKEY=aBcDEfGhIJKlMNoPQr283Z`
@@ -22,7 +22,7 @@ I use the official Google Plus API to retrieve the top level posts (`Activities`
 (These above key values are obviously example ones; you'll need to replace them with your own actual keys.)
 
 #### Google+ web integration API
-I use the G+ Comments Widget from Google+'s Web Integrations API to get a list of Activity#id's associated with the Blogger blog post, based on its URL.
+I use the G+ Comments Widget from Google+'s Web Integrations API to get a list of `Activity#id`'s associated with the Blogger blog post, based on its URL.
 
 ### grep
 `grep` is a CLI tool for regular expression-based filtering of files and data. Since the BSD version of grep that comes with macOS is rather limited, please install GNU grep instead. Not sure if it's through `brew install grep` or `brew install gnu-grep`.
