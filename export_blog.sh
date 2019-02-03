@@ -7,6 +7,7 @@ mkdir -p "./data/output/$domain/html"
 
 ./getposturls.sh `sh ./getblogid.sh "$1"` | ./store_comments_frame.sh | ./get_activity_ids_from_comments_frame.sh | ./get_comments_from_google_plus_api_by_activity_id.sh > "./data/output/$domain/html/all-activities.html"
 
+#FIXME: Make it so that you aren't basically repeating all these lookups, even though they are cached...
 for filename in $(find "data/comments_frames/$domain/"* )
 do
   echo "$filename"
