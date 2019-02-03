@@ -3,7 +3,7 @@
 ## Requirements
 The scripts in this repository rely heavily on a variety of CLI utilities, and services:
 
-This tool uses `jq`, `sed`, `curl`, ,  and the Google+ web integration API to store the frame of Google+ comments locally for a Blogger blog with Google+ comments enabled.
+For instance, this tool uses `jq`, `(g)sed`, `(g)grep`, `curl`, and various APIs to store the Google+ posts and comments locally for Blogger blogs with Google+ comments enabled.
 
 ### API access
 
@@ -20,6 +20,9 @@ I use the official Google Plus API to retrieve the top level posts (`Activities`
 * You also need to set the `GPLUS_APIKEY` ENVironment variable for your Google Plus API key:  `export GPLUS_APIKEY=Z382rQPoNMlKJIhGfEDc_Ba`
 
 (These above key values are obviously example ones; you'll need to replace them with your own actual keys.)
+
+#### Google+ web integration API
+I use the G+ Comments Widget from Google+'s Web Integrations API to get a list of Activity#id's associated with the Blogger blog post, based on its URL.
 
 ### grep
 `grep` is a CLI tool for regular expression-based filtering of files and data. Since the BSD version of grep that comes with macOS is rather limited, please install GNU grep instead. Not sure if it's through `brew install grep` or `brew install gnu-grep`.
