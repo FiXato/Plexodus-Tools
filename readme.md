@@ -64,7 +64,7 @@ The script tries to cache queries for a day to reduce needless re-querying of th
 #=> 12345
 ```
 
-This will also store the blog_id in `data/blog_ids/${domain}.txt`.
+This will also store the `$blog_id` in `data/blog_ids/${domain}.txt`.
 
 ### Get URLs for all blog posts for Blogger blog with given id
 ```bash
@@ -78,7 +78,7 @@ https://your.blogger.blog.example/2018/01/blog-title.html
 https://your.blogger.blog.example/2019/01/second-blog-title.html
 ```
 
-This will also store the Blogger.posts JSON responses  in `data/blog_post_urls/${blog_id}-${per_page}(|-$page_token)-${year}-${month}-${day}.json` and the list of post URLs in `data/blog_post_urls/${blog_id}-${per_page}-${year}-${month}-${day}.txt`.
+This will also store the Blogger.posts JSON responses  in `data/blog_post_urls/${blog_id}-${per_page}(-${page_token})-${year}-${month}-${day}.json` and the list of post URLs in `data/blog_post_urls/${blog_id}-${per_page}-${year}-${month}-${day}.txt`.
 
 ### Store Google+ Comments widget for blog post with given URL(s)
 ```bash
