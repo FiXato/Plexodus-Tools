@@ -4,6 +4,22 @@
 #FIXME: move this to an variables.env file
 REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 
+function gnused_string() {
+  if hash gsed 2>/dev/null; then
+    echo 'gsed -E'
+  else
+    echo 'sed -E'
+  fi
+}
+
+function gnugrep_string() {
+  if hash ggrep 2>/dev/null; then
+    echo 'ggrep -E'
+  else
+    echo 'grep -E'
+  fi
+}
+
 function gnused() {
   if hash gsed 2>/dev/null; then
     debug "gsed -E \"$@\""
@@ -33,14 +49,14 @@ function sanitise_filename() {
 
 
 function domain_from_url() {
-  debug "Retrieving domain from URL $1"
+  debug "Retrieving domain from URL $1: echo \"$1\" | $(gnused_string) 's/https?:\/\/([^/]+)\/.+/\1/g')"
   domain="$(echo "$1" | gnused 's/https?:\/\/([^/]+)\/.+/\1/g')"
   debug "Domain: $domain"
   echo "$domain"
 }
 
 function path_from_url() {
-  debug "Retrieving path from URL $1"
+  debug "Retrieving path from URL $1: echo \"$1\" | $(gnused_string) 's/https?:\/\/([^/]+)\/(.+)$/\2/g')"
   path="$(echo "$1" | gnused 's/https?:\/\/([^/]+)\/(.+)$/\2/g')"
   debug "Path: $path"
   echo "$path"
