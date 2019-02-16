@@ -97,8 +97,8 @@ Filter Name                         | Description
 `has_circle_acl`                | Only return Activity results whose `postAcl`.`visibleToStandardAcl` contains a `circles` item.
 `has_public_circles_acl` | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_PUBLIC` as `visibleToStandardAcl` 'circle' type.
 `is_public`                          | For now an alias for `has_public_circles_acl`.<br/> Note that this might not (yet) include posts that were posted to public Collections or publicly accessible Communities; this may change in the future.
-`has_extended_circles_acl` | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_EXTENDED_CIRCLES` as `visibleToStandardAcl` 'circle' type. These are posts that were set to only be visible to your 'Extended Circles'.
-`has_own_circles_acl`       | Only return Public Activity results; i.e. those that have `CIRCLE_TYPE_YOUR_CIRCLES` as `visibleToStandardAcl` 'circle' type. These are posts that were set to only be visible to your 'Your Circles'.
+`has_extended_circles_acl` | Only return Extended Circled Activity results; i.e. those that have `CIRCLE_TYPE_EXTENDED_CIRCLES` as `visibleToStandardAcl` 'circle' type. These are posts that were set to only be visible to your 'Extended Circles'.
+`has_own_circles_acl`       | Only return Private Activity results; i.e. those that have `CIRCLE_TYPE_YOUR_CIRCLES` as `visibleToStandardAcl` 'circle' type. These are posts that were set to only be visible to your 'Your Circles'.
 `has_your_circles_acl`     | Alias for `has_own_circles_acl`.
 `with_interaction_with(displayNames)` | Only return Activity items that have some form of interaction with users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
 `with_comment_by(displayNames)`   | Only return Activity items as results when they have Comments by any of the users whose `displayName` is an exact match for one of the specified displayNames. `displayNames` can be either a string, or an array of strings.
