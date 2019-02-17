@@ -86,6 +86,12 @@ class GooglePlusProfileExporter
     Oj.load(File.read(file),{symbol_keys: true})
   end
 
+  def lookup_profile(profile_url:)
+    user_id = url_to_user_id(profile_url)
+    user = find_or_create_user(user_id: user_id)
+    query_gplus_people_api_for_user_data(user: user, person: {})
+  end
+
   def process_people_from_circle(circle:)
     return track_empty_circle(circle: circle) unless circle[:person]
 
@@ -233,6 +239,10 @@ class GooglePlusProfileExporter
     url_items_by_canonical_url = url_items.group_by(&:canonical_url)
     url_items_by_canonical_url = url_items_by_canonical_url.sort_by{|canonical_url, items|items.size}.reverse.to_h if sort_by == :reverse_item_count
     return url_items_by_canonical_url
+  end
+  
+  def posts_from_api(user_id:)
+    binding.pry
   end
 
 protected

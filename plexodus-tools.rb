@@ -63,9 +63,8 @@ Site.restore_known_sites(filepath: File.join('data', 'sites.yaml'), format: :yam
 
 gppe = GooglePlusProfileExporter.new(**gppe_options)
 
-if (profile_url = cli_option('--lookup-profile'))
-  user_id = gppe.url_to_user_id(profile_url)
-  pp gppe.lookup_user(user_id: user_id).to_h
+if (profile_url = cli_option('--lookup-profile'))  
+  pp gppe.lookup_profile(profile_url: profile_url).to_h
 end
 
 if cli_flag('--parse-takeout-circles')
@@ -128,6 +127,11 @@ if show_urls || cli_flag('--site-stats')
     end
   end
   puts section_separator
+end
+
+user_id = cli_option('--api-posts-for-user')
+if user_id
+  gppe.posts_from_api(user_id: user_id)
 end
 
 #gppe.store_users # save the default (yaml format)
