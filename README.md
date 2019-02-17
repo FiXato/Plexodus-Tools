@@ -179,23 +179,33 @@ Aside the various Ruby scripts, this toolset also contains some self-contained B
 
 You just need to pass the (numeric) profile id to the `contact_data_profile_id.sh` script:
 
-`./contact_data_for_profile_id.sh 123456`
+```bash
+./contact_data_for_profile_id.sh 123456
+```
 
 Passing the ID for a Custom Profile URL (e.g. +YonatanZunger for https://plus.google.com/+YonatanZunger), should also work:
 
-`./contact_data_for_profile_id.sh +YonatanZunger`
+```bash
+./contact_data_for_profile_id.sh +YonatanZunger
+```
 
 Even passing the URL should work:
 
-`./contact_data_for_profile_id.sh https://plus.google.com/112064652966583500522`
+```bash
+./contact_data_for_profile_id.sh https://plus.google.com/112064652966583500522
+```
 
 If you have a list of userIDs or profile URLs stored in `memberslist.txt`, with each ID on a separate line, you can use `xargs` to pass all these to the script. For instance with 3 request running in parallel, and deleting the target JSON file if a retrieval error occurs:
 
-`rm logs/failed-profile-retrievals.txt; cat memberslist.txt | xargs -L 1 -P 3 -I __UID__ ./contact_data_for_profile_id.sh __UID__ --delete-target`
+```bash
+rm logs/failed-profile-retrievals.txt; cat memberslist.txt | xargs -L 1 -P 3 -I __UID__ ./contact_data_for_profile_id.sh __UID__ --delete-target
+```
 
 Or leave the JSON output files intact when a retrieval error occurs, so you can debug more easily, and so profiles that no longer exist (and thus return a http 404 return code) won't be retried:
 
-`rm logs/failed-profile-retrievals.txt; cat memberslist.txt | xargs -L 1 -P 3 ./contact_data_for_profile_id.sh`
+```bash
+rm logs/failed-profile-retrievals.txt; cat memberslist.txt | xargs -L 1 -P 3 ./contact_data_for_profile_id.sh
+```
 
 I would not recommend increasing the amount of parallel processes beyond 3, as you're more likely to hit User Rate Limit Exceeded errors then.
 
