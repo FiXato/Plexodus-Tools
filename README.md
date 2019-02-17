@@ -40,7 +40,7 @@ Extract all `*.json`, `*.html`, `*.csv`, `*.vcf` and `*.ics` files from multi-pa
 
 Argument          | Explanation
 -----------------:|:-----------------
-`e`               | eXtract archive into current folder, *without* retaining folder structure.
+`e`               | Extract archive into current folder, *without* retaining folder structure.
 `x`               | eXtract archive while retaining folder structure.
 `t`               | Test (matched) contents of archive.
 `l`               | List (matched) contents of archive.
