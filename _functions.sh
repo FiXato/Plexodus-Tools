@@ -10,6 +10,72 @@ function debug() {
   fi
 }
 
+function machine_type() { #function provided by paxdiablo at https://stackoverflow.com/a/3466183
+  unameOut="$(uname -s)"
+  case "${unameOut}" in
+      Linux*)     machine=Linux;;
+      Darwin*)    machine=macOS;;
+      CYGWIN*)    machine=Cygwin;;
+      MINGW*)     machine=MinGw;;
+      *)          machine="UNKNOWN:${unameOut}"
+  esac
+  echo "${machine}"
+}
+
+#FIXME: Should probably make this tool-independent and just run it once in an initial setup step. 
+function ensure_gnutools() {
+  gnu_utils=()
+  missing_gnu_utils=()
+  install_suggestion=""
+  if [ "$(machine_type)" == "macOS" ]; then
+    install_suggestion="$(machine_type)"' comes with the BSD versions of many of the CLI utilities this script uses. Unfortunately these are often limited in their usage options. I would suggest installing the GNU versions through Homebrew (https://brew.sh), which the script should automatically detect as Homebrew prefixes them with "g". E.g.: `brew install gawk findutils gnu-sed grep coreutils`'
+  fi
+  if [[ $(gnufind "--version") == *"GNU findutils"* ]]; then
+    gnu_utils+=('find')
+  elif [[ $(man $(gnufind_string) | head -2 | grep BSD) == *"BSD General Commands Manual"* ]]; then
+    debug 'You have the BSD version of `find` installed. This script relies on the GNU version. Please install it with `brew install findutils`'
+    missing_gnu_utils+=('find')
+  else
+    missing_gnu_utils+=('find')
+  fi
+
+  if [[ $(gnused "--version") == *"GNU sed"* ]]; then
+    gnu_utils+=('sed')
+  elif [[ $(man $(gnused_string) | head -2 | grep BSD) == *"BSD General Commands Manual"* ]]; then
+    debug 'You have the BSD version of `sed` installed. This script relies on the GNU version. Please install it with `brew install sed`'
+    missing_gnu_utils+=('sed')
+  else
+    missing_gnu_utils+=('sed')
+  fi
+
+  if [[ $(gnugrep "--version") == *"GNU grep"* ]]; then
+    gnu_utils+=('grep')
+  elif [[ $(gnugrep "--version") == *"BSD grep"* ]]; then
+    debug 'You have the BSD version of `grep` installed. This script relies on the GNU version. Please install it with `brew install grep`'
+    missing_gnu_utils+=('grep')
+  else
+    missing_gnu_utils+=('grep')
+  fi
+
+  if [[ $(gnudate "--version") == *"GNU coreutils"* ]]; then
+    gnu_utils+=('date')
+  elif [[ $(man $(gnudate_string) | head -2 | grep BSD) == *"BSD General Commands Manual"* ]]; then
+    debug 'You have the BSD version of `date` installed. This script relies on the GNU version. Please install it with `brew install coreutils`'
+    missing_gnu_utils+=('date')
+  else
+    missing_gnu_utils+=('date')
+  fi
+
+  if [ "${gnu_utils[*]}" != "" ]; then
+    debug "We've found GNU versions of the following utils: $( IFS=$', '; echo "${gnu_utils[*]}" )"
+  fi
+
+  if [ "${missing_gnu_utils[*]}" != "" ]; then
+    echo -e "You are missing the GNU versions of the following utils: $( IFS=$', '; echo "${missing_gnu_utils[*]}" )\n$install_suggestion" 1>&2
+    exit 255
+  fi
+}
+
 function gnused_string() {
   if hash gsed 2>/dev/null; then
     echo 'gsed -E'
@@ -34,6 +100,14 @@ function gnugrep_string() {
   fi
 }
 
+function gnufind_string() {
+  if hash gfind 2>/dev/null; then
+    echo 'gfind'
+  else
+    echo 'find'
+  fi
+}
+
 function gnused() {
   if hash gsed 2>/dev/null; then
     debug "gnused(): gsed -E \"$@\""
@@ -54,13 +128,22 @@ function gnugrep() {
   fi
 }
 
-function gnudate() {
+function gnudate() { # Taken from https://stackoverflow.com/a/677212 by @lhunath and @Cory-Klein
   #FIXME: find out how I can prevent the loss of the quotes around the format in the debug output
   debug "gnudate(): $(gnudate_string) $@"
   if hash gdate 2>/dev/null; then
     gdate "$@"
   else
     date "$@"
+  fi
+}
+
+function gnufind() {
+  debug "gnufind(): $(gnufind_string) $@"
+  if hash gfind 2>/dev/null; then
+    gfind "$@"
+  else
+    find "$@"
   fi
 }
 
@@ -95,6 +178,12 @@ function ensure_path() {
   else
     mkdir -p "$1"
     echo "$1/$2"
+  fi
+}
+
+function ensure_jq() {
+  if ! hash jq 2>/dev/null; then
+    echo 'This command requires the `jq` commandline utility, but unfortunately we could not find it installed on your system. Please get it through your system package manager, or from https://github.com/stedolan/jq/' 1>&2 && return 255
   fi
 }
 
@@ -196,23 +285,64 @@ function activity_file() {
   fi
 }
 
-function user_profile_file() {
+function get_user_id() {
+  uid_regex="^([0-9]+|\+[a-zA-Z0-9_-]+)$"
   user_id="$1"
+  if [[ "$user_id" =~ $uid_regex ]]; then
+    echo "$user_id"
+    return
+  fi
+  user_id="${user_id/#https:\/\/plus.google.com\/u\/?\//}"
+  user_id="${user_id/#https:\/\/plus.google.com\//}"
+  if [[ "$user_id" =~ $uid_regex ]]; then
+    echo "$user_id"
+    return
+  else
+    echo "Unrecognised user id $user_id ($1)" 1>&2
+    return 255
+  fi
+}
+
+function user_profile_file() {
+  debug "user_profile_file() called with: '$1' '$2' '$3' "
+
+  user_id="$1"
+  timestamp_format="$2"
+  shift 2
+  timestamp_args=("$@")
+
+  if [ -z "$timestamp_format" -o "$timestamp_format" == "" ]; then
+    suffix=""
+  else
+    if [ -n "$timestamp_args" ]; then
+      debug "timestamp_args: ${timestamp_args[@]}"
+    else
+      timestamp_args=('-u')
+    fi
+    debug "timestamp_args: ${timestamp_args[@]}"
+    suffix=".$(timestamp "$timestamp_format" ${timestamp_args[@]})"
+  fi
+
   if [ "$user_id" == "" ]; then
     echo "user_profile_filepath() called with an undefined user_id \$1" 1>&2
-    exit 255
-  elif [[ "$1" =~ [0-9]+$ ]]; then
-    if [ -z "$2" ]; then
-      suffix=""
-    else
-      suffix=".$(timestamp "$2" -u)"
-    fi
-    user_id="$1"
+    return 255
+  elif [[ "$user_id" == '*' || "$user_id" == 'all_users' ]]; then
+    echo "$(ensure_path "./data/gplus/users" "${user_id}${suffix}.json")"
+    return
+  fi
+
+  user_id="$(get_user_id "$user_id")"
+  return_code=$?
+  if (( $return_code >= 1 )); then
+    echo "Please supply the user id (\$1) in their numeric, +PrefixedCustomURLName form, or profile URL form." 1>&2 && exit 255
+  fi
+
+  if [ -n "$user_id" ]; then
     user_profile_filepath="$(ensure_path "./data/gplus/users" "${user_id}${suffix}.json")"
     debug "Filepath for GPlus People resource with ID $user_id: $user_profile_filepath"
     echo "$user_profile_filepath"
   else
-    echo "user_profile_filepath(): Please supply the user id (\$1) in their numeric form" 1>&2
+    echo "user_profile_filepath(): Please supply the user id (\$1) in their numeric form, or the +PrefixedCustomURLName form." 1>&2
     exit 255
   fi
 }
@@ -236,7 +366,7 @@ function api_url() {
     echo -e "api_url() called without arguments.\n$api_url_usage" 1>&2 && return 255
   elif [ "$1" == "gplus" ]; then #https://developers.google.com/+/web/api/rest/index
     gplus_api_url="https://www.googleapis.com/plus/v1"
-    
+
     if [ -z "$2" ]; then
       echo -e "api_url(\"$1\") needs more arguments.\n$api_url_usage" 1>&2 && return 255
     elif [ "$2" == "people" ]; then #https://developers.google.com/+/web/api/rest/latest/people
@@ -246,10 +376,10 @@ function api_url() {
       elif [ "$3" == "get" ]; then #https://developers.google.com/+/web/api/rest/latest/people/get
         if [ -z "$4" ]; then
           echo -e "api_url(\"$1\" \"$3\" \"\$user_id\") is missing its \$user_id.\n$api_url_usage" 1>&2 && return 255
-        elif [[ "$4" =~ [0-9]+$ ]]; then
+        elif [[ "$4" =~ ^([0-9]+$|^\+[a-zA-Z0-9_-]+)$ ]]; then
           echo "$gplus_api_url/$4?key=$GPLUS_APIKEY"
         else
-          echo -e "api_url(\"$1\" \"$3\" \"\$user_id\") \$user_id needs to be a numeric id; '$4' was given.\n$api_url_usage" 1>&2 && return 255
+          echo -e "api_url(\"$1\" \"$3\" \"\$user_id\") \$user_id needs to be a numeric id, or the +PrefixedCustomURLName; '$4' was given.\n$api_url_usage" 1>&2 && return 255
         fi
       else
         echo -e "api_url(\"$1\" \"$2\" \"$api_endpoint_action\") called with an unknown API endpoint action '$3'. $api_url_usage" 1>&2 && return 255
@@ -289,4 +419,10 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
   else
     echo -e "cache_external_document_to_file(): unsupported protocol for \$url ('$1'); only http(s) and ftp(s) are currently supported.\n$function_usage" 1>&2 && return 255
   fi
+}
+
+
+function merge_json_files() {
+  debug "merge_json_files(): Looking in '$1' for files matching case-insensitive filemask '$2'"
+  gnufind "$1" -iname "$2" -exec cat {} + | jq -s '.' > "$3"
 }

@@ -115,7 +115,7 @@ The HTML output for now is stored at:
 * `data/output/$domain/html/sanitised-blog-url-path.html`
 * `data/output/$domain/html/all-activities.html`
 
-### Example of combining commands
+### Examples of combining commands
 By piping the results of the commands in the right order, you can let the scripts do the hard work.
 
 ```bash 
@@ -126,6 +126,31 @@ By piping the results of the commands in the right order, you can let the script
 This set of scripts was coded over the past couple of days, since the January 30th announcement from Google made it clear that Blogger owners were running out of time quickly. As such, it has not been rigourously tested yet. 
 
 I have been able to make archives of 2 blogs so far, which seem to have been successful as of Feb 3rd.
+
+
+## Related Tools
+
+### Get contact data details for a profile id
+
+You just need to pass the (numeric) profile id to the `contact_data_profile_id.sh` script:
+
+`./contact_data_for_profile_id.sh 123456`
+
+Passing the ID for a Custom Profile URL (e.g. +YonatanZunger for https://plus.google.com/+YonatanZunger), should also work:
+
+`./contact_data_for_profile_id.sh +YonatanZunger`
+
+Even passing the URL should work:
+
+`./contact_data_for_profile_id.sh https://plus.google.com/112064652966583500522`
+
+If you have a list of userIDs or profile URLs stored in `memberslist.txt`, with each ID on a separate line, you can use `xargs` to pass all these to the script. For instance with 3 request running in parallel, and deleting the target JSON file if a retrieval error occurs:
+
+`rm logs/failed-profile-retrievals.txt; cat memberslist.txt | xargs -L 1 -P 3 -I __UID__ ./contact_data_for_profile_id.sh __UID__ --delete-target`
+
+Or leave the JSON output files intact when a retrieval error occurs, so you can debug it:
+
+`rm logs/failed-profile-retrievals.txt; cat memberslist.txt | xargs -L 1 -P 3 ./contact_data_for_profile_id.sh`
 
 
 ## Thanks
