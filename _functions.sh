@@ -279,6 +279,7 @@ function activity_file() {
     echo "activity_file() called with an undefined activity_id \$1" 1>&2
     exit 255
   else
+    # FIXME: also allow for date-based caching of this?
     activity_filepath="$(ensure_path "./data/gplus/activities" "$activity_id.json")"
     debug "Filepath for Activity Resource $activity_id: $activity_filepath"
     echo "$activity_filepath"
@@ -353,6 +354,7 @@ function comments_file() {
     echo "comments_file() called with an undefined activity_id \$1" 1>&2
     exit 255
   else
+    #FIXME: also allow for date-based caching of this?
     comments_filepath="$(ensure_path "./data/gplus/activities/$activity_id" "comments.json")"
     debug "Filepath for Comments Resource List for Activity with id $activity_id: $comments_filepath"
     echo "$comments_filepath"
