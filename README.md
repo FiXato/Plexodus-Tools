@@ -5,12 +5,12 @@ Copyright (C) 2018 Filip H.F. "FiXato" Slagter
 
 ## Google+ Shutting down April 2019
 With the [announcement of Google+ shutting its doors for consumers](https://www.blog.google/technology/safety-security/project-strobe/), and the [second announcement of Google+ expediting its shutdown](https://www.blog.google/technology/safety-security/expediting-changes-google-plus/), those of us who've accumulated a large collection of posts and other data over the lifetime of the platform, are in need of tools to process the data archives that Google are providing us through [Google Takeout](https://takeout.google.com), and possibly live data through the [Google+ API](https://developers.google.com/+/web/api/rest/).
-With the shutdown originally being scheduled for August 2019, but following the second announcement, expedited to April 2019, and the Google+ APIs being turned off even sooner, on Sunday March 10th, 2019 at the latest, time is quickly running out.
+With the shutdown originally being scheduled for August 2019, but following the second announcement, expedited to April 2nd, 2019, and the Google+ APIs being turned off even sooner, on Sunday March 7th, 2019 at the latest, time is quickly running out.
 
 This repository will hopefully provide some of those tools.
 
 ## Extract files from a Zip/Zip64 archive
-If your Zip-archive is greater than 2GB, and has to be extracted on a platform that doesn't support extracting zip64 files natively, I suggest you install [p7zip](http://p7zip.sourceforge.net/), a port of [7-Zip](https://www.7-zip.org/) for POSIX systems. On macOS the easiest would be to install it through [Homebrew](https://brew.sh) with `brew install p7zip`. Once (p)7-Zip has been installed, you can extract all files while retaining their directory structure with:
+If your (Takeout) Zip-archive is greater than 2GB, and has to be extracted on a platform that doesn't support extracting zip64 files natively, I suggest you install [p7zip](http://p7zip.sourceforge.net/), a port of [7-Zip](https://www.7-zip.org/) for POSIX systems. On macOS the easiest would be to install it through [Homebrew](https://brew.sh) with `brew install p7zip`. Once (p)7-Zip has been installed, you can extract all files while retaining their directory structure with:
 ```bash
 7z x takeout-20181025T124927Z-001.zip
 ```
