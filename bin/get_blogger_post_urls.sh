@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-source "_functions.sh"
-usage="usage: $(basename "$0") \$blog_id\nExample: $(basename "$0") 12345\nOr: $(basename "$0") \"\$(./getblogid.sh https://your.blogger.blog.example)\""
+caller_path="$(dirname "$(realpath "$0")")"
+source "$caller_path/../lib/functions.sh"
+usage="usage: $(basename "$0") \$blog_id\nExample: $(basename "$0") 12345\nOr: $(basename "$0") \"\$(bin/get_blogger_id.sh https://your.blogger.blog.example)\""
 check_help "$1" "$usage" || exit 255
 ensure_blogger_api||exit 255
 
@@ -12,6 +13,7 @@ else
   blog_id="$1"
 fi
 
+REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 PER_PAGE="${PER_PAGE:-500}"
 api_url="https://www.googleapis.com/blogger/v3/blogs/${blog_id}/posts?key=${BLOGGER_APIKEY}&fetchBodies=false&fetchImages=false&status=live&maxResults=${PER_PAGE}"
 
@@ -78,7 +80,7 @@ do
   # Retrieve the next page of JSON results
   responsePath=$(getResponsePath "$pageToken")
 
-  # Pptional throttling in seconds
+  # Optional throttling in seconds
   sleep $REQUEST_THROTTLE
 done
 aggregatePath="data/blog_post_urls/$(buildResponseFilename "$blog_id" "-${PER_PAGE}" "$(timestamp_date)" "txt")"

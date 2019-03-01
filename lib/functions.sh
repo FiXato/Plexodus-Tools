@@ -6,7 +6,7 @@ REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 
 function debug() {
   if [ "$DEBUG" == "1" -o "$DEBUG" == "true" -o "$DEBUG" == "TRUE" ]; then
-    echo -e "$@" 1>&2
+    echo -e "[$(basename "$0")] $@" 1>&2
   fi
 }
 
@@ -108,6 +108,14 @@ function gnufind_string() {
   fi
 }
 
+function gnuawk_string() {
+  if hash gawk 2>/dev/null; then
+    echo 'gawk'
+  else
+    echo 'awk'
+  fi
+}
+
 function gnused() {
   if hash gsed 2>/dev/null; then
     debug "gnused(): gsed -E \"$@\""
@@ -147,15 +155,37 @@ function gnufind() {
   fi
 }
 
+function gnuawk() {
+  debug "gnuawk(): $(gnuawk_string) $@"
+  if hash gawk 2>/dev/null; then
+    gawk "$@"
+  else
+    awk "$@"
+  fi
+}
+
+function unsorted_uniques() {
+  gnuawk '!uniques[$0]++'
+}
+
 function sanitise_filename() {
   debug "sanitising filename $@"
   gnused 's/[^-a-zA-Z0-9_.]/-/g'
 }
 
+function add_file_extension() {
+  debug "adding file extension: $@"
+  extension="$1"
+  filepath=$(cat - )
+  filepath+="$extension"
+  pattern="$extension$extension"
+  # Make sure the file didn't already have the same file extension.
+  echo ${filepath/%$pattern/$extension}
+}
 
 function domain_from_url() {
-  debug "Retrieving domain from URL $1: echo \"$1\" | $(gnused_string) 's/https?:\/\/([^/]+)\/.+/\1/g')"
-  domain="$(echo "$1" | gnused 's/https?:\/\/([^/]+)\/.+/\1/g')"
+  debug "Retrieving domain from URL $1: echo \"$1\" | $(gnused_string) 's/https?:\/\/([^/]+)\/?.*/\1/g'"
+  domain="$(echo "$1" | gnused 's/https?:\/\/([^/]+)\/?.*/\1/g')"
   debug "Domain: $domain"
   echo "$domain"
 }
@@ -355,7 +385,7 @@ function comments_file() {
     exit 255
   else
     #FIXME: also allow for date-based caching of this?
-    comments_filepath="$(ensure_path "./data/gplus/activities/$activity_id" "comments.json")"
+    comments_filepath="$(ensure_path "./data/gplus/activities/$activity_id" "comments_for_$activity_id.json")"
     debug "Filepath for Comments Resource List for Activity with id $activity_id: $comments_filepath"
     echo "$comments_filepath"
   fi

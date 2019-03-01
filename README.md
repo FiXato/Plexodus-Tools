@@ -177,34 +177,34 @@ Aside the various Ruby scripts, this toolset also contains some self-contained B
 
 ### Get contact data details for a profile
 
-You just need to pass the (numeric) profile id to the `contact_data_profile_id.sh` script:
+You just need to pass the (numeric) profile id to the `people_api_data_for_gplus_profile.sh` script:
 
 ```bash
-./contact_data_for_profile_id.sh 123456
+./people_api_data_for_gplus_profile.sh 123456
 ```
 
 Passing the ID for a Custom Profile URL (e.g. +YonatanZunger for https://plus.google.com/+YonatanZunger), should also work:
 
 ```bash
-./contact_data_for_profile_id.sh +YonatanZunger
+./people_api_data_for_gplus_profile.sh +YonatanZunger
 ```
 
 Even passing the URL should work:
 
 ```bash
-./contact_data_for_profile_id.sh https://plus.google.com/112064652966583500522
+./people_api_data_for_gplus_profile.sh https://plus.google.com/112064652966583500522
 ```
 
 If you have a list of userIDs or profile URLs stored in `memberslist.txt`, with each ID on a separate line, you can use `xargs` to pass all these to the script. For instance with 3 request running in parallel, and deleting the target JSON file if a retrieval error occurs:
 
 ```bash
-rm logs/failed-profile-retrievals.txt; cat memberslist.txt | xargs -L 1 -P 3 -I __UID__ ./contact_data_for_profile_id.sh __UID__ --delete-target
+rm logs/failed-profile-retrievals.txt; cat memberslist.txt | xargs -L 1 -P 3 -I __UID__ ./people_api_data_for_gplus_profile.sh __UID__ --delete-target
 ```
 
 Or leave the JSON output files intact when a retrieval error occurs, so you can debug more easily, and so profiles that no longer exist (and thus return a http 404 return code) won't be retried:
 
 ```bash
-rm logs/failed-profile-retrievals.txt; cat memberslist.txt | xargs -L 1 -P 3 ./contact_data_for_profile_id.sh
+rm logs/failed-profile-retrievals.txt; cat memberslist.txt | xargs -L 1 -P 3 ./people_api_data_for_gplus_profile.sh
 ```
 
 I would not recommend increasing the amount of parallel processes beyond 3, as you're more likely to hit User Rate Limit Exceeded errors then.
@@ -257,10 +257,10 @@ It can be downloaded from its [website](https://stedolan.github.io/jq/), or thro
 ### Usage:
 
 #### Get a complete archive:
-While you can manually pipe results into the fairly self-contained CLI scripts, it's easiest to just use the `export_blog.sh` script which does everything for you:
+While you can manually pipe results into the fairly self-contained CLI scripts, it's easiest to just use the `export_blogger_comments.sh` script which does everything for you:
 
 ```bash
-DEBUG=1 REQUEST_THROTTLE=1 PER_PAGE=500 ./export_blog.sh https://your.blogger.blog.example
+DEBUG=1 REQUEST_THROTTLE=1 PER_PAGE=500 ./bin/export_blogger_comments.sh https://your.blogger.blog.example
 ```
 
 * `DEBUG=1` enables the new debug messages on stderr
@@ -271,7 +271,7 @@ The script tries to cache queries for a day to reduce needless re-querying of th
 
 #### Get Blog ID for Blog URL
 ```bash
-./getblogid.sh https://your.blogger.blog.example
+./bin/get_blogger_id.sh https://your.blogger.blog.example
 #=> 12345
 ```
 
@@ -279,7 +279,7 @@ This will also store the `$blog_id` in `data/blog_ids/${domain}.txt`.
 
 #### Get URLs for all blog posts for Blogger blog with given id
 ```bash
-./getposturls.sh 1234
+./bin/get_blogger_post_urls.sh 1234
 ```
 
 Which will output a newline-separated list of Blogger blog post URLs:
@@ -292,17 +292,34 @@ https://your.blogger.blog.example/2019/01/second-blog-title.html
 This will also store the Blogger.posts JSON responses  in `data/blog_post_urls/${blog_id}-${per_page}(-${page_token})-${year}-${month}-${day}.json` and the list of post URLs in `data/blog_post_urls/${blog_id}-${per_page}-${year}-${month}-${day}.txt`.
 
 #### Store Google+ Comments widget for blog post with given URL(s)
+
+Single URL example:
+
 ```bash
-echo -e "https://your.blogger.blog.example/2018/01/blog-title.html\nhttps://your.blogger.blog.example/2018/01/another-blog-title.html" | ./store_comments_frame.sh
+./bin/request_gplus_comments_widget_for_url.sh https://your.blogger.blog.example/2018/01/blog-title.html
 ```
 
-Google+ Comments Widget responses will be stored in `./data/comments_frames/your.blogger.blog.example/` with almost all special characters replaced by dashes
+Newline-delimited example:
+
+```bash
+echo -e "https://your.blogger.blog.example/2018/01/blog-title.html\nhttps://your.blogger.blog.example/2018/01/another-blog-title.html" | xargs -L 1 ./bin/request_gplus_comments_widget_for_url.sh
+```
+
+Google+ Comments Widget responses will be stored in `./data/gplus_comments_widgets/your.blogger.blog.example/` with almost all special characters replaced by dashes. E.g. `./data/gplus_comments_widgets/your.blogger.blog.example/2018-01-blog-title.html`
 
 #### List Google+ ActivityIDs from Google+ Comments widget files/dumps
 This tries to list all Activity IDs it can find in the Google+ Comments widget result.
 
+Single URL example:
+
 ```bash
-echo -e "data/comments_frames/your.blogger.blog.example/2018-01-blog-title.html\ndata/comments_frames/your.blogger.blog.example/2018-01-another-blog-title.html" | ./get_activity_ids_from_comments_frame.sh
+./bin/get_gplus_api_activity_ids_from_gplus_comments_widget_file.sh ./data/gplus_comments_widgets/your.blogger.blog.example/2018-01-blog-title.html
+```
+
+Newline-delimited example:
+
+```bash
+echo -e "data/gplus_comments_widgets/your.blogger.blog.example/2018-01-blog-title.html\ndata/gplus_comments_widgets/your.blogger.blog.example/2018-01-another-blog-title.html" | xargs -L 1 ./bin/get_gplus_api_activity_ids_from_gplus_comments_widget_file.sh
 ```
 
 This will return a list of newline-separated Google+ Activity#id results you can use to look up Google+ Posts (Activities) through the Google Plus API (for as long as it's still available).
@@ -311,27 +328,22 @@ This will return a list of newline-separated Google+ Activity#id results you can
 This will look up the Google+ Activity JSON resource through the Google+ API's Activity.get endpoint, as well as its associated Google+ Comments JSON resources through the Google+ API's Comments.list endpoint.
 
 ```bash
-echo -e "asdDSAmKEKAWkmcda3o01DMoame3" | ./get_comments_from_google_plus_api_by_activity_id.sh
+./bin/get_gplus_api_comments_by_gplus_activity_id.sh "asdDSAmKEKAWkmcda3o01DMoame3"
 ```
-
-For now it also tries to do conversion from JSON to very limited and ugly HTML, but that will likely be split off to its own script.
 
 The JSON resources are stored at:
 
 * `data/gplus/activities/$activity_id.json`
-* `data/gplus/activities/$activity_id/comments.json`
-
-The HTML output for now is stored at:
-
-* `data/output/$domain/html/sanitised-blog-url-path.html`
-* `data/output/$domain/html/all-activities.html`
+* `data/gplus/activities/$activity_id/comments_for_$activity_id.json`
 
 #### Examples of combining commands
-By piping the results of the commands in the right order, you can let the scripts do the hard work.
+By piping the results of the commands in the right order, with the use of xargs and/or command substitution, you can let the scripts do the hard work.
 
 ```bash
-./getposturls.sh `sh ./getblogid.sh https://your.blogger.blog.example/` | store_comments_frame.sh
+./bin/get_blogger_post_urls.sh "$(./bin/get_blogger_id.sh "https://your.blogger.blog.example/")" | xargs -L 1 ./bin/request_gplus_comments_widget_for_url.sh | xargs -L 1 ./bin/get_gplus_api_activity_ids_from_gplus_comments_widget_file.sh | xargs -L 1 ./bin/get_gplus_api_activity_by_gplus_activity_id.sh | xargs -L 1 ./bin/get_gplus_api_comments_by_gplus_activity_file.sh
 ```
+
+Or just have a look at the [export_blogger_comments.sh](bin/export_blogger_comments.sh) script, which basically serves this default workflow.
 
 ### Thanks
 

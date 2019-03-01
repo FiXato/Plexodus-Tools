@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-source "_functions.sh"
+#
+# Retrieves People API data from the Google+ People API for given Google+ profile id/URL.
+#
+caller_path="$(dirname "$(realpath "$0")")"
+source "$caller_path/../lib/functions.sh"
 ensure_gplus_api||exit 255
 ensure_gnutools||exit 255
 LOG_DIR="./logs"
 FAILED_FILES_LOGFILE="failed-profile-retrievals.txt"
 
-usage="Usage: $0 \$profile_id [--delete-target]\nThe optional --delete-target flag will delete the JSON output file for the given Profile if an error occurs; without it, it will log the filepath to '$LOG_DIR/$FAILED_FILES_LOGFILE' and leave the JSON output file intact instead."
+usage="Usage: $0 \$profile [--delete-target]\nThe optional --delete-target flag will delete the JSON output file for the given Profile if an error occurs; without it, it will log the filepath to '$LOG_DIR/$FAILED_FILES_LOGFILE' and leave the JSON output file intact instead.\n\$profile can be a numeric profile ID, a +PrefixedCustomURLName, or full plus.google.com profile URL."
 
 if [ -z "$1" ]; then
-  echo "Please supply a user id as \$1" 1>&2
+  echo "Please supply a user id, custom URL profile handle (e.g. +PrefixedCustomURLName), or full profile URL as \$1" 1>&2
   exit 255
 elif [ "$1" == '--help' -o "$1" == '-h' ]; then
-  echo -e usage
+  echo -e $usage
   exit 255
 fi
 user_id="$(get_user_id "$1")"
