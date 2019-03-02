@@ -300,7 +300,7 @@ function timestamp() {
 
 # FIXME: replace calls to this with the more generic version
 function timestamp_date() {
-  timestamp "%y-%m-%d" #FIXME: should probably just use 'day' instead of this double-digit year format.
+  timestamp "day"
 }
 
 function activity_file() {
