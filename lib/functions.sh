@@ -458,3 +458,13 @@ function merge_json_files() {
   debug "merge_json_files(): Looking in '$1' for files matching case-insensitive filemask '$2'"
   gnufind "$1" -iname "$2" -exec cat {} + | jq -s '.' > "$3"
 }
+
+
+function buildResponseFilename {
+  blog_id="$1"
+  pathSuffix="$2"
+  timestamp="$3"
+  extension="$4"
+  echo "${blog_id}${pathSuffix}-${timestamp}.${extension}"
+}
+
