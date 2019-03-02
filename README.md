@@ -325,11 +325,20 @@ echo -e "data/gplus_comments_widgets/your.blogger.blog.example/2018-01-blog-titl
 This will return a list of newline-separated Google+ Activity#id results you can use to look up Google+ Posts (Activities) through the Google Plus API (for as long as it's still available).
 
 #### Get the Activity and its Comments for a given activity id (and convert to HTML)
-This will look up the Google+ Activity JSON resource through the Google+ API's Activity.get endpoint, as well as its associated Google+ Comments JSON resources through the Google+ API's Comments.list endpoint.
+These scripts will look up the Google+ Activity JSON resource through the Google+ API's Activity.get endpoint, as well as its associated Google+ Comments JSON resources through the Google+ API's Comments.list endpoint.
 
 ```bash
-./bin/get_gplus_api_comments_by_gplus_activity_id.sh "asdDSAmKEKAWkmcda3o01DMoame3"
+ACTIVITY_ID="asdDSAmKEKAWkmcda3o01DMoame3"
+./bin/get_gplus_api_activity_by_gplus_activity_id.sh "$ACTIVITY_ID"
+./bin/get_gplus_api_comments_by_gplus_activity_id.sh "$ACTIVITY_ID"
 ```
+
+Alternatively you can pass the activity from from the former script to the `get_gplus_api_comments_by_gplus_activity_file.sh` script, which will only try to retrieve comments if the Activity actually has replies:
+
+```bash
+./bin/get_gplus_api_comments_by_gplus_activity_file.sh $(./bin/get_gplus_api_activity_by_gplus_activity_id.sh "$ACTIVITY_ID")
+```
+
 
 The JSON resources are stored at:
 
