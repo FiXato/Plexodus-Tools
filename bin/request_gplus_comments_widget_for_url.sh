@@ -30,11 +30,25 @@ widget_output_path="$(ensure_path "$DATA_WIDGETS_PATH/$domain" "$filename")"
 if [ ! -f "$widget_output_path" ]; then
   debug "Storing comments for $widget_url to $widget_output_path and sleeping for $REQUEST_THROTTLE seconds."
   sleep $REQUEST_THROTTLE
-  filename=$(cache_remote_document_to_file "$widget_url" "$widget_output_path")
+  filename=$(cache_remote_document_to_file "$widget_url" "$widget_output_path" "" "$(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")")
   if (( $? >= 1 )); then
     # FIXME: find out why I can't exit with an error code, as it seems to make xargs running in parallel mode stop working when it encounters an error on one of its processes.
-    echo "$widget_output_path" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
+    debug "'$widget_url' -> '$widget_output_path'"
+    read -p "Error while retrieving $widget_url - Retry? (y/n)" retry < /dev/tty
+    if [ "$retry" == "y" ]; then
+      debug "Retrying $widget_url"
+      rm "$widget_output_path"
+      filename=$(cache_remote_document_to_file "$widget_url" "$widget_output_path" "" "$(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")")
+      if (( $? >= 1 )); then
+        debug "Failed again."
+        exit 255
+      fi
+    else
+      exit 255
+    fi
   fi
+  setxattr "source" "$widget_url" "$widget_output_path" 1>&2
+  setxattr "post_url" "$post_url" "$widget_output_path" 1>&2
 
   #FIXME: make sure the file actually contains results.
 else

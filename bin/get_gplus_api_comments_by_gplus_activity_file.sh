@@ -33,5 +33,5 @@ if [ -n "$commentsCount" -a "$commentsCount" != "0"  ]; then
   echo $("$caller_path/get_gplus_api_comments_by_gplus_activity_id.sh" "$activity_id")
 else
   debug "Activity with ID $activity_id stored at $activity_file has no comments."
-  echo "$activity_id" >> $(ensure_path "$LOG_DIR" "$ACTIVITIES_WITHOUT_COMMENTS_LOG")
+  echo "'$activity_id' -> '$activity_file'" >> $(ensure_path "$LOG_DIR" "$ACTIVITIES_WITHOUT_COMMENTS_LOG")
 fi

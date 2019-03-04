@@ -20,16 +20,35 @@ if [ -z "$activity_id" -o "$activity_id" == "" ]; then
 fi
 
 debug "Looking up activities and comments for Activity with ID: $activity_id"
-get_activity_api_url="https://www.googleapis.com/plus/v1/activities/$activity_id?key=$GPLUS_APIKEY"
+get_activity_api_base_url="https://www.googleapis.com/plus/v1/activities/$activity_id"
+get_activity_api_url="${get_activity_api_base_url}?key=$GPLUS_APIKEY"
 debug "Activity.get API URL: $get_activity_api_url"
 
+log_file=$(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
 activity_response_file="$(activity_file $activity_id)"
 if [ ! -f "$activity_response_file" ]; then
   debug "Storing activities for $get_activity_api_url to $activity_response_file"
-  filename=$(cache_remote_document_to_file "$get_activity_api_url" "$activity_response_file")
-  if (( $? >= 1 )); then
-    # FIXME: find out why I can't exit with an error code, as it seems to make xargs running in parallel mode stop working when it encounters an error on one of its processes.
-    echo "$activity_response_file" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
+  filename=$(cache_remote_document_to_file "$get_activity_api_url" "$activity_response_file" "" "$log_file")
+  exit_code="$?"
+  setxattr "activity_id" "$activity_id" "$activity_response_file" 1>&2
+  setxattr "source" "${get_activity_api_base_url}?key=REDACTED" "$activity_response_file" 1>&2
+
+  if (( $exit_code >= 1 )); then
+    read -p "Error while retrieving $get_activity_api_url - Retry? (y/n)" retry < /dev/tty
+    if [ "$retry" == "y" ]; then
+      debug "Retrying $get_activity_api_url"
+      rm "$activity_response_file"
+      filename=$(cache_remote_document_to_file "$get_activity_api_url" "$activity_response_file" "" "$log_file")
+      exit_code="$?"
+      setxattr "activity_id" "$activity_id" "$activity_response_file" 1>&2
+      setxattr "source" "${get_activity_api_base_url}?key=REDACTED" "$activity_response_file" 1>&2
+      if (( $exit_code >= 1 )); then
+        debug "Failed again."
+        exit 255
+      fi
+    else
+      exit 255
+    fi
   fi
 
   #FIXME: make sure the file actually contains results.

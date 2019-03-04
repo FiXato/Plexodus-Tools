@@ -39,10 +39,26 @@ function getResponsePath {
   if [ ! -f "$path" ]; then
     debug "Storing Blogger blog post from API $url to $path and sleeping for $REQUEST_THROTTLE seconds."
     sleep $REQUEST_THROTTLE
-    filename=$(cache_remote_document_to_file "$url" "$path")
-    if (( $? >= 1 )); then
-      # FIXME: find out why I can't exit with an error code, as it seems to make xargs running in parallel mode stop working when it encounters an error on one of its processes.
-      echo "$path" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
+    filename=$(cache_remote_document_to_file "$url" "$path" "" "$FAILED_FILES_LOGFILE")
+    exit_code="$?"
+    setxattr "blog_id" "$blog_id" "$path" 1>&2
+
+    if (( $exit_code >= 1 )); then
+      debug "=!= getResponsePath: '$url' -> '$path'"
+      read -p "Error while retrieving $url - Retry? (y/n)" retry < /dev/tty
+      if [ "$retry" == "y" ]; then
+        debug "Retrying $url"
+        rm "$path"
+        filename=$(cache_remote_document_to_file "$url" "$path" "" "$FAILED_FILES_LOGFILE")
+        exit_code="$?"
+        setxattr "blog_id" "$blog_id" "$path" 1>&2
+        if (( $exit_code >= 1 )); then
+          debug "=!= getResponsePath failed again: '$url' -> '$path'"
+          exit 255
+        fi
+      else
+        exit 255
+      fi
     fi
 
     #FIXME: make sure the file actually contains results.
@@ -74,9 +90,9 @@ do
   cp "$aggregatePath" "$backup_file" && \
   debug "Merging $responsePath into $backup_file" && \
   jq --argjson newItems "$(jq -s '.[].items' "$responsePath")" '.items += $newItems' "$backup_file" > "$aggregatePath"
-  error_code="$?"
-  if (( $error_code >= 1 )); then
-    debug "[$0] Error code $error_code trying to merge"
+  exit_code="$?"
+  if (( $exit_code >= 1 )); then
+    debug "[$0] Exit code $exit_code trying to merge"
     #leave the intermediate file for manual debugging.
     break
   else
@@ -86,9 +102,9 @@ do
 
   # Check if there is another page; if you crawled the last page previously, then there won't be an .items item.
   items=$(cat "$responsePath" | jq -rc '.items')
-  error_code="$?"
-  if (( $error_code >= 1 )); then
-    echo "[$0] Error code $error_code while looking for an .items item in $responsePath"
+  exit_code="$?"
+  if (( $exit_code >= 1 )); then
+    echo "[$0] Exit code $exit_code while looking for an .items item in $responsePath"
     break
   fi
 

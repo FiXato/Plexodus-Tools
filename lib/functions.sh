@@ -4,6 +4,7 @@
 #FIXME: move this to an variables.env file
 REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 
+#TODO: Implement LOG_LEVEL
 function debug() {
   if [ "$DEBUG" == "1" -o "$DEBUG" == "true" -o "$DEBUG" == "TRUE" ]; then
     echo -e "[$(basename "$0")] $@" 1>&2
@@ -118,27 +119,35 @@ function gnuawk_string() {
 
 function gnused() {
   if hash gsed 2>/dev/null; then
-    debug "gnused(): gsed -E \"$@\""
+    # debug "gnused(): gsed -E \"$@\""
     gsed -E "$@"
   else
-    debug "gnused(): sed -E \"$@\""
+    # debug "gnused(): sed -E \"$@\""
     sed -E "$@"
   fi
 }
 
 function gnugrep() {
   if hash ggrep 2>/dev/null; then
-    debug "gnugrep(): ggrep -E \"$@\""
+    # debug "gnugrep(): ggrep -E \"$@\""
     ggrep "$@"
   else
-    debug "gnugrep(): grep -E \"$@\""
+    # debug "gnugrep(): grep -E \"$@\""
     grep "$@"
+  fi
+}
+
+function setxattr() {
+  if hash xattr 2>/dev/null; then
+    if [ -f "$3" ]; then
+      xattr -w "$1" "$2" "$3"
+    fi
   fi
 }
 
 function gnudate() { # Taken from https://stackoverflow.com/a/677212 by @lhunath and @Cory-Klein
   #FIXME: find out how I can prevent the loss of the quotes around the format in the debug output
-  debug "gnudate(): $(gnudate_string) $@"
+  # debug "gnudate(): $(gnudate_string) $@"
   if hash gdate 2>/dev/null; then
     gdate "$@"
   else
@@ -147,7 +156,7 @@ function gnudate() { # Taken from https://stackoverflow.com/a/677212 by @lhunath
 }
 
 function gnufind() {
-  debug "gnufind(): $(gnufind_string) $@"
+  # debug "gnufind(): $(gnufind_string) $@"
   if hash gfind 2>/dev/null; then
     gfind "$@"
   else
@@ -156,7 +165,7 @@ function gnufind() {
 }
 
 function gnuawk() {
-  debug "gnuawk(): $(gnuawk_string) $@"
+  # debug "gnuawk(): $(gnuawk_string) $@"
   if hash gawk 2>/dev/null; then
     gawk "$@"
   else
@@ -169,12 +178,12 @@ function unsorted_uniques() {
 }
 
 function sanitise_filename() {
-  debug "sanitising filename $@"
+  # debug "sanitising filename $@"
   gnused 's/[^-a-zA-Z0-9_.]/-/g'
 }
 
 function add_file_extension() {
-  debug "adding file extension: $@"
+  # debug "adding file extension: $@"
   extension="$1"
   filepath=$(cat - )
   filepath+="$extension"
@@ -184,9 +193,9 @@ function add_file_extension() {
 }
 
 function domain_from_url() {
-  debug "Retrieving domain from URL $1: echo \"$1\" | $(gnused_string) 's/https?:\/\/([^/]+)\/?.*/\1/g'"
+  # debug "Retrieving domain from URL $1: echo \"$1\" | $(gnused_string) 's/https?:\/\/([^/]+)\/?.*/\1/g'"
   domain="$(echo "$1" | gnused 's/https?:\/\/([^/]+)\/?.*/\1/g')"
-  debug "Domain: $domain"
+  # debug "Domain: $domain"
   echo "$domain"
 }
 
@@ -198,7 +207,7 @@ function path_from_url() {
 }
 
 function ensure_path() {
-  debug "ensure_path called with: $@ "
+  # debug "ensure_path called with: $@ "
   if [ -z "$1" -o "$1" == "" ]; then
     echo "ensure_path called with an undefined path \$1" 1>&2
     exit 255
@@ -293,7 +302,7 @@ function timestamp() {
   if [ "$ts_format" == "" ]; then
     gnudate "$date_arguments$@"
   else
-    debug "gnudate(): $(gnudate_string) $date_arguments$@" +"\"$ts_format\""
+    # debug "gnudate(): $(gnudate_string) $date_arguments$@" +"\"$ts_format\""
     DEBUG=0 gnudate "$date_arguments$@" +"$ts_format"
   fi
 }
@@ -350,7 +359,7 @@ function user_profile_file() {
     else
       timestamp_args=('-u')
     fi
-    debug "timestamp_args: ${timestamp_args[@]}"
+    # debug "timestamp_args: ${timestamp_args[@]}"
     suffix=".$(timestamp "$timestamp_format" ${timestamp_args[@]})"
   fi
 
@@ -432,15 +441,49 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
     if [ -z "$2" ]; then
       echo -e "cache_external_document_to_file(\"$1\") needs more arguments.\n$function_usage" 1>&2 && return 255
     elif [ ! -f "$2" ]; then
-      if [ -z "$3" ]; then
+      if [ -z "$3" -o "$3" == "" ]; then
         curl_args=""
       else
         curl_args="$3 "
       fi
-      debug "cache_external_document_to_file(): Retrieving JSON from $1 and storing it at $2"
+      debug "=#= cache_external_document_to_file(): Retrieving JSON from $1 and storing it at $2"
       status_code="$(curl --write-out %{http_code} --silent --output ${curl_args}"$2" "$1")"
+      #FIXME: catch exitcode too
+      setxattr "status_code" "$status_code" "$2" 1>&2
       if [ "$status_code" -ne 200 ]; then
-        echo "cache_external_document_to_file(\"$1\" \"$2\" \"$3\"): Error while retrieving remote document. Status code returned: $status_code" 1>&2 && return 255
+        echo "cache_external_document_to_file(\"$1\" \"$2\" \"$3\" \"$4\"): Error while retrieving remote document. Status code returned: $status_code" 1>&2        
+        if [ "$status_code" -eq 204 -o "$status_code" -eq 404 ]; then
+          retrymsg="\n=!= Status Code $status_code, so retrying once automatically"
+          debug "${retrymsg}"
+        else
+          retrymsg=""
+        fi
+
+        if [ -n "$4" -a "$4" != "" ]; then
+          echo -e "[$status_code]'$1' -> '$2'${retrymsg}" >> "$4"
+        fi
+        
+        if [ "$retrymsg" != "" ]; then
+          sleep 1
+          status_code="$(curl --write-out %{http_code} --silent --output ${curl_args}"$2" "$1")"
+          if [ "$status_code" -eq 200 ]; then
+            retrymsg="[$status_code]'$1' -> '$2' #SUCCESS on retry" >> "$4"
+            debug "$retrymsg"
+            if [ -n "$4" -a "$4" != "" ]; then
+              echo "$retrymsg" >> "$4"
+            fi
+            echo "$2"
+            return 0
+          else
+            retrymsg="[$status_code]'$1' -> '$2' #FAILURE on retry" >> "$4"
+            debug "=!= $retrymsg"
+            if [ -n "$4" -a "$4" != "" ]; then
+              echo "$retrymsg" >> "$4"
+            fi
+          fi
+        fi
+        
+        return 255
       else
         echo "$2"
       fi
@@ -468,3 +511,15 @@ function buildResponseFilename {
   echo "${blog_id}${pathSuffix}-${timestamp}.${extension}"
 }
 
+function abort_if() {
+  confirmation_input="$1"
+  prompt="$2"
+  read -p "$prompt" input < /dev/tty
+  echo "$input"
+  if [ "$(echo "$input" | '[:upper:]' '[:lower:]')" == "$confirmation_input" ]; then
+    debug "=!= Aborting by user request!"
+    exit 0
+  else
+    exit 255
+  fi
+}

@@ -30,7 +30,7 @@ if [ ! -f "$comments_response_file" ]; then
   filename=$(cache_remote_document_to_file "$list_comments_api_url" "$comments_response_file")
   if (( $? >= 1 )); then
     # FIXME: find out why I can't exit with an error code, as it seems to make xargs running in parallel mode stop working when it encounters an error on one of its processes.
-    echo "$comments_response_file" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
+    echo "'$list_comments_api_url' -> '$comments_response_file'" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
   fi
 
   #FIXME: make sure the file actually contains results.

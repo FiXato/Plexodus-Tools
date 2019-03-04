@@ -25,7 +25,7 @@ if (( $? >= 1 )); then
 fi
 
 function handle_failure() {
-  echo "$json_output_file" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
+  echo "'$profile_api_url' -> '$json_output_file'" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
   debug "handle_failure(): \$1: '$1'"
   if [ -n "$1" -a "$1" == '--delete-target' ]; then
     debug "removing output file"

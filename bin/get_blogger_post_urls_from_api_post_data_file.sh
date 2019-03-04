@@ -20,18 +20,19 @@ if [ -z "$items" -o "$items" == null -o "$items" == "" ]; then
 fi
   
 urls=$(cat "$blogger_post_api_data_file" | jq -rc '.items[] | .url')
+exit_code="$?"
+
 debug "Found $(echo -e "$urls" | wc -l) URLs."
-error_code="$?"
-if (( $error_code >= 1 )); then
-  echo "${0}: Error ($error_code) while retrieving urls for $blogger_post_api_data_file" 1>&2 && exit 255
-  echo "$blogger_post_api_data_file" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
+if (( $exit_code >= 1 )); then
+  echo "${0}: Error ($exit_code) while retrieving urls for $blogger_post_api_data_file" 1>&2 && exit 255
+  echo "$blogger_post_api_data_file #${0}" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
 fi
 echo -e "$urls"
 
 blog_id=$(cat "$blogger_post_api_data_file" | jq -rc '.items[0] .blog .id')
-error_code="$?"
-if (( $error_code >= 1 )); then
-  echo "${0}: Error ($error_code) while extracting blog id from $blogger_post_api_data_file" 1>&2 && exit
+exit_code="$?"
+if (( $exit_code >= 1 )); then
+  echo "${0}: Error ($exit_code) while extracting blog id from $blogger_post_api_data_file" 1>&2 && exit
 fi
 
 if [ -z "$blog_id" -o "$blog_id" == "" ]; then
