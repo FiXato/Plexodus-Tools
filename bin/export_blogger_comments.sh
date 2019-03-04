@@ -123,6 +123,7 @@ while read -r blogger_posts_json_file; do
       # Get all self-links: $(cat "$complete_blog_data_file"|jq '. as $source | $source | [.blog .posts[0] .activities[]|path(..)|[.[]|tostring]|select(any(. == "selfLink"))|join(",")]|unique | .[] | [split(",")] as $selflinks | $source .blog .posts[0] .activities[] | [getpath($selflinks[])] | unique | add')
       #TODO: retrieve attachments
       #TODO: cache actors
+      #TODO: cache user avatars
       # $(cat "$complete_blog_data_file" | jq '. as $source | $source | [.blog .posts[0] .activities[]|path(..)|[.[]|tostring]|select(.[-1] == "actor")|join(",")]|unique | .[] | [split(",")] as $selflinks | $source .blog .posts[0] .activities[] | [getpath($selflinks[])]')
     done <<< "$gplus_activity_ids"
   done
