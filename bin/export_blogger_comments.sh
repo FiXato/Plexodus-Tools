@@ -124,6 +124,7 @@ while read -r blogger_posts_json_file; do
       #TODO: retrieve attachments
       #TODO: cache actors
       #TODO: cache user avatars
+      #TODO: VERIFY that commentless posts are indeed without activities too...
       # $(cat "$complete_blog_data_file" | jq '. as $source | $source | [.blog .posts[0] .activities[]|path(..)|[.[]|tostring]|select(.[-1] == "actor")|join(",")]|unique | .[] | [split(",")] as $selflinks | $source .blog .posts[0] .activities[] | [getpath($selflinks[])]')
     done <<< "$gplus_activity_ids"
   done
