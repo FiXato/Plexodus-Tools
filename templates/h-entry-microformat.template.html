@@ -1,0 +1,25 @@
+<article class="h-entry">
+  <header>
+    <h1 class="p-name">$entryTitle</h1>
+    <p>
+      $actorTemplate
+      <a class="u-url" href="$entryUrl">
+        <time class="dt-published" datetime="$entryPublishedDateTime">$entryPublishedFormatted</time>
+      </a>
+      <time class="dt-updated" datetime="$entryUpdatedDateTime">$entryUpdatedFormatted</time>
+      <a class="p-category" href="$entryCollectionUrl">$entryCollectionName</a>
+    </p>
+
+    <p class="p-summary">$entryContentSummary</p>
+  </header>
+
+  <section class="content">
+    <div class="e-content">
+      <p class="body">$entryContentBody</p>
+    </div>
+  </section>
+
+  <footer class="comments row">
+$entryCommentsTemplate
+  </footer>
+</article>

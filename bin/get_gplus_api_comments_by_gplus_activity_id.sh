@@ -21,7 +21,8 @@ fi
 
 # TODO: make comments per-page count also configurable via ENV var. Not sure if the same one should be recycled.
 # TODO: should add pagination, though since the max of comments per post is 500, a maxResults of 500 should already get all the available comments(?)
-list_comments_api_url="https://www.googleapis.com/plus/v1/activities/$activity_id/comments?key=$GPLUS_APIKEY&maxResults=500&sortOrder=ascending"
+list_comments_api_base_url="https://www.googleapis.com/plus/v1/activities/$activity_id/comments?maxResults=500&sortOrder=ascending"
+list_comments_api_url="${list_comments_api_base_url}&key=${GPLUS_APIKEY}"
 debug "Comments.list API URL: $list_comments_api_url"
 
 comments_response_file="$(comments_file $activity_id)"
@@ -31,9 +32,25 @@ if [ ! -f "$comments_response_file" ]; then
   if (( $? >= 1 )); then
     # FIXME: find out why I can't exit with an error code, as it seems to make xargs running in parallel mode stop working when it encounters an error on one of its processes.
     echo "'$list_comments_api_url' -> '$comments_response_file'" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
-  fi
+  else
+    comments_count="$(cat "$filename" | jq -r '.items | length')"
+    if (( $comments_count == 0 )); then
+      echo "'$list_comments_api_url' -> '$comments_response_file' #EMPTY! comments list. RETRYING" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
 
-  #FIXME: make sure the file actually contains results.
+      filename=$(cache_remote_document_to_file "$list_comments_api_url" "$comments_response_file")
+      if (( $? >= 1 )); then
+        # FIXME: find out why I can't exit with an error code, as it seems to make xargs running in parallel mode stop working when it encounters an error on one of its processes.
+        echo "'$list_comments_api_url' -> '$comments_response_file' #ERROR WHILE RETRYING" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
+      else
+        comments_count="$(cat "$filename" | jq -r '.items | length')"
+        if (( $comments_count == 0 )); then
+          echo "'$list_comments_api_url' -> '$comments_response_file' #EMPTY AGAIN" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
+        fi
+      fi
+    fi
+  fi
+  setxattr "activity_id" "$activity_id" "$filename"
+  setxattr "api_url" "$list_comments_api_base_url" "$filename"
 else
   debug "Cache hit: Google Plus API Activity has already been retrieved from $list_comments_api_url: to $comments_response_file"
 fi

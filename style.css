@@ -1,0 +1,13 @@
+    .p-author span:before {content: "Posted by\20";}
+    /*.u-url:before {content: "at\20";}*/
+    a { color: #a55; }
+    a:hover { color: #b4da55; }
+    .dt-published:before {content: "on"; text-decoration: none; display: inline-block; padding-right: 0.25em; color: black;}
+    .dt-updated:before {content: "updated on\20";}
+
+    .dt-published,.dt-updated {display: block;}
+
+    .u-photo {float: right;}
+    
+    .p-comment {height: 15rem; overflow: auto;float:left; background-color: #efefef; width: 100%; padding: 0.5rem;}
+    .comments.row > div { padding: 0.5em;}

@@ -11,6 +11,47 @@ function debug() {
   fi
 }
 
+function printarr() {
+  declare -n __p="$1"
+  for k in "${!__p[@]}"
+    do printf "%s=%s\n" "$k" "${__p[$k]}"
+  done
+}
+
+function parse_template() {
+  # Usage: parse_template "/path/to/template.html" "name_of_variable"
+  declare -n _template_variables="$2"
+  _template_variables="${!_template_variables[@]}"
+
+  # The || section is needed to read the last line if no trailing newline is present in the file at EOF
+  while IFS= read -r line || [ -n "$line" ]; do
+    processed_line="$line"
+    while [ suffix != "" -a processed_line != "" ]; do
+      variable_name_regex='\$[a-zA-Z_][a-zA-Z0-9_]*'
+      literal_variable_name="$(expr "$processed_line" : '[^$]*\('$variable_name_regex'\)')"
+
+      if (( $? > 0 )); then
+        echo "$processed_line"
+        break
+      fi
+      if [ "$literal_variable_name" == "" ]; then
+        echo "$processed_line"
+        break
+      fi
+
+      variable_name="${literal_variable_name:1}"
+      prefix="$(expr "$processed_line" : '^\([^\$]\{0,\}\)'$variable_name_regex || echo "")"
+      if [ "$prefix" != "" ]; then
+        processed_line="${processed_line#$prefix}"
+      fi
+      processed_line="${processed_line#$literal_variable_name}"
+      [ ${_template_variables[$variable_name]+test} ] && variable="${_template_variables[$variable_name]}" || variable="$literal_variable_name"
+      printf "%s%s" "$prefix" "$variable"
+
+    done
+  done < "$1"
+}
+
 function machine_type() { #function provided by paxdiablo at https://stackoverflow.com/a/3466183
   unameOut="$(uname -s)"
   case "${unameOut}" in
@@ -308,8 +349,12 @@ function timestamp() {
 }
 
 # FIXME: replace calls to this with the more generic version
-function timestamp_date() {
-  timestamp "day"
+function timestamp_date() { 
+  if [ -z "$CACHE_TIMESTAMP" -o "$CACHE_TIMESTAMP" == "" ]; then
+    timestamp "day"
+  else
+    timestamp "day" --date="$CACHE_TIMESTAMP"
+  fi
 }
 
 function activity_file() {
