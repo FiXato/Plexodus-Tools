@@ -13,6 +13,9 @@
 data/
 archived-*/
 logs/
+tmp*
+**.tgz
+**.zip
 
 # Used by dotenv library to load environment variables.
 # .env

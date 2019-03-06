@@ -181,7 +181,11 @@ function gnugrep() {
 function setxattr() {
   if hash xattr 2>/dev/null; then
     if [ -f "$3" ]; then
-      xattr -w "$1" "$2" "$3"
+      xattr -w "$1" "$2" "$3" 1>&2
+    fi
+  elif hash attr 2>/dev/null; then
+    if [ -f "$3" ]; then
+      attr -s "$1" -V "$2" "$3" 1>&2
     fi
   fi
 }
@@ -479,7 +483,7 @@ function api_url() {
 }
 
 function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
-  function_usage="Usage: cache_external_document_to_file(\"\$url\" \"\$local_filepath\")\n"
+  function_usage="Usage: cache_remote_document_to_file(\"\$url\" \"\$local_filepath\")\n"
   if [ -z "$1" ]; then
     echo -e "cache_external_document_to_file() called without arguments.\n$api_url_usage" 1>&2 && return 255
   elif [[ "$1" =~ (^https?|ftps?):// ]]; then
@@ -491,12 +495,12 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
       else
         curl_args="$3 "
       fi
-      debug "=#= cache_external_document_to_file(): Retrieving JSON from $1 and storing it at $2"
+      debug "=!= cache_remote_document_to_file(): Retrieving JSON from $1 and storing it at $2"
       status_code="$(curl --write-out %{http_code} --silent --output ${curl_args}"$2" "$1")"
       #FIXME: catch exitcode too
       setxattr "status_code" "$status_code" "$2" 1>&2
       if [ "$status_code" -ne 200 ]; then
-        echo "cache_external_document_to_file(\"$1\" \"$2\" \"$3\" \"$4\"): Error while retrieving remote document. Status code returned: $status_code" 1>&2        
+        echo -e "cache_remote_document_to_file(\"$1\" \"$2\" \"$3\" \"$4\"):\n=!!= [$status_code] Error while retrieving remote document." 1>&2        
         if [ "$status_code" -eq 204 -o "$status_code" -eq 404 ]; then
           retrymsg="\n=!= Status Code $status_code, so retrying once automatically"
           debug "${retrymsg}"
@@ -509,23 +513,28 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
         fi
         
         if [ "$retrymsg" != "" ]; then
-          sleep 1
-          status_code="$(curl --write-out %{http_code} --silent --output ${curl_args}"$2" "$1")"
-          if [ "$status_code" -eq 200 ]; then
-            retrymsg="[$status_code]'$1' -> '$2' #SUCCESS on retry" >> "$4"
-            debug "$retrymsg"
-            if [ -n "$4" -a "$4" != "" ]; then
-              echo "$retrymsg" >> "$4"
+          local retries=2
+          local count=0
+          while [ $count -lt $retries ]; do
+            count=$[$count+1]
+            sleep $count
+            status_code="$(curl --write-out %{http_code} --silent --output ${curl_args}"$2" "$1")"
+            if [ "$status_code" -eq 200 ]; then
+              retrymsg="[$status_code]'$1' -> '$2' #SUCCESS on retry #$count" >> "$4"
+              debug "$retrymsg"
+              if [ -n "$4" -a "$4" != "" ]; then
+                echo "$retrymsg" >> "$4"
+              fi
+              echo "$2"
+              return 0
+            else
+              retrymsg="[$status_code]'$1' -> '$2' #FAILURE on retry" >> "$4"
+              debug "=!= $retrymsg"
+              if [ -n "$4" -a "$4" != "" ]; then
+                echo "$retrymsg" >> "$4"
+              fi
             fi
-            echo "$2"
-            return 0
-          else
-            retrymsg="[$status_code]'$1' -> '$2' #FAILURE on retry" >> "$4"
-            debug "=!= $retrymsg"
-            if [ -n "$4" -a "$4" != "" ]; then
-              echo "$retrymsg" >> "$4"
-            fi
-          fi
+          done
         fi
         
         return 255

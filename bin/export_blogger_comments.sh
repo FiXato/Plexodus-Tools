@@ -52,7 +52,7 @@ while read -r blogger_posts_json_file; do
     while read -r gplus_activity_id; do
       debug "\n---"
       if [ -z "$gplus_activity_id" -o "$gplus_activity_id" == "" ]; then
-        debug "=!= No activity IDs found in GPlus Comments Widget ('$gplus_widget'); maybe comments were made using Blogger's native comments?"
+        debug "=#= No activity IDs found in GPlus Comments Widget ('$gplus_widget'); maybe comments were made using Blogger's native comments?"
         echo "'$post_url' -> '$gplus_widget'" >> "./logs/blogger-gplus-comments-widgets-without-gplus-api-activity-ids.txt"
         continue
       fi

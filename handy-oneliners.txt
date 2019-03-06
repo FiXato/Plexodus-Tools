@@ -12,3 +12,6 @@ cat archived-data-trilemma-2019-03-04/output/blog.trilemma.com.json | jq -cr '[[
 
 # Export all comments in a combined JSON Blogger G+ Comments export file to HTML
 cat archived-data-trilemma-2019-03-04/output/blog.trilemma.com.json | jq -cr '[[.blog .posts[] |select(.|keys|any(. == "activities")) | .activities[] | .object .replies | select(.|keys|any(. == "comments"))|.comments[]|.items]]|flatten[]|@base64'|gxargs -I@@ bin/generate-template-from-comment.sh templates/h-entry-p-comment-microformat.template.html templates/h-entry-author.template.html @@ > tmp-comments-body.html && bin/generate-html-template-layout.sh "default" "tmp-comments-body.html" > tmp-comments.html
+
+# Backup data dumps.
+mkdir -p archived-output && find data/output -name '*.json' | gxargs -I@@ bash -c 'cp "$0" "archived-output/$(basename "$0"|ggrep -Po '\''.*(?=\.)'\'')-$(gdate +"%Y-%m-%d-%H%M").json"' "@@"

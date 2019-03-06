@@ -9,5 +9,6 @@
 
     .u-photo {float: right;}
     
-    .p-comment {height: 15rem; overflow: auto;float:left; background-color: #efefef; width: 100%; padding: 0.5rem;}
+    .p-comment {background-color: #efefef; width: 100%; padding: 0.5rem;}
+    .p-comment .content {height: 14rem; overflow: auto; padding: 1rem; border: 1px solid #bad455;}
     .comments.row > div { padding: 0.5em;}
