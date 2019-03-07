@@ -19,6 +19,22 @@ function printarr() {
   done
 }
 
+function curl_urlencode() {
+  curl -Gso /dev/null -w %{url_effective} --data-urlencode @- "" | cut -c 3- | sed 's/%00$//g'
+}
+
+function urlsafe_plus_profile_url() {
+  clean_source_url="$1"
+  plus_url_custom_handle_base="https://plus.google.com/+"
+  escaped_plus_url_custom_handle_base="^$(printf "$plus_url_custom_handle_base" | sed 's/\./\\./g;s/\+/\\+/g')"
+  if [[ "$source_url" == $plus_url_custom_handle_base* ]]; then
+    urlencoded_username="$(echo "$clean_source_url" | gnugrep -zoP "$escaped_plus_url_custom_handle_base"'\K([^/]+)' | curl_urlencode)"
+    url_path_suffix="$(echo "$clean_source_url" | gnugrep -oP "$escaped_plus_url_custom_handle_base"'[^/]+\K(/.+)')"
+    clean_source_url="${plus_url_custom_handle_base}${urlencoded_username}${url_path_suffix}"
+  fi
+  echo "$clean_source_url"
+}
+
 function parse_template() {
   # Usage: parse_template "/path/to/template.html" "name_of_variable"
   declare -n _template_variables="$2"
@@ -246,9 +262,9 @@ function domain_from_url() {
 }
 
 function path_from_url() {
-  debug "Retrieving path from URL $1: echo \"$1\" | $(gnused_string) 's/https?:\/\/([^/]+)\/(.+)$/\2/g')"
+  # debug "Retrieving path from URL $1: echo \"$1\" | $(gnused_string) 's/https?:\/\/([^/]+)\/(.+)$/\2/g')"
   path="$(echo "$1" | gnused 's/https?:\/\/([^/]+)\/(.+)$/\2/g')"
-  debug "Path: $path"
+  # debug "Path: $path"
   echo "$path"
 }
 

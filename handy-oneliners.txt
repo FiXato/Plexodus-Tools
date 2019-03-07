@@ -41,6 +41,16 @@ cat archived-data-trilemma-2019-03-04/output/blog.trilemma.com.json | jq -cr '[[
 mkdir -p archived-output && find data/output -name '*.json' | gxargs -I@@ bash -c 'cp "$0" "archived-output/$(basename "$0"|ggrep -Po '\''.*(?=\.)'\'')-$(gdate +"%Y-%m-%d-%H%M").json"' "@@"
 
 # Get permalinks from posts I've commented on:
-find /Volumes/Storage1/Backups/Takeout/FromPhone/extracted -path '*ActivityLog/Comments.json' -exec cat "{}" \; | jq '.items[] .commentCreatedItem .postPermalink'
+find ./extracted/Takeout -path '*ActivityLog/Comments.json' -exec cat "{}" \; | jq -r '.items[] .commentCreatedItem .postPermalink'
+
+# Get permalinks from PUBLIC posts I've commented on:
+find ./extracted/Takeout -path '*ActivityLog/Comments.json' -exec cat "{}" \; | jq -r '.items[]| select(.visibility == "PUBLIC") .commentCreatedItem .postPermalink'|grep -v '^null$' | sort -u > tmp-public-posts-ive-commented-on.txt
+
 # Get uids from people whose posts I've commented on ActivityLog/Comments.json
-find /Volumes/Storage1/Backups/Takeout/FromPhone/extracted -path '*ActivityLog/Comments.json' -exec cat "{}" \; | jq '.items[] .commentCreatedItem .postPermalink'|ggrep -oP 'https://plus\.google\.com/\K([^/]{1,})'| sort -u > uids-people_i_commented_on.txt
+find ./extracted/Takeout -path '*ActivityLog/Comments.json' -exec cat "{}" \; | jq '.items[] .commentCreatedItem .postPermalink'|ggrep -oP 'https://plus\.google\.com/\K([^/]{1,})'| sort -u > uids-people_i_commented_on.txt
+
+# From your extracted Takeout archive, look into the Comments.json ActivityLog file and return all Activity IDs for all PUBLIC posts you've commented on.
+find ./extracted/Takeout -path '*ActivityLog/Comments.json' -exec cat "{}" \; | jq -r '.items[]| select(.visibility == "PUBLIC") .commentCreatedItem .commentActivityId' | grep -v '^null$' | ggrep -oP '^([^#]+)' | sort -u > tmp-activity-ids-from-json-for-public-posts-ive-commented-on.txt
+
+# Archive all the public posts you've commented on, through The Internet Archive's Way Back Machine, and extract the activity ID from it. (That extraction is not necessary though, as those IDs are already in the JSON apparently!)
+hilite cat tmp-public-posts-ive-commented-on.txt | DEBUG=1 hilite xargs -L1 ./bin/archive_url.sh | DEBUG=1 hilite ./bin/get_gplus_api_activity_id_from_gplus_waybackmachine_dump.sh | tee -a tmp-activity-ids-from-posts-ive-commented-on.txt

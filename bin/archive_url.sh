@@ -8,16 +8,21 @@ check_help "$1" "$usage" || exit 255
 source_url="$1"
 if [ "$source_url" == "" ]; then
   echo "Please supply the source page URL as \$source_url" && exit 255 1>&2
+else
+  clean_source_url="$(urlsafe_plus_profile_url "$source_url")"
 fi
 
 wbm_save_base_url="https://web.archive.org/save"
-wbm_save_url="$wbm_save_base_url/$source_url"
+wbm_save_url="$wbm_save_base_url/$clean_source_url"
 target_filepath="$(wbm_archive_filepath "$source_url")"
 filename="$(cache_remote_document_to_file "$wbm_save_url" "$target_filepath")"
 exit_code="$?"
 if (( $exit_code >= 1 )); then
   echo "=!= cache_remote_document_to_file('$wbm_save_url' '$target_filepath') exited with $exit_code and returned '$filename'" 1>&2
-  exit $exit_code
+  setxattr "exit_code" "$exit_code" "$filename"
+  exit 255
 fi
+setxattr "source_url" "$source_url" "$filename"
+setxattr "wbm_save_url" "$wbm_save_url" "$filename"
 
 cat "$filename"
