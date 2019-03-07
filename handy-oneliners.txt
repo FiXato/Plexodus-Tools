@@ -54,3 +54,14 @@ find ./extracted/Takeout -path '*ActivityLog/Comments.json' -exec cat "{}" \; | 
 
 # Archive all the public posts you've commented on, through The Internet Archive's Way Back Machine, and extract the activity ID from it. (That extraction is not necessary though, as those IDs are already in the JSON apparently!)
 hilite cat tmp-public-posts-ive-commented-on.txt | DEBUG=1 hilite xargs -L1 ./bin/archive_url.sh | DEBUG=1 hilite ./bin/get_gplus_api_activity_id_from_gplus_waybackmachine_dump.sh | tee -a tmp-activity-ids-from-posts-ive-commented-on.txt
+
+#Get all participants in a community from a F+Me export file:
+cat ./f-plus-me-community-export.json | jq -r '[.accounts[0]|.communities[] .categories[] .posts[] as $post | [$post .author .id, $post .comments[] .author .id]|flatten]|flatten|unique|join("\n")'
+
+# Extract all profile URLs from G+ Circles Takeout file
+cat Takeout/Google+\ Circles/circle-name.json | jq -r '[.person[] .profileUrl] | unique|join("\n")' | sort -u > my-circle-profile-urls.txt
+# Extract all profile URLs from all G+ Circles Takeout file
+cat Takeout/Google+\ Circles/*.json | jq -r '[select(.person != null) .person[] .profileUrl] | unique |join("\n")' | sed '/^$/d' | sort -u > all-my-circles-profile-urls.txt
+
+# Get unique user urls (protocols and www. subdomains stripped) from queried People API JSON.
+cat ./data/gplus/users/*.json | jq -r 'select(.urls != null) | .urls[] .value' | ggrep -oP 'https?://(www.)?\K(.+)' | sort -u
