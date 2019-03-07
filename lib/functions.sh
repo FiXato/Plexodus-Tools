@@ -499,7 +499,7 @@ function api_url() {
         if [ -z "$4" ]; then
           echo -e "api_url(\"$1\" \"$3\" \"\$user_id\") is missing its \$user_id.\n$api_url_usage" 1>&2 && return 255
         elif [[ "$4" =~ ^([0-9]+$|^\+[a-zA-Z0-9_-]+)$ ]]; then
-          echo "$gplus_api_url/$4?personFields=addresses%2CageRanges%2Cbiographies%2Cbirthdays%2CbraggingRights%2CcoverPhotos%2CemailAddresses%2Cevents%2Cgenders%2CimClients%2Cinterests%2Clocales%2Cmemberships%2Cmetadata%2Cnames%2Cnicknames%2Coccupations%2Corganizations%2CphoneNumbers%2Cphotos%2Crelations%2CrelationshipInterests%2CrelationshipStatuses%2Cresidences%2CsipAddresses%2Cskills%2Ctaglines%2Curls&key=$GPLUS_APIKEY"
+          echo "$gplus_api_url/$4?personFields=addresses%2CageRanges%2Cbiographies%2Cbirthdays%2CbraggingRights%2CcoverPhotos%2CemailAddresses%2Cevents%2Cgenders%2CimClients%2Cinterests%2Clocales%2Cmemberships%2Cmetadata%2Cnames%2Cnicknames%2Coccupations%2Corganizations%2CphoneNumbers%2Cphotos%2Crelations%2CrelationshipInterests%2CrelationshipStatuses%2Cresidences%2CsipAddresses%2Cskills%2Ctaglines%2Curls%2CuserDefined&key=$GPLUS_APIKEY"
         else
           echo -e "api_url(\"$1\" \"$3\" \"\$user_id\") \$user_id needs to be a numeric id, or the +PrefixedCustomURLName; '$4' was given.\n$api_url_usage" 1>&2 && return 255
         fi
@@ -518,7 +518,7 @@ function append_log_msg() {
   local msg="$1"
   local log_file="$2"
   if [ "$log_file" != "" ]; then
-    echo -e "$msg" >> "$log_file"
+    echo -e "[$(timestamp "%H:%M:%S")] $msg" >> "$log_file"
   fi
 }
 
