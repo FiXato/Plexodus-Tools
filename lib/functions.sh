@@ -492,14 +492,14 @@ function api_url() {
     if [ -z "$2" ]; then
       echo -e "api_url(\"$1\") needs more arguments.\n$api_url_usage" 1>&2 && return 255
     elif [ "$2" == "people" ]; then #https://developers.google.com/+/web/api/rest/latest/people
-      gplus_api_url="${gplus_api_url}/people"
+      gplus_api_url="https://people.googleapis.com/v1/people"
       if [ -z "$3" ]; then
         echo -e "api_url(\"$1\" \"$3\") needs more arguments.\n$api_url_usage" 1>&2 && return 255
       elif [ "$3" == "get" ]; then #https://developers.google.com/+/web/api/rest/latest/people/get
         if [ -z "$4" ]; then
           echo -e "api_url(\"$1\" \"$3\" \"\$user_id\") is missing its \$user_id.\n$api_url_usage" 1>&2 && return 255
         elif [[ "$4" =~ ^([0-9]+$|^\+[a-zA-Z0-9_-]+)$ ]]; then
-          echo "$gplus_api_url/$4?key=$GPLUS_APIKEY"
+          echo "$gplus_api_url/$4?personFields=addresses%2CageRanges%2Cbiographies%2Cbirthdays%2CbraggingRights%2CcoverPhotos%2CemailAddresses%2Cevents%2Cgenders%2CimClients%2Cinterests%2Clocales%2Cmemberships%2Cmetadata%2Cnames%2Cnicknames%2Coccupations%2Corganizations%2CphoneNumbers%2Cphotos%2Crelations%2CrelationshipInterests%2CrelationshipStatuses%2Cresidences%2CsipAddresses%2Cskills%2Ctaglines%2Curls&key=$GPLUS_APIKEY"
         else
           echo -e "api_url(\"$1\" \"$3\" \"\$user_id\") \$user_id needs to be a numeric id, or the +PrefixedCustomURLName; '$4' was given.\n$api_url_usage" 1>&2 && return 255
         fi
