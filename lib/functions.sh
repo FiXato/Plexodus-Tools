@@ -437,6 +437,21 @@ function user_profile_file() {
   fi
 }
 
+function wbm_archive_filepath() {
+  url="$1"
+  if [ "$url" == "" ]; then
+    echo "wbm_archive_filepath() called with an undefined url \$1" 1>&2
+    exit 255
+  else
+    #FIXME: also allow for date-based caching of this?
+    sanitised_domain="$(domain_from_url "$url" | sanitise_filename )"
+    sanitised_filename="$(path_from_url "$url" | add_file_extension ".html" | sanitise_filename )"
+    local filepath="$(ensure_path "./data/wbm/$sanitised_domain" "$sanitised_filename")"
+    debug "wbm_archive_filepath('$url') #=> '$filepath'"
+    echo "$filepath"
+  fi
+}
+
 function comments_file() {
   activity_id="$1"
   if [ "$activity_id" == "" ]; then
