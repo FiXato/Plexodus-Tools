@@ -1,8 +1,32 @@
 # Find all json data files with errors in them, and return their path, contents and activity_id
-find data -name '*.json' | xargs -L1 grep -l '"error":'|ghead -n "-1"|xargs -L1 bash -c 'echo $0 && cat $0 && $(echo $0 | ggrep -oP "data/gplus/activities/\K([^/]+)")'
+find data -name '*.json' | grep -v "data/output" | xargs -L1 grep -l '"error":'
+
+# For OSX with gnu-grep from homebrew:
+find data -name '*.json' | grep -v "data/output" | xargs -L1 ggrep -l '"error":' | xargs -L1 bash -c 'echo $0 && cat $0 && echo "$(echo $0 | grep -oP "data/gplus/activities/\K([^/]+)")"'
+
+find data -name '*.json' | grep -v "data/output" | xargs -L1 grep -l '"error":' | xargs -L1 bash -c 'echo $0 && cat $0 && echo "$(echo $0 | grep -oP "data/gplus/activities/\K([^/]+)")"'
 
 # Find all json data files with empty item lists in them, and return their path, contents and activity_id
-find data -name '*.json' | xargs -L1 grep -l '"items": \[\]'|ghead -n "-1"|xargs -L1 bash -c 'echo $0 && cat $0 && $(echo $0 | ggrep -oP "data/gplus/activities/\K([^/]+)")'
+#OSX: 
+find data -name '*.json' | grep -v "data/output" | xargs -L1 ggrep -l '"items": \[\]' | xargs -L1 bash -c 'echo $0 && cat $0 && echo "$(echo $0 | ggrep -oP "data/gplus/activities/\K([^/]+)")"'
+
+# GNU systems:
+find data -name '*.json' | grep -v "data/output" | xargs -L1 grep -l '"items": \[\]' | xargs -L1 bash -c 'echo $0 && cat $0 && echo "$(echo $0 | grep -oP "data/gplus/activities/\K([^/]+)")"'
+
+# Combined:
+#OSX:
+find data -name '*.json' | grep -v "data/output" | xargs -L1 ggrep -Pl '("items": \[\]|"error":)' | xargs -L1 bash -c 'echo $0 && cat $0 && echo "$(echo $0 | ggrep -oP "data/gplus/activities/\K([^/]+)")"'
+#GNU:
+find data -name '*.json' | grep -v "data/output" | xargs -L1 grep -Pl '("items": \[\]|"error":)' | xargs -L1 bash -c 'echo $0 && cat $0 && echo "$(echo $0 | grep -oP "data/gplus/activities/\K([^/]+)")"'
+
+
+# Retry failed/empty comments items:
+#OSX:
+find data -name 'comments_for_*.json' | grep -v "data/output" | xargs -L1 ggrep -Pl '("items": \[\]|"error":)'| xargs -L1 bash -c 'echo $0 && cat $0 && rm "$0" && DEBUG=1 ./bin/get_gplus_api_comments_by_gplus_activity_id.sh "$(echo $0 | ggrep -oP "data/gplus/activities/\K([^/]+)")"'
+# With `hilite`:
+hilite find data -name 'comments_for_*.json' | hilite grep -v "data/output" | hilite xargs -L1 ggrep -Pl '("items": \[\]|"error":)'| xargs -L1 bash -c 'echo $0 && cat $0 && rm "$0" && DEBUG=1 hilite ./bin/get_gplus_api_comments_by_gplus_activity_id.sh "$(echo $0 | ggrep -oP "data/gplus/activities/\K([^/]+)")"'
+#GNU:
+find data -name 'comments_for_*.json' | grep -v "data/output" | xargs -L1 grep -Pl '("items": \[\]|"error":)'| xargs -L1 bash -c 'echo $0 && cat $0 && rm "$0" && DEBUG=1 ./bin/get_gplus_api_comments_by_gplus_activity_id.sh "$(echo $0 | grep -oP "data/gplus/activities/\K([^/]+)")"'
 
 #Find all zero-byte data files:
 find data -size 0
@@ -15,3 +39,8 @@ cat archived-data-trilemma-2019-03-04/output/blog.trilemma.com.json | jq -cr '[[
 
 # Backup data dumps.
 mkdir -p archived-output && find data/output -name '*.json' | gxargs -I@@ bash -c 'cp "$0" "archived-output/$(basename "$0"|ggrep -Po '\''.*(?=\.)'\'')-$(gdate +"%Y-%m-%d-%H%M").json"' "@@"
+
+# Get permalinks from posts I've commented on:
+find /Volumes/Storage1/Backups/Takeout/FromPhone/extracted -path '*ActivityLog/Comments.json' -exec cat "{}" \; | jq '.items[] .commentCreatedItem .postPermalink'
+# Get uids from people whose posts I've commented on ActivityLog/Comments.json
+find /Volumes/Storage1/Backups/Takeout/FromPhone/extracted -path '*ActivityLog/Comments.json' -exec cat "{}" \; | jq '.items[] .commentCreatedItem .postPermalink'|ggrep -oP 'https://plus\.google\.com/\K([^/]{1,})'| sort -u > uids-people_i_commented_on.txt
