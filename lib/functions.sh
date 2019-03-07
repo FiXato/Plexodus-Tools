@@ -3,6 +3,7 @@
 
 #FIXME: move this to an variables.env file
 REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
+USER_AGENT="${USER_AGENT:-PlexodusToolsBot/0.9.0}"
 
 #TODO: Implement LOG_LEVEL
 function debug() {
@@ -482,74 +483,120 @@ function api_url() {
   fi
 }
 
-function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
-  function_usage="Usage: cache_remote_document_to_file(\"\$url\" \"\$local_filepath\")\n"
-  if [ -z "$1" ]; then
-    echo -e "cache_external_document_to_file() called without arguments.\n$api_url_usage" 1>&2 && return 255
-  elif [[ "$1" =~ (^https?|ftps?):// ]]; then
-    if [ -z "$2" ]; then
-      echo -e "cache_external_document_to_file(\"$1\") needs more arguments.\n$function_usage" 1>&2 && return 255
-    elif [ ! -f "$2" ]; then
-      if [ -z "$3" -o "$3" == "" ]; then
-        curl_args=""
-      else
-        curl_args="$3 "
-      fi
-      debug "=!= cache_remote_document_to_file(): Retrieving JSON from $1 and storing it at $2"
-      status_code="$(curl --write-out %{http_code} --silent --output ${curl_args}"$2" "$1")"
-      #FIXME: catch exitcode too
-      setxattr "status_code" "$status_code" "$2" 1>&2
-      if [ "$status_code" -ne 200 ]; then
-        echo -e "cache_remote_document_to_file(\"$1\" \"$2\" \"$3\" \"$4\"):\n=!!= [$status_code] Error while retrieving remote document." 1>&2        
-        if [ "$status_code" -eq 204 -o "$status_code" -eq 404 ]; then
-          retrymsg="\n=!= Status Code $status_code, so retrying once automatically"
-          debug "${retrymsg}"
-        else
-          retrymsg=""
-        fi
-
-        if [ -n "$4" -a "$4" != "" ]; then
-          echo -e "[$status_code]'$1' -> '$2'${retrymsg}" >> "$4"
-        fi
-        
-        if [ "$retrymsg" != "" ]; then
-          local retries=2
-          local count=0
-          while [ $count -lt $retries ]; do
-            count=$[$count+1]
-            sleep $count
-            status_code="$(curl --write-out %{http_code} --silent --output ${curl_args}"$2" "$1")"
-            if [ "$status_code" -eq 200 ]; then
-              retrymsg="[$status_code]'$1' -> '$2' #SUCCESS on retry #$count" >> "$4"
-              debug "$retrymsg"
-              if [ -n "$4" -a "$4" != "" ]; then
-                echo "$retrymsg" >> "$4"
-              fi
-              echo "$2"
-              return 0
-            else
-              retrymsg="[$status_code]'$1' -> '$2' #FAILURE on retry" >> "$4"
-              debug "=!= $retrymsg"
-              if [ -n "$4" -a "$4" != "" ]; then
-                echo "$retrymsg" >> "$4"
-              fi
-            fi
-          done
-        fi
-        
-        return 255
-      else
-        echo "$2"
-      fi
-    else
-      debug "Cache hit for ${1}: $2"
-      echo "$2"
-    fi
-  else
-    echo -e "cache_external_document_to_file(): unsupported protocol for \$url ('$1'); only http(s) and ftp(s) are currently supported.\n$function_usage" 1>&2 && return 255
+function append_log_msg() {
+  local msg="$1"
+  local log_file="$2"
+  if [ "$log_file" != "" ]; then
+    echo -e "$msg" >> "$log_file"
   fi
 }
 
+function append_log_message() {
+  append_log_msg "$1" "$2"
+}
+
+function append_log_file() {
+  append_log_msg "$1" "$2"
+}
+
+function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args $4=log_file
+  function_usage="Usage: cache_remote_document_to_file(\"\$url\" \"\$local_filepath\" [\"\$curl_args\" [\"\$log_file\"]])\n"
+  debug "cache_remote_document_to_file(): \"$1\" \"$2\" \"$3\" \"$4\""
+
+  
+  document_url="$1"
+  target_file_path="$2"
+  curl_args=""
+  if [ "$3" != "" ]; then
+    curl_args="$3 "
+  fi
+  log_file="$4"
+
+  if [ "$document_url" == "" ]; then
+    echo -e "=!!!= cache_external_document_to_file() needs a target URL at \$1.\n$api_url_usage" 1>&2 && return 255
+  elif [[ "$document_url" =~ (^https?|ftps?):// ]]; then # Supported protocols
+    if [ "$target_file_path" == "" ]; then
+      echo -e "=!!!= cache_external_document_to_file() needs a target file path.\n$function_usage" 1>&2 && return 255
+    elif [ ! -f "$target_file_path" ]; then
+      local retries=3
+      local count=0
+      while [ $count -lt $retries ]; do
+        if (( $count > 0 )); then  # Don't sleep on the first try
+          sleep $count
+        fi
+        count=$[$count+1]
+
+        debug "  =!= [Try #$count/$retries]: Storing '$document_url' to '$target_file_path'"
+        status_code="$(curl -A "$USER_AGENT" --write-out %{http_code} --silent --output ${curl_args}"$target_file_path" "$document_url")"; exit_code="$?"
+        setxattr "status_code" "$status_code" "$2" 1>&2
+        setxattr "tries" "$count/$retries" "$2" 1>&2
+
+        if (( $exit_code >= 1 )); then
+          errormsg="[\$?=$exit_code]'$document_url' -> '$target_file_path' # curl exited with code $exit_code"
+          debug "    =!= $errormsg"
+          append_log_msg "$errormsg" "$log_file"
+          setxattr "exit_code" "$exit_code" "$target_file_path" 1>&2
+          continue
+        fi
+      
+        if [ "$status_code" -eq 200 ]; then
+          echo "$target_file_path"
+          # TODO: check for empty "items": or "error":
+          return 0
+        else
+          echo -e "    crdf(): =!!= [$status_code] Error while retrieving remote document." 1>&2
+
+          if [ "$status_code" -eq 403 ]; then # Forbidden. Possibly the result of Exceeded Quota Usage. Preferably don't retry immediately
+            echo -e "404 FORBIDDEN Error while retrieving '$document_url' -> '$target_file_path'.\nCould be the result of Exceeded Quota Usage. Request returned:\n\n---\n$(cat "$target_file_path")\n---\n" 1>&2
+            read -p $'=!!!= (a)bort, (r)etry or (c)ontinue with next item? [a/r/C]\n' input < /dev/tty
+
+            if [ "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "r" ]; then
+              retrymsg="'$document_url' -> '$target_file_path' # User requested retry (input: '$input')"
+              debug "  =!= $retrymsg"
+              append_log_msg "$retrymsg" "$log_file"
+              continue
+            elif [ "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "a" ]; then
+              retrymsg="'$document_url' -> '$target_file_path' # User requested ABORT (input: '$input')"
+              debug "  =!!!= $retrymsg"
+              append_log_msg "$retrymsg" "$log_file"
+              exit 255
+            elif [ "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "c" ]; then
+              retrymsg="'$document_url' -> '$target_file_path' # User requested to continue with next item (input: '$input')"
+              debug "  =!= $retrymsg"
+              append_log_msg "$retrymsg" "$log_file"
+              break
+            else
+              retrymsg="'$document_url' -> '$target_file_path' # Unrecognised user input; continuing with next item (input: '$input')"
+              debug "  =!= $retrymsg"
+              append_log_msg "$retrymsg" "$log_file"
+              break
+            fi
+          elif [ "$status_code" -eq 204 -o "$status_code" -eq 404 ]; then # Known problematic HTTP Status codes that should be okay to retry automatically
+            retrymsg="[$status_code]'$document_url' -> '$target_file_path' # FAIL with 'safe' HTTP Status Code [$count/$retries]"
+            debug "    crdf(): =!= $retrymsg"
+            append_log_msg "$retrymsg"
+            continue
+          else # The rest is probably also okay
+            retrymsg="[$status_code]'$document_url' -> '$target_file_path' # FAIL with potentially 'non-safe' HTTP Status Code; retrying regardless [$count/$retries]"
+            debug "    crdf(): =!= $retrymsg"
+            append_log_msg "$retrymsg"
+            continue
+          fi
+        fi
+      done
+      return 255
+    else
+      debug "Cache hit for ${1}: $target_file_path"
+      echo "$target_file_path"
+    fi
+  else
+    echo -e "cache_external_document_to_file(): unsupported protocol for \$document_url ('$document_url'); only http(s) and ftp(s) are currently supported.\n$function_usage" 1>&2 && return 255
+  fi
+}
+
+function crdf() {
+  cache_remote_document_to_file "$1" "$2" "$3" "$4"
+}
 
 function merge_json_files() {
   debug "merge_json_files(): Looking in '$1' for files matching case-insensitive filemask '$2'"
@@ -570,7 +617,7 @@ function abort_if() {
   prompt="$2"
   read -p "$prompt" input < /dev/tty
   echo "$input"
-  if [ "$(echo "$input" | '[:upper:]' '[:lower:]')" == "$confirmation_input" ]; then
+  if [ "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "$confirmation_input" ]; then
     debug "=!= Aborting by user request!"
     exit 0
   else
