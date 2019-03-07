@@ -6,7 +6,7 @@
 caller_path="$(dirname "$(realpath "$0")")"
 source "$caller_path/../lib/functions.sh"
 ensure_gplus_api||exit 255
-ensure_gnutools||exit 255
+#ensure_gnutools||exit 255
 LOG_DIR="./logs"
 FAILED_FILES_LOGFILE="failed-profile-retrievals.txt"
 
