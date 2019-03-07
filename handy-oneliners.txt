@@ -52,6 +52,16 @@ find ./extracted/Takeout -path '*ActivityLog/Comments.json' -exec cat "{}" \; | 
 # From your extracted Takeout archive, look into the Comments.json ActivityLog file and return all Activity IDs for all PUBLIC posts you've commented on.
 find ./extracted/Takeout -path '*ActivityLog/Comments.json' -exec cat "{}" \; | jq -r '.items[]| select(.visibility == "PUBLIC") .commentCreatedItem .commentActivityId' | grep -v '^null$' | ggrep -oP '^([^#]+)' | sort -u > tmp-activity-ids-from-json-for-public-posts-ive-commented-on.txt
 
+# Permalinks to posts with comments I've +1'ed
+jq -r '[.items[] |.commentPlusOneAddedItem .postPermalink] | unique | join("\n")' extracted/Takeout/Google+\ Stream/ActivityLog/+1s\ on\ comments.json > combined_activities-FiXato-page-plusones_on_comments-permalinks.txt
+
+# Permalinks to posts I've +1'ed
+jq -r '[.items[] |.postPlusOneAddedItem .postPermalink] | unique | join("\n")' extracted/Takeout/Google+\ Stream/ActivityLog/+1s\ on\ posts.json > combined_activities-FiXato-page-plusones_on_posts-permalinks.txt
+
+# Permalinks to polls I've voted on
+jq -r '[.items[] |.pollVoteAddedItem .postPermalink] | unique | join("\n")' extracted/Takeout/Google+\ Stream/ActivityLog/Poll\ Votes.json > combined_activities-FiXato-page-votes_on_polls-permalinks.txt
+
+
 # Archive all the public posts you've commented on, through The Internet Archive's Way Back Machine, and extract the activity ID from it. (That extraction is not necessary though, as those IDs are already in the JSON apparently!)
 hilite cat tmp-public-posts-ive-commented-on.txt | DEBUG=1 hilite xargs -L1 ./bin/archive_url.sh | DEBUG=1 hilite ./bin/get_gplus_api_activity_id_from_gplus_waybackmachine_dump.sh | tee -a tmp-activity-ids-from-posts-ive-commented-on.txt
 
@@ -65,3 +75,24 @@ cat Takeout/Google+\ Circles/*.json | jq -r '[select(.person != null) .person[] 
 
 # Get unique user urls (protocols and www. subdomains stripped) from queried People API JSON.
 cat ./data/gplus/users/*.json | jq -r 'select(.urls != null) | .urls[] .value' | ggrep -oP 'https?://(www.)?\K(.+)' | sort -u
+
+# Combine posts JSON files
+gfind 'Takeout/Google+ Stream/Posts/' -iname '*.json' -exec cat {} + | jq -s '.' > combined_activities-FiXato-page.json
+
+# Get all public posts and sort them by creation time, from the Combined posts JSON file
+jq 'include "plexodus-tools"; . | is_public | sort_by_creation_time' combined_activities-FiXato-page.json
+
+# Extract all activityIds from the public posts Stream JSON file.
+jq -r '[.[] .activityId] | join("\n")' combined_activities-FiXato-page-public_by_creation_time.json | sort -u > combined_activities-FiXato-page-public_by_creation_time-activityIds.txt
+
+# Request the Activity JSON files from the API for the activityIds extracted from the posts files:
+cat combined_activities-FiXato-page-public_by_creation_time-activityIds.txt | gxargs -L1 bin/get_gplus_api_comments_by_gplus_activity_id.sh
+cat combined_activities-FiXato-page-public_by_creation_time-activityIds.txt | gxargs -L1 bin/get_gplus_api_activity_by_gplus_activity_id.sh | gxargs -L1 bin/get_gplus_api_comments_by_gplus_activity_file.sh
+
+# Extract all commenters ProfilePageURLs from the posts Stream JSON file.
+jq -r '.[] | select(.comments | length > 0) | .comments[] | .author .profilePageUrl' combined_activities-FiXato-page.json | sort -u
+
+# And cache them:
+cat combined_activities-FiXato-page-commenters-profilePageUrls.json | gxargs -L1 bin/people_api_data_for_gplus_profile.sh
+# Excluding +CustomUrlHandles, since the new People API doesn't support them anymore...
+cat combined_activities-FiXato-page-commenters-profilePageUrls.json | ggrep -v 'https://plus\.google\.com/+' |  gxargs -L1 bin/people_api_data_for_gplus_profile.sh
