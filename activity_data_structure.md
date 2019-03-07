@@ -154,15 +154,17 @@ activity_post =  {
 
 ## Flat Representation of all possible JSON keys for Activity posts
 
-What follows is a list of all _*possible*_ JSON keys encountered after analysing a complete archive of 2145 Google+ Stream posts from 2011-06-30 till 2018-10-23:
+What follows is a list of all _*possible*_ JSON keys encountered after analysing a complete archive of 2145 Google+ Stream posts from 2011-06-30 till 2019-03-07:
 
 ```
+activityId
 album
 album.media
 album.media[]
 album.media[].contentType
 album.media[].description
 album.media[].height
+album.media[].localFilePath
 album.media[].resourceName
 album.media[].url
 album.media[].width
@@ -188,6 +190,7 @@ comments[].author.avatarImageUrl
 comments[].author.displayName
 comments[].author.profilePageUrl
 comments[].author.resourceName
+comments[].commentActivityId
 comments[].content
 comments[].creationTime
 comments[].link
@@ -222,6 +225,7 @@ media
 media.contentType
 media.description
 media.height
+media.localFilePath
 media.resourceName
 media.url
 media.width
@@ -236,6 +240,7 @@ poll
 poll.choices
 poll.choices[]
 poll.choices[].description
+poll.choices[].imageLocalFilePath
 poll.choices[].imageUrl
 poll.choices[].resourceName
 poll.choices[].voteCount
@@ -246,6 +251,7 @@ poll.choices[].votes[].voter.avatarImageUrl
 poll.choices[].votes[].voter.displayName
 poll.choices[].votes[].voter.profilePageUrl
 poll.choices[].votes[].voter.resourceName
+poll.imageLocalFilePath
 poll.imageUrl
 poll.totalVotes
 poll.viewerPollChoiceResourceName
@@ -254,6 +260,10 @@ postAcl.collectionAcl
 postAcl.collectionAcl.collection
 postAcl.collectionAcl.collection.displayName
 postAcl.collectionAcl.collection.resourceName
+postAcl.collectionAcl.users
+postAcl.collectionAcl.users[]
+postAcl.collectionAcl.users[].displayName
+postAcl.collectionAcl.users[].resourceName
 postAcl.communityAcl
 postAcl.communityAcl.community
 postAcl.communityAcl.community.displayName
@@ -264,8 +274,10 @@ postAcl.communityAcl.users[].displayName
 postAcl.communityAcl.users[].resourceName
 postAcl.eventAcl
 postAcl.eventAcl.event
+postAcl.eventAcl.event.displayName
 postAcl.eventAcl.event.resourceName
 postAcl.isLegacyAcl
+postAcl.isPublic
 postAcl.visibleToStandardAcl
 postAcl.visibleToStandardAcl.circles
 postAcl.visibleToStandardAcl.circles[]
@@ -291,6 +303,10 @@ resharedPost.author.avatarImageUrl
 resharedPost.author.displayName
 resharedPost.author.profilePageUrl
 resharedPost.author.resourceName
+resharedPost.communityAttachment
+resharedPost.communityAttachment.coverPhotoUrl
+resharedPost.communityAttachment.displayName
+resharedPost.communityAttachment.resourceName
 resharedPost.content
 resharedPost.link
 resharedPost.link.imageUrl
