@@ -18,7 +18,7 @@ blog_comments_widget_file="$1"
 # Look for an ActivityID in the Google+ Comments widget file, trim the trailing double quote, and apply a unique sort
 if hash pup 2>/dev/null; then #If `pup` is installed, use that, else fall back to gsed
   # results="$(cat "$blog_comments_widget_file" | pup 'script[nonce]:contains("cw.gfr") text{}'| gnused 's/^AF_initDataCallback\(.+data://' | gnused 's/^}\);$//' | jq -r --slurp '[.[0]? | .[]? | .[]? | .[]? | .[]? | .[]?] | _nwise(3)[1]' | unsorted_uniques)"
-  results="$(cat "$blog_comments_widget_file" | pup 'script[nonce]:contains("cw.gfr") text{}'| gnused 's/^AF_initDataCallback\(.+data://' | gnused 's/^}\);$//' | jq -r --slurp '[.[0]? | .[]? | .[]? | .[]? | .[]? | .[]?] | .[ range(1;length;3) ] | select(length > 23)' | unsorted_uniques)"
+  results="$(cat "$blog_comments_widget_file" | pup --charset utf-8 'script[nonce]:contains("cw.gfr") text{}'| gnused 's/^AF_initDataCallback\(.+data://' | gnused 's/^}\);$//' | jq -r --slurp '[.[0]? | .[]? | .[]? | .[]? | .[]? | .[]?] | .[ range(1;length;3) ] | select(length > 23)' | unsorted_uniques)"
 else
   results="$(gnugrep -oP '^,"\K([a-z0-9]{22,})"' "$blog_comments_widget_file" | tr -d '"' | unsorted_uniques)"
 fi 
