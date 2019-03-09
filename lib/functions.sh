@@ -4,6 +4,7 @@
 #FIXME: move this to an variables.env file
 REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 USER_AGENT="${USER_AGENT:-PlexodusToolsBot/0.9.0}"
+#Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3724.8 Safari/537.36
 
 #TODO: Implement LOG_LEVEL
 function debug() {
@@ -558,7 +559,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
         count=$[$count+1]
 
         debug "  =!= [Try #$count/$retries]: Storing '$document_url' to '$target_file_path'"
-        status_code="$(curl -A "$USER_AGENT" --write-out %{http_code} --silent --output ${curl_args}"$target_file_path" "$document_url")"; exit_code="$?"
+        status_code="$(curl -A "$USER_AGENT" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url")"; exit_code="$?"
         setxattr "status_code" "$status_code" "$2" 1>&2
         setxattr "tries" "$count/$retries" "$2" 1>&2
 
