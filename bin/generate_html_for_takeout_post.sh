@@ -58,6 +58,8 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
         filename="$(filename_for_output_html_for_activity "$activity_id" "$activity_published_date" "$activity_title_summary")"
         if (( "$?" >= 1 )); then exit 255; fi
         target_output_filepath+=("$(ensure_path "$directory" "$filename")")
+        
+        #TODO: if PUBLIC, skip over Users
       done <<< "$circles"
     fi
 
@@ -67,12 +69,12 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
         user_id="${user%%$delimiter*}"
         user_display_name="${user#*$delimiter}"
       
-        directory=$(directory_for_output_html_for_activity "$activity_user_id" "$acl_key" "$privacy" "private" "$circle_name")
+        directory=$(directory_for_output_html_for_activity "$activity_user_id" "$acl_key" "$privacy" "private" "${user_id}-${user_display_name}")
         if (( "$?" >= 1 )); then exit 255; fi
         filename="$(filename_for_output_html_for_activity "$activity_id" "$activity_published_date" "$activity_title_summary")"
         if (( "$?" >= 1 )); then exit 255; fi
         target_output_filepath+=("$(ensure_path "$directory" "$filename")")
-      done <<< "$user"
+      done <<< "$users"
     fi
   else # not a visibleToStandardAcl
     if [ "$acl_key" == "communityAcl" ]; then
