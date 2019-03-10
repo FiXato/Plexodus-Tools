@@ -11,7 +11,7 @@
 /test/version_tmp/
 /tmp/
 data/
-archived-*/
+archived*
 logs/
 tmp*
 **.tgz
