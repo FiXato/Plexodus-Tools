@@ -6,6 +6,7 @@ source "$caller_path/../lib/functions.sh"
 usage="# Archive a webpage through the WayBackMachine and cache it locally\n# usage: $(basename "$0") \$source_url"
 check_help "$1" "$usage" || exit 255
 source_url="$1"
+domain="$(domain_from_url "$source_url" | sanitise_filename )"
 if [ "$source_url" == "" ]; then
   echo "Please supply the source page URL as \$source_url" && exit 255 1>&2
 else
@@ -15,7 +16,7 @@ fi
 wbm_save_base_url="https://web.archive.org/save"
 wbm_save_url="$wbm_save_base_url/$clean_source_url"
 target_filepath="$(wbm_archive_filepath "$source_url")"
-filename="$(cache_remote_document_to_file "$wbm_save_url" "$target_filepath")"
+filename="$(cache_remote_document_to_file "$wbm_save_url" "$target_filepath" "" "./logs/archive_url-errors-$domain.log")"
 exit_code="$?"
 if (( $exit_code >= 1 )); then
   echo "=!= cache_remote_document_to_file('$wbm_save_url' '$target_filepath') exited with $exit_code and returned '$filename'" 1>&2
