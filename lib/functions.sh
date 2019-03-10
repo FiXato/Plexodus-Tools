@@ -197,6 +197,7 @@ function gnugrep() {
 }
 
 function setxattr() {
+  # TODO: support additional .metadata file if xattr isn't supported
   if hash xattr 2>/dev/null; then
     if [ -f "$3" ]; then
       xattr -w "$1" "$2" "$3" 1>&2
@@ -559,6 +560,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
         count=$[$count+1]
 
         debug "  =!= [Try #$count/$retries]: Storing '$document_url' to '$target_file_path'"
+        # TODO: add support for extracting more metadata such as returned charset and content-type, and storing it via setxattr
         status_code="$(curl -A "$USER_AGENT" -H "Accept-Charset: utf-8, iso-8859-1;q=0.5, *;q=0.1" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url")"; exit_code="$?"
         setxattr "status_code" "$status_code" "$2" 1>&2
         setxattr "tries" "$count/$retries" "$2" 1>&2

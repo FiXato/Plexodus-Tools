@@ -25,4 +25,4 @@ fi
 setxattr "source_url" "$source_url" "$filename"
 setxattr "wbm_save_url" "$wbm_save_url" "$filename"
 
-cat "$filename"
+echo "$filename"
