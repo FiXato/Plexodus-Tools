@@ -20,6 +20,20 @@ function printarr() {
   done
 }
 
+# https://stackoverflow.com/a/17841619 by @gniourf_gniourf and @nicholas-sushkin with edits from @lynn
+# function join_by() { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
+
+
+function join_by() {
+  # $1 is sep
+  # $2... are the elements to join
+  local sep="$1" IFS=
+  local join_ret=$2
+  shift 2 || shift $(($#))
+  join_ret+="${*/#/$sep}"
+  echo "$join_ret"
+}
+
 function curl_urlencode() {
   curl -Gso /dev/null -w %{url_effective} --data-urlencode @- "" | cut -c 3- | sed 's/%00$//g'
 }
@@ -243,7 +257,11 @@ function unsorted_uniques() {
 
 function sanitise_filename() {
   # debug "sanitising filename $@"
-  gnused 's/[^-a-zA-Z0-9_.]/-/g'
+  additional_rules=$''
+  if [ "$1" == '--underscore-whitespace' ]; then
+    additional_rules+=$'s/\s{1,}/_/g;'
+  fi
+  gnused "$additional_rules"$'s/[^-a-zA-Z0-9_.]/-/g'
 }
 
 function add_file_extension() {
@@ -483,6 +501,104 @@ function comments_file() {
   fi
 }
 
+# # Source: https://www.rosettacode.org/wiki/Find_common_directory_path#UNIX_Shell
+# function longest_common_directory() {
+#   i=2
+#   while [ $i -lt 100 ]
+#   do
+#     path=`echo -e "$1" | cut -f1-$i -d/ | uniq -d`
+#     if [ -z "$path" ]
+#     then
+#        echo $prev_path
+#        break
+#     else
+#        prev_path=$path
+#     fi
+#     i=`expr $i + 1`
+#   done
+# }
+
+function filename_for_output_html_for_activity() {
+  fn_name="filename_for_output_html_for_activity"
+  activity_id="$(echo "$1" | sanitise_filename)"
+  activity_published_date="$(echo "$2" | sanitise_filename)"
+  title_summary="$(echo "$3" | sanitise_filename | gnused 's/-{2,}/-/g')"
+  
+  if [ "$activity_id" == "" ]; then
+    echo "$fn_name() called without an activity ID \$1" 1>&2 && return 255
+  elif [ "$activity_published_date" == "" ]; then
+    echo "$fn_name() called without an activity published date \$2" 1>&2 && return 255
+  elif [ "$title_summary" == "" ]; then
+    title_summary="UNTITLED"
+    echo "$fn_name() called without an activity user ID \$4 - defaulting to $title_summary" 1>&2
+  fi
+  echo "${activity_published_date}-${activity_id}-${title_summary}" | add_file_extension ".html"
+}
+
+function directory_for_output_html_for_activity() {
+  fn_name="directory_for_output_html_for_activity"
+  activity_user_id="$1"
+  activity_post_acl="$2"
+  activity_post_acl_privacy="$3"
+  activity_post_acl_name="$4"
+  activity_post_acl_audience="$5"
+  declare -a directories=()
+  
+  if [ "$activity_user_id" == "" ]; then
+    echo "$fn_name() called without an activity user ID \$1" 1>&2 && return 255
+  elif [ "$activity_post_acl" == "" ]; then
+    echo "$fn_name() called without an activity post Access Control List \$2" 1>&2 && return 255
+  elif [ "$activity_post_acl_privacy" == "" ]; then
+    echo "$fn_name() called without an activity post Access Control List privacy level \$3" 1>&2 && return 255
+  elif [ "$activity_post_acl_name" == "" ]; then
+    echo "$fn_name() called without an activity type name (i.e., the name of the Community or Collection) \$4" 1>&2 && return 255
+  fi
+  
+  activity_user_id="$(echo "$activity_user_id" | sanitise_filename)"
+  activity_post_acl="$(echo "$activity_post_acl" | sanitise_filename)"
+  
+  if [ "$activity_post_acl_privacy" == 'public' -o "$activity_post_acl_privacy" == 'limited' ]; then
+    directories+=("$activity_post_acl_privacy")
+  else
+    echo "$fn_name() called with an unsupported activity post Access Control List privacy level \$3: '$activity_post_acl_privacy'" 1>&2 && return 255
+  fi
+  
+  if [ "$activity_post_acl" == "communityAcl" ]; then
+    directories+=("communities" "${activity_post_acl_name}" "${activity_user_id}")
+  elif [ "$activity_post_acl" == "collectionAcl" ]; then
+    directories+=("posts" "${activity_user_id}" "collections" "$activity_post_acl_name")
+  elif [ "$activity_post_acl" == "eventAcl" ]; then
+    directories+=("events" "${activity_post_acl_name}" "${activity_user_id}")
+  elif [ "$activity_post_acl" == "visibleToStandardAcl" ]; then
+    if [ "$activity_post_acl_name" == "CIRCLE_TYPE_PUBLIC" ]; then
+      activity_post_acl_name="public"
+    elif [ "$activity_post_acl_name" == "CIRCLE_TYPE_EXTENDED_CIRCLES" ]; then
+      activity_post_acl_name="extended-circles"
+    elif [ "$activity_post_acl_name" == "CIRCLE_TYPE_YOUR_CIRCLES" ]; then
+      activity_post_acl_name="followers"
+    elif [ "$activity_post_acl_name" == "CIRCLE_TYPE_USER_CIRCLE" ]; then
+      activity_post_acl_name="circles"
+    elif [ "$activity_post_acl_name" == "private" ]; then
+      activity_post_acl_name="users"
+    else
+      debug "Unknown acl: $activity_post_acl_name"
+    fi
+  
+    directories+=("posts" "${activity_user_id}" "${activity_post_acl_name}")
+    if [ "$activity_post_acl_audience" != "" ]; then
+      directories+=("${activity_post_acl_audience}")
+    fi
+  else
+    echo "$fn_name() Unknown Activity Type '$activity_post_acl' ('$2')" 1>&2 && return 255
+  fi
+  directories=("data" "output" "html" "exported_activities" "${directories[@]}")
+  # Array#Map the directories through filename sanitisation
+  for i in "${!directories[@]}"; do
+    directories[$i]=$(echo "${directories[$i]}" | sanitise_filename)
+  done
+  join_by "/" "${directories[@]}"
+}
+
 function api_url() {
   api_url_usage="Usage: api_url(\"\$api_name\" \"\$api_endpoint\" \"\$api_endpoint_action\" \$api_arguments)\nExamples:\n"
   api_url_usage="${api_url_usage}api_url(\"gplus\" \"people\" \"get\" \$user_id)\n"
@@ -657,4 +773,9 @@ function abort_if() {
   else
     exit 255
   fi
+}
+
+function text_summary_from_html() {
+  #FIXME: Plexodus-Tools/data/output/html/exported_activities/limited/communities/112164273001338979772-GooglePlus-Mass-Migration/112064652966583500522/2019-01-21-z13lz1kzusysd5piy04cdhjoixeixfyzjso0k-Another-service-biting-the-dust-because-of-GPlus-shutdown.html
+  gnugrep -oP '(<[^>{1,}]>){0,}\K([^<]{1,})' | head -1 | cut -c-100
 }
