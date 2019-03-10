@@ -11,4 +11,5 @@
     
     .p-comment {background-color: #efefef; width: 100%; padding: 0.5rem;}
     .p-comment .content {height: 14rem; overflow: auto; padding: 1rem; border: 1px solid #bad455;}
-    .comments.row > div { padding: 0.5em;}
+    .comments.row > div { padding: 0.5em; }
+    .comments .p-summary {display: none;}
