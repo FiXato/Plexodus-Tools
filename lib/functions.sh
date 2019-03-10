@@ -464,7 +464,7 @@ function wbm_archive_filepath() {
     sanitised_domain="$(domain_from_url "$url" | sanitise_filename )"
     sanitised_filename="$(path_from_url "$url" | add_file_extension ".html" | sanitise_filename )"
     local filepath="$(ensure_path "./data/wbm/$sanitised_domain" "$sanitised_filename")"
-    debug "wbm_archive_filepath('$url') #=> '$filepath'"
+    # debug "wbm_archive_filepath('$url') #=> '$filepath'"
     echo "$filepath"
   fi
 }
@@ -559,7 +559,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
         count=$[$count+1]
 
         debug "  =!= [Try #$count/$retries]: Storing '$document_url' to '$target_file_path'"
-        status_code="$(curl -A "$USER_AGENT" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url")"; exit_code="$?"
+        status_code="$(curl -A "$USER_AGENT" -H "Accept-Charset: utf-8, iso-8859-1;q=0.5, *;q=0.1" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url")"; exit_code="$?"
         setxattr "status_code" "$status_code" "$2" 1>&2
         setxattr "tries" "$count/$retries" "$2" 1>&2
 
