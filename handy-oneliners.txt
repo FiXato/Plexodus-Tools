@@ -32,10 +32,10 @@ find data -name 'comments_for_*.json' | grep -v "data/output" | xargs -L1 grep -
 find data -size 0
 
 # Export first 20 comments in a combined JSON Blogger G+ Comments export file to HTML
-cat archived-data-trilemma-2019-03-04/output/blog.trilemma.com.json | jq -cr '[[.blog .posts[] |select(.|keys|any(. == "activities")) | .activities[] | .object .replies | select(.|keys|any(. == "comments"))|.comments[]|.items]]|flatten[range(20)]|@base64'|gxargs -I@@ bin/generate-comment-template-from-api-comment-json-in-base64.sh templates/h-entry-p-comment-microformat.template.html templates/h-entry-author.template.html @@ > tmp-comments-body.html && bin/generate-html-template-layout.sh "default" "tmp-comments-body.html" > tmp-comments.html
+cat data/output/$domain.json | jq -cr '[[.blog .posts[] |select(.|keys|any(. == "activities")) | .activities[] | .object .replies | select(.|keys|any(. == "comments"))|.comments[]|.items]]|flatten[range(20)]|@base64'|gxargs -I@@ bin/generate-comment-template-from-api-comment-json-in-base64.sh templates/h-entry-p-comment-microformat.template.html templates/h-entry-author.template.html @@ > tmp-comments-body.html && bin/generate-html-template-layout.sh "default" "tmp-comments-body.html" > tmp-comments.html
 
 # Export all comments in a combined JSON Blogger G+ Comments export file to HTML
-cat archived-data-trilemma-2019-03-04/output/blog.trilemma.com.json | jq -cr '[[.blog .posts[] |select(.|keys|any(. == "activities")) | .activities[] | .object .replies | select(.|keys|any(. == "comments"))|.comments[]|.items]]|flatten[]|@base64'|gxargs -I@@ bin/generate-comment-template-from-api-comment-json-in-base64.sh templates/h-entry-p-comment-microformat.template.html templates/h-entry-author.template.html @@ > tmp-comments-body.html && bin/generate-html-template-layout.sh "default" "tmp-comments-body.html" > tmp-comments.html
+cat data/output/$domain.json | jq -cr '[[.blog .posts[] |select(.|keys|any(. == "activities")) | .activities[] | .object .replies | select(.|keys|any(. == "comments"))|.comments[]|.items]]|flatten[]|@base64'|gxargs -I@@ bin/generate-comment-template-from-api-comment-json-in-base64.sh templates/h-entry-p-comment-microformat.template.html templates/h-entry-author.template.html @@ > tmp-comments-body.html && bin/generate-html-template-layout.sh "default" "tmp-comments-body.html" > tmp-comments.html
 
 # Backup data dumps.
 mkdir -p archived-output && find data/output -name '*.json' | gxargs -I@@ bash -c 'cp "$0" "archived-output/$(basename "$0"|ggrep -Po '\''.*(?=\.)'\'')-$(gdate +"%Y-%m-%d-%H%M").json"' "@@"
@@ -80,7 +80,7 @@ cat Takeout/Google+\ Circles/*.json | jq -r '[select(.person != null) .person[] 
 cat ./data/gplus/users/*.json | jq -r 'select(.urls != null) | .urls[] .value' | ggrep -oP 'https?://(www.)?\K(.+)' | sort -u
 
 # Combine posts JSON files
-gfind 'Takeout/Google+ Stream/Posts/' -iname '*.json' -exec cat {} + | jq -s '.' > combined_activities-FiXato-page.json
+gfind 'Takeout/Google+ Stream/Posts' -iname '*.json' -exec cat {} + | jq -s '.' > combined_activities-FiXato-page.json
 
 # Get all public posts and sort them by creation time, from the Combined posts JSON file
 jq 'include "plexodus-tools"; . | is_public | sort_by_creation_time' combined_activities-FiXato-page.json
@@ -99,3 +99,14 @@ jq -r '.[] | select(.comments | length > 0) | .comments[] | .author .profilePage
 cat combined_activities-FiXato-page-commenters-profilePageUrls.json | gxargs -L1 bin/people_api_data_for_gplus_profile.sh
 # Excluding +CustomUrlHandles, since the new People API doesn't support them anymore...
 cat combined_activities-FiXato-page-commenters-profilePageUrls.json | ggrep -v 'https://plus\.google\.com/+' |  gxargs -L1 bin/people_api_data_for_gplus_profile.sh
+
+
+# Collect all the JSON files from the extracted Google Data Takeout Google Stream Posts archive, reverse order them to process the newest first, and generate HTML from it, storing it as "$year-$month-$day-$activityID-$titleSummary.html" into the following folder structure:
+  # data/output/html/exported_activities/limited/communities/$communityID-$communityName/$userID
+  # data/output/html/exported_activities/limited/events/$eventID-$eventName/$userID
+  # data/output/html/exported_activities/limited/posts
+  # data/output/html/exported_activities/limited/posts/$userID/circles/$circleName
+  # data/output/html/exported_activities/limited/posts/$userID/collections/$collectionID-$collectionName
+  # data/output/html/exported_activities/limited/posts/$userID/users/$userId-$userName
+  # data/output/html/exported_activities/public/posts/$userID/public
+find "extracted/Takeout/Google+ Stream/Posts" -type f -iname '*.json' | gtac | DEBUG=1 gxargs -I @@ bin/generate_html_for_takeout_post.sh "@@"
