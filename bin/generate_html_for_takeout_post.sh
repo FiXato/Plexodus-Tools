@@ -59,12 +59,10 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
         filename="$(filename_for_output_html_for_activity "$activity_id" "$activity_published_date" "$activity_title_summary")"
         if (( "$?" >= 1 )); then exit 255; fi
         target_output_filepath+=("$(ensure_path "$directory" "$filename")")
-        
-        #TODO: if PUBLIC, skip over Users
       done <<< "$circles"
     fi
 
-    if [ "$users" != "" ];then 
+    if [ "$privacy" != "public" -a "$users" != "" ];then 
       debug "Users:\n$users"
       while IFS= read -r user || [ -n "$user" ]; do # Loop through $users
         user_id="${user%%$delimiter*}"
