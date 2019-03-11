@@ -26,21 +26,19 @@ activity_user_id="$(jq -r '.author .resourceName | gsub("^users/"; "")' "$input_
 debug "user_id: $activity_user_id"
 activity_published_date="$(timestamp "day" --date="$(jq -r '.creationTime' "$input_filepath")")"
 debug "published on: $activity_published_date"
-activity_title_summary="$(jq -r 'if .content then .content else "UNTITLED by " + .author .displayName end' "$input_filepath" | text_summary_from_html)"
+activity_title_summary="$(jq -r '.content//"UNTITLED by " + .author .displayName' "$input_filepath" | text_summary_from_html)"
 debug "title summary: $activity_title_summary"
-activity_post_acl_keys="$(jq -r 'if .postAcl then (.postAcl|keys|join("\n")) else "" end' "$input_filepath")"
-debug "post acl keys: $activity_post_acl_keys"
+activity_post_acl_keys="$(jq -r '.postAcl//{}|keys|join("\n")' "$input_filepath")"
+debug "post acl keys:\n$activity_post_acl_keys"
 
 
 while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post_acl_keys
-  debug '---'
   if [ "$acl_key" == "isPublic" ]; then
     privacy="public"
     continue
   elif [ "$acl_key" == "visibleToStandardAcl" ]; then
-
-    circles="$(cat "$input_filepath" | jq -r 'if .postAcl .visibleToStandardAcl .circles != null then (.postAcl .visibleToStandardAcl .circles[] | [.type, (if .displayName then (.displayName | gsub("\u0001"; "") | gsub("G(?<g1>oogle)?\\+"; "G\(if .g1 then .g1 else "" end)Plus") | gsub(" "; "_")) else "" end)] | join("\u0001")) else "" end')"
-    users="$(cat "$input_filepath" | jq -r 'if .postAcl .visibleToStandardAcl .users then (.postAcl .visibleToStandardAcl .users[] | [(.resourceName | gsub("^users/"; "") | gsub("\u0001"; "")), .displayName | gsub("\u0001"; "") | gsub(" "; "_")] | join("\u0001")) else "" end')"
+    circles="$(cat "$input_filepath" | jq -r '.postAcl .visibleToStandardAcl .circles//[] | .[] | [(.type | gsub("\u0001"; "")), (.displayName//"" | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus") | gsub(" "; "_") | gsub("\u0001"; ""))] | join("\u0001")')"
+      users="$(cat "$input_filepath" | jq -r '.postAcl .visibleToStandardAcl .users//[]   | .[] | [(.resourceName | gsub("^users/"; "") | gsub("\u0001"; "")), (.displayName//"NAMELESS_USER" | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus") | gsub(" "; "_") | gsub("\u0001"; ""))] | join("\u0001")')"
     delimiter=$'\U0001'
 
     if [ "$circles" == "" -a "$users" == "" ]; then
@@ -76,15 +74,16 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
       done <<< "$users"
     fi
   else # not a visibleToStandardAcl
+    # TODO: Simplify this (--arg)
     if [ "$acl_key" == "communityAcl" ]; then
       debug "Community ACL"
-      activity_acl_name="$(jq -r '.postAcl .communityAcl .community | [(.resourceName | gsub("^communities/"; "")), (.displayName | gsub("\n"; "") | gsub("G(?<g1>oogle)?\\+"; "G\(if .g1 then .g1 else "" end)Plus"))] | join("-")' "$input_filepath")"
+      activity_acl_name="$(jq -r '.postAcl .communityAcl .community | [(.resourceName | gsub("^communities/"; "")), (.displayName | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
     elif [ "$acl_key" == "collectionAcl" ]; then
       debug "Collection ACL"
-      activity_acl_name="$(jq -r '.postAcl .collectionAcl .collection | [(.resourceName | gsub("^collections/"; "")), (.displayName | gsub("\n"; "") | gsub("G(?<g1>oogle)?\\+"; "G\(if .g1 then .g1 else "" end)Plus"))] | join("-")' "$input_filepath")"
+      activity_acl_name="$(jq -r '.postAcl .collectionAcl .collection | [(.resourceName | gsub("^collections/"; "")), (.displayName | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
     elif [ "$acl_key" == "eventAcl" ]; then
       debug "Event ACL"
-      activity_acl_name="$(jq -r '.postAcl .eventAcl .event | [(.resourceName | gsub("^events/"; "")), (.displayName | gsub("\n"; "") | gsub("G(?<g1>oogle)?\\+"; "G\(if .g1 then .g1 else "" end)Plus"))] | join("-")' "$input_filepath")"
+      activity_acl_name="$(jq -r '.postAcl .eventAcl .event | [(.resourceName | gsub("^events/"; "")), (.displayName | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
     elif [ "$acl_key" == "isLegacyAcl" ]; then
       debug "Legacy ACL"
     else
@@ -99,7 +98,7 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
   fi
 done <<< "$activity_post_acl_keys"
 
-debug "Found filepaths:\n===\n$(printarr target_output_filepath)"
+debug "Found filepaths:\n$(printarr target_output_filepath)"
 primary_filepath="${target_output_filepath[0]}"
 comment_template_script="$caller_path/generate-comment-template-from-takeout-activity-json-in-base64.sh"
 layout_template_script="$caller_path/generate-html-template-layout.sh"
@@ -108,7 +107,7 @@ author_template="$caller_path/../templates/h-entry-author.template.html"
 intermediate_file="${primary_filepath}.comments.$(timestamp "iso-8601-seconds")"
 asset_directory="$(dirname "$(realpath "${caller_path}/")")"
 
-filename="$(cat "$input_filepath" | jq -cr 'if .comments then .comments[] else null end | @base64' | gxargs -I @@ "$comment_template_script" "$comment_template" "$author_template" "@@" > "$intermediate_file" && "$layout_template_script" "default" "$intermediate_file" "$asset_directory" > "$primary_filepath" && echo "$primary_filepath")"
+filename="$(cat "$input_filepath" | jq -cr '.comments//[] | .[] | @base64' | gxargs -I @@ "$comment_template_script" "$comment_template" "$author_template" "@@" > "$intermediate_file" && "$layout_template_script" "default" "$intermediate_file" "$asset_directory" > "$primary_filepath" && echo "$primary_filepath")"
 exit_code="$?"
 if (( $exit_code >= 1 )); then
   echo "Template generation exited with '$exit_code'"

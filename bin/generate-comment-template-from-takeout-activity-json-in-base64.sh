@@ -26,7 +26,7 @@ comment_template_variables["commentContentBody"]="$(echo "$takeout_activity_comm
 comment_template_variables["commentContentSummary"]="$(echo "${comment_template_variables["commentContentBody"]}" | text_summary_from_html )"
 comment_template_variables["commentPublishedDateTime"]="$(echo "$takeout_activity_comment_json" | jq -Cr '.creationTime')"
 comment_template_variables["commentPublishedFormatted"]=$(timestamp "rss" --date="${comment_template_variables[commentPublishedDateTime]}")
-comment_template_variables["commentUpdatedDateTime"]="$(echo "$takeout_activity_comment_json" | jq -Cr 'if .updateTime then .updateTime else "" end')"
+comment_template_variables["commentUpdatedDateTime"]="$(echo "$takeout_activity_comment_json" | jq -Cr '.updateTime//""')"
 if [ "${comment_template_variables["commentUpdatedDateTime"]}" != "" ]; then
   comment_template_variables["commentUpdatedFormatted"]=$(timestamp "rss" --date="${comment_template_variables[commentUpdatedDateTime]}")
 else
