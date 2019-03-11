@@ -74,23 +74,28 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
       done <<< "$users"
     fi
   else # not a visibleToStandardAcl
-    # TODO: Simplify this (--arg)
     if [ "$acl_key" == "communityAcl" ]; then
       debug "Community ACL"
-      activity_acl_name="$(jq -r '.postAcl .communityAcl .community | [(.resourceName | gsub("^communities/"; "")), (.displayName//"NAMELESS_OR_DELETED_COMMUNITY" | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
-      echo "ACL Name: $activity_acl_name"
+      acl_path="postAcl,communityAcl,community"
+      resource_name_prefix="communities"
+      default_display_name="NAMELESS_OR_DELETED_COMMUNITY"
     elif [ "$acl_key" == "collectionAcl" ]; then
       debug "Collection ACL"
-      activity_acl_name="$(jq -r '.postAcl .collectionAcl .collection | [(.resourceName | gsub("^collections/"; "")), (.displayName//"NAMELESS_OR_DELETED_COLLECTION" | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
+      acl_path="postAcl,collectionAcl,collection"
+      resource_name_prefix="collections"
+      default_display_name="NAMELESS_OR_DELETED_COLLECTION"
     elif [ "$acl_key" == "eventAcl" ]; then
       debug "Event ACL"
-      activity_acl_name="$(jq -r '.postAcl .eventAcl .event | [(.resourceName | gsub("^events/"; "")), (.displayName//"NAMELESS_OR_EVENT" | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
+      acl_path="postAcl,eventAcl,event"
+      resource_name_prefix="events"
+      default_display_name="NAMELESS_OR_DELETED_EVENT"
     elif [ "$acl_key" == "isLegacyAcl" ]; then
       debug "Legacy ACL"
       continue
     else
       echo "Unrecognised .postAcl[key]: '$acl_key'" 1>&2 && exit 255
     fi
+    activity_acl_name="$(jq -r --arg aclPath "$acl_path" --arg resourceNamePrefix "$resource_name_prefix" --arg defaultDisplayName "$default_display_name" 'getpath($aclPath|split(",")) | [(.resourceName | gsub("^$resourceNamePrefix/"; "")), (.displayName//"$defaultDisplayName" | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
 
     directory=$(directory_for_output_html_for_activity "$activity_user_id" "$acl_key" "$privacy" "$activity_acl_name")
     if (( "$?" >= 1 )); then exit 255; fi
@@ -102,7 +107,7 @@ done <<< "$activity_post_acl_keys"
 
 debug "Found filepaths:\n$(printarr target_output_filepath)"
 primary_filepath="${target_output_filepath[0]}"
-comment_template_script="$caller_path/generate-comment-template-from-takeout-activity-json-in-base64.sh"
+comment_template_script="$caller_path/generate-comment-template-from-takeout-activity-json-file.sh"
 layout_template_script="$caller_path/generate-html-template-layout.sh"
 comment_template="$caller_path/../templates/h-entry-p-comment-microformat.template.html"
 author_template="$caller_path/../templates/h-entry-author.template.html"
