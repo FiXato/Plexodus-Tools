@@ -100,20 +100,27 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
   fi
 done <<< "$activity_post_acl_keys"
 
-debug "Found filepaths:\n==="
+debug "Found filepaths:\n===\n$(printarr target_output_filepath)"
 primary_filepath="${target_output_filepath[0]}"
-filename="$(cat "$input_filepath" | jq -cr 'if .comments then .comments[] else null end|@base64' | gxargs -I @@ bin/generate-comment-template-from-takeout-activity-json-in-base64.sh templates/h-entry-p-comment-microformat.template.html templates/h-entry-author.template.html "@@" > "${primary_filepath}.comments" && bin/generate-html-template-layout.sh "default" "${primary_filepath}.comments" "$(dirname "$(realpath "${caller_path}/")")" > "$primary_filepath" && echo "$primary_filepath")"
+comment_template_script="$caller_path/generate-comment-template-from-takeout-activity-json-in-base64.sh"
+layout_template_script="$caller_path/generate-html-template-layout.sh"
+comment_template="$caller_path/../templates/h-entry-p-comment-microformat.template.html"
+author_template="$caller_path/../templates/h-entry-author.template.html"
+intermediate_file="${primary_filepath}.comments.$(timestamp "iso-8601-seconds")"
+asset_directory="$(dirname "$(realpath "${caller_path}/")")"
+
+filename="$(cat "$input_filepath" | jq -cr 'if .comments then .comments[] else null end | @base64' | gxargs -I @@ "$comment_template_script" "$comment_template" "$author_template" "@@" > "$intermediate_file" && "$layout_template_script" "default" "$intermediate_file" "$asset_directory" > "$primary_filepath" && echo "$primary_filepath")"
 exit_code="$?"
 if (( $exit_code >= 1 )); then
   echo "Template generation exited with '$exit_code'"
   exit $exit_code
 else
- rm "${primary_filepath}.comments"
+  rm "$intermediate_file"
 fi
   
 echo "$filename"
 target_output_filepath=("${target_output_filepath[@]:1}")
 for filepath in "${target_output_filepath[@]}"; do
-   ln "$primary_filepath" "$filepath"
-   echo "$filepath"
+  ln "$primary_filepath" "$filepath"
+  echo "$filepath"
 done
