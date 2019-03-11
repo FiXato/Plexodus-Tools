@@ -77,15 +77,17 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
     # TODO: Simplify this (--arg)
     if [ "$acl_key" == "communityAcl" ]; then
       debug "Community ACL"
-      activity_acl_name="$(jq -r '.postAcl .communityAcl .community | [(.resourceName | gsub("^communities/"; "")), (.displayName | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
+      activity_acl_name="$(jq -r '.postAcl .communityAcl .community | [(.resourceName | gsub("^communities/"; "")), (.displayName//"NAMELESS_OR_DELETED_COMMUNITY" | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
+      echo "ACL Name: $activity_acl_name"
     elif [ "$acl_key" == "collectionAcl" ]; then
       debug "Collection ACL"
-      activity_acl_name="$(jq -r '.postAcl .collectionAcl .collection | [(.resourceName | gsub("^collections/"; "")), (.displayName | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
+      activity_acl_name="$(jq -r '.postAcl .collectionAcl .collection | [(.resourceName | gsub("^collections/"; "")), (.displayName//"NAMELESS_OR_DELETED_COLLECTION" | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
     elif [ "$acl_key" == "eventAcl" ]; then
       debug "Event ACL"
-      activity_acl_name="$(jq -r '.postAcl .eventAcl .event | [(.resourceName | gsub("^events/"; "")), (.displayName | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
+      activity_acl_name="$(jq -r '.postAcl .eventAcl .event | [(.resourceName | gsub("^events/"; "")), (.displayName//"NAMELESS_OR_EVENT" | gsub("\n"; "") | gsub("(?<g>G(oogle)?)\\+"; .g+"Plus"))] | join("-")' "$input_filepath")"
     elif [ "$acl_key" == "isLegacyAcl" ]; then
       debug "Legacy ACL"
+      continue
     else
       echo "Unrecognised .postAcl[key]: '$acl_key'" 1>&2 && exit 255
     fi
@@ -104,13 +106,23 @@ comment_template_script="$caller_path/generate-comment-template-from-takeout-act
 layout_template_script="$caller_path/generate-html-template-layout.sh"
 comment_template="$caller_path/../templates/h-entry-p-comment-microformat.template.html"
 author_template="$caller_path/../templates/h-entry-author.template.html"
-intermediate_file="${primary_filepath}.comments.$(timestamp "iso-8601-seconds")"
+intermediate_file="${primary_filepath}.comments.$(timestamp "%Y%m%d-%H%M%S")"
+debug "Intermediate filename: $intermediate_file"
 asset_directory="$(dirname "$(realpath "${caller_path}/")")"
 
-filename="$(cat "$input_filepath" | jq -cr '.comments//[] | .[] | @base64' | gxargs -I @@ "$comment_template_script" "$comment_template" "$author_template" "@@" > "$intermediate_file" && "$layout_template_script" "default" "$intermediate_file" "$asset_directory" > "$primary_filepath" && echo "$primary_filepath")"
+comments="$(cat "$input_filepath" | jq -cr '.comments//[] | .[] | @base64')"
+counter=0
+while IFS= read -r comment || [ -n "$comment" ]; do # Loop through $comments
+  tmp_filename="${intermediate_file}.${counter}.json"
+  printf "$comment" | gbase64 -d - > "$tmp_filename" && "$comment_template_script" "$comment_template" "$author_template" "$tmp_filename" >> "$intermediate_file" && rm "$tmp_filename"
+  ((counter+=1))
+done <<< "$comments"
+unset counter
+
+filename="$("$layout_template_script" "default" "$intermediate_file" "$asset_directory" > "$primary_filepath" && echo "$primary_filepath")"
 exit_code="$?"
 if (( $exit_code >= 1 )); then
-  echo "Template generation exited with '$exit_code'"
+  echo "Template generation exited with '$exit_code'" 1>&2
   exit $exit_code
 else
   rm "$intermediate_file"
@@ -123,9 +135,7 @@ for filepath in "${target_output_filepath[@]}"; do
     flags=''
     if [ "$OVERWRITE_LINKS" == true ]; then
       flags+='-f '
-      echo "overwriting"
     fi
-    echo "linking"
     ln $flags"$primary_filepath" "$filepath"
   fi
   echo "$filepath"
