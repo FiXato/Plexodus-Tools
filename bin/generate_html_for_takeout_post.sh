@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # encoding: utf-8
+OVERWRITE_LINKS="${OVERWRITE_LINKS:-false}"
 caller_path="$(dirname "$(realpath "$0")")"
 source "$caller_path/../lib/functions.sh"
 
@@ -48,7 +49,7 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
     fi
 
     if [ "$circles" != "" ];then 
-      debug "Circles: $circles"
+      debug "Circles:\n$circles"
       while IFS= read -r circle || [ -n "$circle" ]; do # Loop through $circles
         circle_type="${circle%%$delimiter*}"
         circle_name="${circle#*$delimiter}"
@@ -64,7 +65,7 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
     fi
 
     if [ "$users" != "" ];then 
-      debug "Users: $users"
+      debug "Users:\n$users"
       while IFS= read -r user || [ -n "$user" ]; do # Loop through $users
         user_id="${user%%$delimiter*}"
         user_display_name="${user#*$delimiter}"
@@ -121,6 +122,14 @@ fi
 echo "$filename"
 target_output_filepath=("${target_output_filepath[@]:1}")
 for filepath in "${target_output_filepath[@]}"; do
-  ln "$primary_filepath" "$filepath"
+  if [ ! -f "$filepath" -o "$OVERWRITE_LINKS" == true ]; then
+    flags=''
+    if [ "$OVERWRITE_LINKS" == true ]; then
+      flags+='-f '
+      echo "overwriting"
+    fi
+    echo "linking"
+    ln $flags"$primary_filepath" "$filepath"
+  fi
   echo "$filepath"
 done
