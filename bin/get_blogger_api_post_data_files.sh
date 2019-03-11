@@ -86,7 +86,7 @@ do
   echo "$responsePath"
 
   # Need to use an intermediate file, or else I'm getting escaping issues for some reason.
-  backup_file="${aggregatePath}.$(timestamp "iso-8601-seconds")"
+  backup_file="${aggregatePath}.$(timestamp "%Y%m%d-%H%M%S")"
   cp "$aggregatePath" "$backup_file" && \
   debug "Merging $responsePath into $backup_file" && \
   jq --argjson newItems "$(jq -s '.[].items' "$responsePath")" '.items += $newItems' "$backup_file" > "$aggregatePath"

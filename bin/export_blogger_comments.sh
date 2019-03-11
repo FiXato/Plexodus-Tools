@@ -109,7 +109,7 @@ while read -r blogger_posts_json_file; do
       comments_data="$(cat "$gplus_comments_file" | jq -s)"
 
       # Add to the complete blog data file manually, since we require a target filter
-      tmp_file="${complete_blog_data_file}.$(timestamp "iso-8601-seconds")"
+      tmp_file="${complete_blog_data_file}.$(timestamp "%Y%m%d-%H%M%S")"
       cp "$complete_blog_data_file" "$tmp_file" &&\
         cat "$complete_blog_data_file" | jq --argjson newItems "$comments_data" --arg postsIndex "$i" --arg activityId "$gplus_activity_id" '. as $input | $input | .blog .posts[$postsIndex|tonumber] .activities | map(.id == $activityId)|index(true) as $index | $input | .blog .posts[$postsIndex|tonumber] .activities[$index] .object .replies .comments += $newItems' > "${tmp_file}" &&\
         mv "$tmp_file" "$complete_blog_data_file" || \
