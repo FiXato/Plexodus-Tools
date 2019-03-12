@@ -11,6 +11,8 @@ if [ "$(wc -c < "$takeout_activity_json_filename" | gnused 's/\s+//g')" == "0" ]
   exit
 fi
 
+debug "Parsing '$takeout_activity_json_filename'"
+
 declare -A author_template_variables
 declare -A activity_template_variables
 
@@ -35,8 +37,8 @@ else
   activity_template_variables["entryUpdatedPrefixData"]=""
 fi
 activity_template_variables["entryUrl"]="$(cat "$takeout_activity_json_filename" | jq -Cr '.url')"
-activity_template_variables["entryCollectionUrl"]="$(jq '.postAcl .collectionAcl .collection .resourceName | gsub("^collections/"; "https://plus.google.com/collections/")')"
-activity_template_variables["entryCollectionName"]="$(jq '.postAcl .collectionAcl .collection .displayName//""')"
+activity_template_variables["entryCollectionUrl"]="$(cat "$takeout_activity_json_filename" | jq '.postAcl .collectionAcl .collection .resourceName//"" | gsub("^collections/"; "https://plus.google.com/collections/")')"
+activity_template_variables["entryCollectionName"]="$(cat "$takeout_activity_json_filename" | jq '.postAcl .collectionAcl .collection .displayName//""')"
 activity_template_variables["entryCommentsTemplate"]="$(cat "$generated_comments_template_filename")"
 
 

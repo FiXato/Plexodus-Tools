@@ -580,6 +580,8 @@ function directory_for_output_html_for_activity() {
       activity_post_acl_name="circles"
     elif [ "$activity_post_acl_name" == "private" ]; then
       activity_post_acl_name="users"
+    elif [ "$activity_post_acl_name" == "circle_and_userless" ]; then
+      activity_post_acl_name="$activity_post_acl_name"
     else
       debug "Unknown acl: $activity_post_acl_name"
     fi
@@ -806,5 +808,9 @@ function title_from_html() {
   if (( $exit_code > 0 )); then
     title="$(echo "$first_line" | strip_html )"
   fi
-  echo "$title" | shorten $1 $2
+  if (( $2 > -1 )); then
+    echo "$title" | shorten $1 $2
+  else
+    echo "$title"
+  fi
 }

@@ -26,7 +26,7 @@ activity_user_id="$(jq -r '.author .resourceName | gsub("^users/"; "")' "$input_
 debug "user_id: $activity_user_id"
 activity_published_date="$(timestamp "day" --date="$(jq -r '.creationTime' "$input_filepath")")"
 debug "published on: $activity_published_date"
-activity_title_summary="$(jq -r '.content//"UNTITLED by " + .author .displayName' "$input_filepath" | title_from_html "" 100 | strip_html)"
+activity_title_summary="$(jq -r '.content//"UNTITLED by " + .author .displayName' "$input_filepath" | title_from_html "" -1 | strip_html | shorten "" 100)"
 debug "title summary: $activity_title_summary"
 activity_post_acl_keys="$(jq -r '.postAcl//{}|keys|join("\n")' "$input_filepath")"
 debug "post acl keys:\n$activity_post_acl_keys"
@@ -42,6 +42,11 @@ while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post
 
     if [ "$circles" == "" -a "$users" == "" ]; then
       debug "No circles nor circles"
+      directory=$(directory_for_output_html_for_activity "$activity_user_id" "$acl_key" "$privacy" "circle_and_userless")
+      if (( "$?" >= 1 )); then exit 255; fi
+      filename="$(filename_for_output_html_for_activity "$activity_id" "$activity_published_date" "$activity_title_summary")"
+      if (( "$?" >= 1 )); then exit 255; fi
+      target_output_filepath+=("$(ensure_path "$directory" "$filename")")
       continue
     fi
 
@@ -118,14 +123,26 @@ asset_directory="$(realpath "${caller_path}/../assets/")"
 
 comments="$(cat "$input_filepath" | jq -cr '.comments//[] | .[] | @base64')"
 counter=0
+touch "$intermediate_comments_file"
 while IFS= read -r comment || [ -n "$comment" ]; do # Loop through $comments
+  if ((${#input} == 0)); then
+    debug "comment #${counter} is empty"
+    ((counter+=1))
+    continue
+  fi
+  
+    
   tmp_filename="${intermediate_comments_file}.${counter}.json"
+  debug "Parsing comment '$tmp_filename'"
+  debug "Comment: '$comment'"
   printf "$comment" | gbase64 -d - > "$tmp_filename" && "$comment_template_script" "$comment_template" "$author_template" "$tmp_filename" >> "$intermediate_comments_file" && rm "$tmp_filename"
   ((counter+=1))
 done <<< "$comments"
 unset counter
 
 # Generate Intermediate Activity Output File
+touch "$intermediate_activity_file"
+debug "\"$activity_template_script\" \"$activity_template\" \"$author_template\" \"$input_filepath\" \"$intermediate_comments_file\""
 filename="$("$activity_template_script" "$activity_template" "$author_template" "$input_filepath" "$intermediate_comments_file" > "$intermediate_activity_file" && debug "Intermediate Activity File: $intermediate_activity_file")"
 exit_code="$?"
 if (( $exit_code >= 1 )); then
