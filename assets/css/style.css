@@ -3,13 +3,16 @@
     a { color: #a55; }
     a:hover { color: #b4da55; }
     .dt-published:before {content: "on"; text-decoration: none; display: inline-block; padding-right: 0.25em; color: black;}
-    .dt-updated:before {content: "updated on\20";}
+    .dt-updated:before {content: attr(data-prefix);}
 
-    .dt-published,.dt-updated {display: block;}
+    .dt-published,.dt-updated {display: inline-block;}
 
     .u-photo {float: right;}
     
     .p-comment {background-color: #efefef; width: 100%; padding: 0.5rem;}
-    .p-comment .content {height: 14rem; overflow: auto; padding: 1rem; border: 1px solid #bad455;}
+    .p-comment .content {overflow: auto;}
     .comments.row > div { padding: 0.5em; }
-    .comments .p-summary {display: none;}
+    .comments .p-summary, .h-entry header .p-summary {display: none;}
+    #page-body > .h-entry { background-color: #fdfff5; max-width: 800px; margin: auto auto}
+
+    section.content { margin-top: 1em; }

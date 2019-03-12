@@ -23,7 +23,7 @@ function printarr() {
 # https://stackoverflow.com/a/17841619 by @gniourf_gniourf and @nicholas-sushkin with edits from @lynn
 # function join_by() { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
 
-
+# https://stackoverflow.com/a/23673883 by @gniourf_gniourf
 function join_by() {
   # $1 is sep
   # $2... are the elements to join
@@ -775,7 +775,36 @@ function abort_if() {
   fi
 }
 
-function text_summary_from_html() {
-  #FIXME: Plexodus-Tools/data/output/html/exported_activities/limited/communities/112164273001338979772-GooglePlus-Mass-Migration/112064652966583500522/2019-01-21-z13lz1kzusysd5piy04cdhjoixeixfyzjso0k-Another-service-biting-the-dust-because-of-GPlus-shutdown.html
-  gnugrep -oP '(<[^>{1,}]>){0,}\K([^<]{1,})' | head -1 | cut -c-100
+function strip_html() {
+  gnused 's/<[^>]{1,}>//g'
+}
+
+function shorten() {
+  local input="$(cat -)"
+  local cut_indicator=${1:-$'\U2026'} #Horizontal Ellipsis
+  local max_length=${2:-100}
+  if ((${#input} > $max_length)); then
+    echo "$(echo "$input" | first_x_characters $max_length)$cut_indicator"
+  else
+    echo "$input"
+  fi
+}
+
+function first_x_characters() {
+  cut -c-${1:-100}
+}
+
+function title_from_html() {
+  # First look for *header* / _header_ / *_header_* / _*header*_ or similar
+  # Only include contents: '((?<=<b><i>).*(?=</i></b>)|(?<=<i><b>).*(?=</b></i>)|(?<=<b>).*(?=</b>)|(?<=<i>).*(?=</i>))'
+  input=$(cat -)
+  first_line="$(echo "$input" | head -1)"
+  title="$( echo "$first_line" | gnugrep -oP '^(<i><b>|<b><i>|<b>|<i>).*(</b></i>|</i></b>|</b>)')"
+  exit_code="$?"
+  
+  # If there was no match
+  if (( $exit_code > 0 )); then
+    title="$(echo "$first_line" | strip_html )"
+  fi
+  echo "$title" | shorten $1 $2
 }

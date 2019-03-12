@@ -22,14 +22,16 @@ author_template_variables["actorImageUrl"]="$(cat "$takeout_activity_comment_jso
 comment_template_variables["actorTemplate"]="$(parse_template "$author_template" "author_template_variables")"
 comment_template_variables["commentId"]="$(cat "$takeout_activity_comment_json_filename" | jq -Cr '.resourceName | gsub("^./comments/"; "")')"
 comment_template_variables["commentContentBody"]="$(cat "$takeout_activity_comment_json_filename" | jq -Cr '.content')"
-comment_template_variables["commentContentSummary"]="$(echo "${comment_template_variables["commentContentBody"]}" | text_summary_from_html )"
+comment_template_variables["commentContentSummary"]="$(echo "${comment_template_variables["commentContentBody"]}" | title_from_html $'\U2026' 200 )"
 comment_template_variables["commentPublishedDateTime"]="$(cat "$takeout_activity_comment_json_filename" | jq -Cr '.creationTime')"
 comment_template_variables["commentPublishedFormatted"]=$(timestamp "rss" --date="${comment_template_variables[commentPublishedDateTime]}")
 comment_template_variables["commentUpdatedDateTime"]="$(cat "$takeout_activity_comment_json_filename" | jq -Cr '.updateTime//""')"
 if [ "${comment_template_variables["commentUpdatedDateTime"]}" != "" ]; then
   comment_template_variables["commentUpdatedFormatted"]=$(timestamp "rss" --date="${comment_template_variables[commentUpdatedDateTime]}")
+  comment_template_variables["commentUpdatedPrefixData"]="updated on "
 else
   comment_template_variables["commentUpdatedFormatted"]=""
+  comment_template_variables["commentUpdatedPrefixData"]=""
 fi
 comment_template_variables["entryUrl"]="$(cat "$takeout_activity_comment_json_filename" | jq -Cr '.postUrl')"
 comment_template_variables["commentUrl"]="${comment_template_variables[entryUrl]}#${comment_template_variables["commentId"]}"

@@ -1,4 +1,4 @@
-    <div class="col-sm-6 col-md-4">
+    <div class="col-sm-12">
       <div class="p-comment h-entry" id="comment-$commentId">
         <header>
   $actorTemplate
@@ -6,7 +6,7 @@
           <a class="u-url" href="$commentUrl">
             <time class="dt-published" datetime="$commentPublishedDateTime">$commentPublishedFormatted</time>
   	</a>
-          <time class="dt-updated" datetime="$commentUpdatedDateTime">$commentUpdatedFormatted</time>
+          <time class="dt-updated" datetime="$commentUpdatedDateTime" data-prefix="$commentUpdatedPrefixData">$commentUpdatedFormatted</time>
 
           <p class="p-summary">$commentContentSummary</p>
         </header>

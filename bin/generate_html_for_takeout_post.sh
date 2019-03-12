@@ -26,11 +26,10 @@ activity_user_id="$(jq -r '.author .resourceName | gsub("^users/"; "")' "$input_
 debug "user_id: $activity_user_id"
 activity_published_date="$(timestamp "day" --date="$(jq -r '.creationTime' "$input_filepath")")"
 debug "published on: $activity_published_date"
-activity_title_summary="$(jq -r '.content//"UNTITLED by " + .author .displayName' "$input_filepath" | text_summary_from_html)"
+activity_title_summary="$(jq -r '.content//"UNTITLED by " + .author .displayName' "$input_filepath" | title_from_html "" 100 | strip_html)"
 debug "title summary: $activity_title_summary"
 activity_post_acl_keys="$(jq -r '.postAcl//{}|keys|join("\n")' "$input_filepath")"
 debug "post acl keys:\n$activity_post_acl_keys"
-
 
 while IFS= read -r acl_key || [ -n "$acl_key" ]; do # Loop through activity_post_acl_keys
   if [ "$acl_key" == "isPublic" ]; then
@@ -108,29 +107,44 @@ done <<< "$activity_post_acl_keys"
 debug "Found filepaths:\n$(printarr target_output_filepath)"
 primary_filepath="${target_output_filepath[0]}"
 comment_template_script="$caller_path/generate-comment-template-from-takeout-activity-json-file.sh"
+activity_template_script="$caller_path/generate-activity-template-from-takeout-activity-json-file.sh"
 layout_template_script="$caller_path/generate-html-template-layout.sh"
+activity_template="$caller_path/../templates/h-entry-microformat.template.html"
 comment_template="$caller_path/../templates/h-entry-p-comment-microformat.template.html"
 author_template="$caller_path/../templates/h-entry-author.template.html"
-intermediate_file="${primary_filepath}.comments.$(timestamp "%Y%m%d-%H%M%S")"
-debug "Intermediate filename: $intermediate_file"
-asset_directory="$(dirname "$(realpath "${caller_path}/")")"
+intermediate_activity_file="${primary_filepath}.activity.$(timestamp "%Y%m%d-%H%M%S")"
+intermediate_comments_file="${primary_filepath}.comments.$(timestamp "%Y%m%d-%H%M%S")"
+asset_directory="$(realpath "${caller_path}/../assets/")"
 
 comments="$(cat "$input_filepath" | jq -cr '.comments//[] | .[] | @base64')"
 counter=0
 while IFS= read -r comment || [ -n "$comment" ]; do # Loop through $comments
-  tmp_filename="${intermediate_file}.${counter}.json"
-  printf "$comment" | gbase64 -d - > "$tmp_filename" && "$comment_template_script" "$comment_template" "$author_template" "$tmp_filename" >> "$intermediate_file" && rm "$tmp_filename"
+  tmp_filename="${intermediate_comments_file}.${counter}.json"
+  printf "$comment" | gbase64 -d - > "$tmp_filename" && "$comment_template_script" "$comment_template" "$author_template" "$tmp_filename" >> "$intermediate_comments_file" && rm "$tmp_filename"
   ((counter+=1))
 done <<< "$comments"
 unset counter
 
-filename="$("$layout_template_script" "default" "$intermediate_file" "$asset_directory" > "$primary_filepath" && echo "$primary_filepath")"
+# Generate Intermediate Activity Output File
+filename="$("$activity_template_script" "$activity_template" "$author_template" "$input_filepath" "$intermediate_comments_file" > "$intermediate_activity_file" && debug "Intermediate Activity File: $intermediate_activity_file")"
 exit_code="$?"
 if (( $exit_code >= 1 )); then
-  echo "Template generation exited with '$exit_code'" 1>&2
+  echo "Template generation exited with '$exit_code' Remember to clean up '$intermediate_comments_file'." 1>&2
   exit $exit_code
 else
-  rm "$intermediate_file"
+  rm "$intermediate_comments_file"
+fi
+
+#TODO: Optimise by splitting templates in header and footer files, so we can output straight to the end-result file for intermediate results
+
+# Generate Final Layout Output File
+filename="$("$layout_template_script" "default" "$intermediate_activity_file" "$asset_directory/css" > "$primary_filepath" && echo "$primary_filepath")"
+exit_code="$?"
+if (( $exit_code >= 1 )); then
+  echo "Template generation exited with '$exit_code'. Remember to clean up '$intermediate_activity_file'." 1>&2
+  exit $exit_code
+else
+  rm "$intermediate_activity_file"
 fi
   
 echo "$filename"
