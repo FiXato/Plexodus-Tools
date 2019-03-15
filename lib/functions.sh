@@ -413,7 +413,7 @@ function activity_file() {
 }
 
 function get_user_id() {
-  uid_regex="^([0-9]+|\+[[:alnum:]_-]+)$"
+  uid_regex="^([0-9]+|\+[^/]+)$"
   user_id="$1"
   if [[ "$user_id" =~ $uid_regex ]]; then
     echo "$user_id"
