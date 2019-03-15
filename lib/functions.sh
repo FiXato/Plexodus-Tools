@@ -13,6 +13,7 @@ function debug() {
   fi
 }
 
+# By @ilkkachu from https://unix.stackexchange.com/a/366655
 function printarr() {
   declare -n __p="$1"
   for k in "${!__p[@]}"
@@ -661,6 +662,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
   if [ "$3" != "" ]; then
     curl_args="$3 "
   fi
+  curl_headers=("Accept-Charset: utf-8, iso-8859-1;q=0.5, *;q=0.1")
   log_file="$4"
 
   if [ "$document_url" == "" ]; then
@@ -668,7 +670,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
   elif [[ "$document_url" =~ (^https?|ftps?):// ]]; then # Supported protocols
     if [ "$target_file_path" == "" ]; then
       echo -e "=!!!= cache_external_document_to_file() needs a target file path.\n$function_usage" 1>&2 && return 255
-    elif [ ! -f "$target_file_path" ]; then
+    elif [ ! -f "$target_file_path" -o "$IGNORE_CACHE" == 'true' ]; then
       local retries=3
       local count=0
       while [ $count -lt $retries ]; do
@@ -679,7 +681,13 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
 
         debug "  =!= [Try #$count/$retries]: Storing '$document_url' to '$target_file_path'"
         # TODO: add support for extracting more metadata such as returned charset and content-type, and storing it via setxattr
-        status_code="$(curl -A "$USER_AGENT" -H "Accept-Charset: utf-8, iso-8859-1;q=0.5, *;q=0.1" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url")"; exit_code="$?"
+        if [ "$GOOGLE_OAUTH_ACCESS_TOKEN" != "" ]; then
+          document_url="${document_url/[?&]key=*/}"
+          debug "Google OAuth2 Access Token set, so removed key parameter from document_url: '${document_url}'"
+          curl_headers+=("Authorization: Bearer $GOOGLE_OAUTH_ACCESS_TOKEN")
+        fi
+        debug "curl Headers: '${curl_headers[@]/##/ }'"
+        status_code="$(curl -A "$USER_AGENT" "${curl_headers[@]/#/-H}" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url")"; exit_code="$?"
         setxattr "status_code" "$status_code" "$2" 1>&2
         setxattr "tries" "$count/$retries" "$2" 1>&2
 
