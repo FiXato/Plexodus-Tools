@@ -681,10 +681,13 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
 
         debug "  =!= [Try #$count/$retries]: Storing '$document_url' to '$target_file_path'"
         # TODO: add support for extracting more metadata such as returned charset and content-type, and storing it via setxattr
-        if [ "$GOOGLE_OAUTH_ACCESS_TOKEN" != "" ]; then
-          document_url="$(printf '%s' "$document_url" | gnused 's/\?key=[^=&?]+&/?/;s/\?key=[^=&?]+//;s/&key=[^=&?]+//')"
-          debug "Google OAuth2 Access Token set, so removed key parameter from document_url: '${document_url}'"
-          curl_headers+=("Authorization: Bearer $GOOGLE_OAUTH_ACCESS_TOKEN")
+
+        if [[ $url == https://*.googleapis.com/* || $url == https://googleapis.com/* ]]; then
+          if [ "$GOOGLE_OAUTH_ACCESS_TOKEN" != "" ]; then
+            document_url="$(printf '%s' "$document_url" | gnused 's/\?key=[^=&?]+&/?/;s/\?key=[^=&?]+//;s/&key=[^=&?]+//')"
+            debug "Google OAuth2 Access Token set, so removed key parameter from document_url: '${document_url}'"
+            curl_headers+=("Authorization: Bearer $GOOGLE_OAUTH_ACCESS_TOKEN")
+          fi
         fi
         debug "curl Headers: '${curl_headers[@]/##/ }'"
         status_code="$(curl -A "$USER_AGENT" "${curl_headers[@]/#/-H}" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url")"; exit_code="$?"
