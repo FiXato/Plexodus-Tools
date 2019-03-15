@@ -104,6 +104,8 @@ cat combined_activities-FiXato-page-commenters-profilePageUrls.json | ggrep -v '
 find ./extracted/Takeout/Google+\ Stream/Posts -iname '*.json' | gxargs -I @@ jq '.comments//[] | .[] .author .profilePageUrl' '@@'| sort -u | gxargs -I @@ DEBUG=1 hilite ./bin/people_api_data_for_gplus_profile.sh '@@' | tee ./data/output/result-lists/FiXato-Filip-commenters-people-json-files.txt
 # +CustomURLHandles no longer need to be excluded, as I've patched my script to try to retrieve the numeric ID instead.
 
+# And the same for commenters on your posts:
+find ./extracted/Takeout/Google+\ Stream/Posts -iname '*.json' | gxargs -I @@ jq '.comments//[] | .[] .author .profilePageUrl' '@@' | DEBUG=1 gxargs -I @@ hilite ./bin/people_api_data_for_gplus_profile.sh '@@' | tee ./data/output/result-lists/commenters-people-json-files.txt
 
 # Collect all the JSON files from the extracted Google Data Takeout Google Stream Posts archive, reverse order them to process the newest first, and generate HTML from it, storing it as "$year-$month-$day-$activityID-$titleSummary.html" into the following folder structure:
   # data/output/html/exported_activities/limited/communities/$communityID-$communityName/$userID
