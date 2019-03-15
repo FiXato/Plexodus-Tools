@@ -20,3 +20,9 @@ while IFS= read -r -d '' comment; do
   # echo "Comment: $comment_text"
   printf '%s' "$comment_text" > "${data_dir}/${filename}"
 done < <(jq -r '.items[] | (.primaryText|length|tostring) + "-" + .timestampMs + "-" + (.primaryText|gsub("[^a-zA-Z0-9]+"; "_")[0:50]|gsub("_+$"; "")) + ".txt " + (.primaryText|gsub("  "; "\n")) + "\u0000"' "$activity_log_filepath")
+
+if hash gsort 2>/dev/null; then
+  find "$data_dir" | gsort -V
+else
+  find "$data_dir" | sort -V  
+fi
