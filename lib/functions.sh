@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # encoding: utf-8
 
+#FIXME: Make sure all functions use *local* variables.
+
 #FIXME: move this to an variables.env file
 REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 USER_AGENT="${USER_AGENT:-PlexodusToolsBot/0.9.0}"
@@ -225,14 +227,135 @@ function unique_append() {
   [ $append == false ] && grep -qxF -- "$string" "$filepath" || echo "$string" >> "$filepath"
 }
 
+function xattr_metadata_filepath() {
+  local filepath="$1"
+  if [ "$XATTR_METADATA_SUFFIX" == "" ]; then
+    echo "xattr_metadata_filepath(): XATTR_METADATA_SUFFIX not set!" 1>&2
+    return 255
+  fi
+  echo "${filepath}${XATTR_METADATA_SUFFIX}"
+}
+
+function xattr_metadata_list_keys() {
+  local filepath="$1"
+  if [ "$filepath" == "" ]; then
+    echo "xattr_metadata_list_keys(): You need to specify a xattr metadata filepath as \$1" 1>&2
+    return 255
+  elif [ ! -f "$filepath" ]; then
+    echo "xattr_metadata_list_keys(): File '$filepath' does not exist." 1>&2
+    return 255
+  fi
+
+  gnuawk 'BEGIN { FS="\31"; RS="\0"; exit_code=1} $1 !~ "^###$" { print $1; exit_code=0 }; END { exit exit_code }' "$1"
+}
+
+function xattr_metadata_get_key() {
+  local key="$1"
+  if [ "$key" == "" ]; then
+    echo "xattr_metadata_get_key(): You need to specify a xattr metadata key as \$1" 1>&2
+    return 255
+  elif [ "$key" == "###" ]; then
+    echo "xattr_metadata_get_key(): The key '$key' is a restricted key meant as a header and cannot be retrieved" 1>&2
+    return 255
+  fi
+
+  local filepath="$2"
+  if [ "$filepath" == "" ]; then
+    echo "xattr_metadata_get_key(): You need to specify a xattr metadata filepath as \$2" 1>&2
+    return 255
+  elif [ ! -f "$filepath" ]; then
+    echo "xattr_metadata_get_key(): File '$filepath' does not exist." 1>&2
+    return 255
+  fi
+
+  gnuawk -v key="^$1$" 'BEGIN { FS="\31"; RS="\0"; exit_code=1} $1 ~ key { print "\""$1"\": "$2; exit_code=0 }; END { exit exit_code }' "$2"
+}
+
+function xattr_metadata_test_key() {
+  local key="$1"
+  if [ "$key" == "" ]; then
+    echo "xattr_metadata_test_key(): You need to specify a xattr metadata key as \$1" 1>&2
+    return 255
+  fi
+
+  local filepath="$2"
+  if [ "$filepath" == "" ]; then
+    echo "xattr_metadata_test_key(): You need to specify a xattr metadata filepath as \$2" 1>&2
+    return 255
+  elif [ ! -f "$filepath" ]; then
+    echo "xattr_metadata_test_key(): File '$filepath' does not exist." 1>&2
+    return 255
+  fi
+
+  gnuawk -v key="^$1$" 'BEGIN { FS="\31"; RS="\0"; exit_code=1} $1 ~ key { exit_code=0 }; END { exit exit_code }' "$2"
+}
+
+function xattr_metadata_unset_key() {
+  local key="$1"
+  if [ "$key" == "" ]; then
+    echo "You need to specify a xattr metadata key as \$1" 1>&2
+    return 255
+  elif [ "$key" == "###" ]; then
+    echo "xattr_metadata_unset_key(): The key '$key' is a restricted key meant as a header and cannot be unset" 1>&2
+  fi
+
+  local filepath="$2"
+  if [ "$filepath" == "" ]; then
+    echo "xattr_metadata_unset_key(): You need to specify a xattr metadata filepath as \$2" 1>&2
+    return 255
+  elif [ ! -f "$filepath" ]; then
+    echo "xattr_metadata_unset_key(): File '$filepath' does not exist." 1>&2
+    return 255
+  fi
+
+  if hash sponge 2>/dev/null; then
+    gnuawk -v key="^$1$" 'BEGIN { OFS=FS="\31"; ORS=RS="\0"; exit_code=1} $1 !~ key { print $1,$2; exit_code=0 }; END { exit exit_code }' "$2" | sponge "$2"
+  else
+    echo 'xattr_metadata_unset_key() relies on `sponge`. Please install it from the `moreutils` package via your package manager (e.g. `brew install moreutils` or `sudo apt-get install moreutils`) or from https://joeyh.name/code/moreutils/' 1>&2
+    return 255
+  fi
+}
+
+function xattr_metadata_set_key() {
+  local key="$1"
+  if [ "$key" == "" ]; then
+    echo "xattr_metadata_set_key(): You need to specify a xattr metadata key as \$1" 1>&2
+    return 255
+  elif [ "$key" == "###" ]; then
+    echo "xattr_metadata_set_key(): The key '$key' is a restricted key meant as a header and cannot be set." 1>&2
+  fi
+
+  local value="$2"
+  if [ "$value" == "" ]; then
+    echo "xattr_metadata_set_key(): You need to specify a xattr metadata value as \$2" 1>&2
+    return 255
+  fi
+
+  local filepath="$3"
+  if [ "$filepath" == "" ]; then
+    echo "xattr_metadata_set_key(): You need to specify a xattr metadata filepath as \$3" 1>&2
+    return 255
+  fi
+
+  if [ ! -f "$filepath" ]; then
+    printf '###\31%s\0' 'Simplified xattr alternative metadata file. Format: $key1\31$data1\0$key2\31$data2\0' >> "$filepath"
+  else
+    # TODO: Could more strictly test for header value too, but I think this will suffice.
+    xattr_metadata_test_key '###' "$filepath" || (echo "xattr_metadata_set_key(): File '$filepath' exists and does not contain '###\31' header and thus is not recognised as xattr metadata file." 1>&2 && return 255)
+  fi
+
+  xattr_metadata_test_key "$key" "$filepath" && (xattr_metadata_unset_key "$key" "$filepath" || return 255)
+  printf '%s\31%s\0' "$key" "$value" >> "$filepath"
+}
+
 function setxattr() {
   if [ "$XATTR_DISABLED" == true ]; then
     return
   fi
   
   if [ -f "$3" ]; then
-    if [ "$XATTR_METADATA_SUFFIX" != "" ];
-      unique_append "\"$1\": \"$2\"" "${3}${XATTR_METADATA_SUFFIX}"
+    if [ "$XATTR_METADATA_SUFFIX" != "" ]; then
+      xattr_metadata_set_key "$1" "$2" "$(xattr_metadata_filepath "$3")"
     elif hash xattr 2>/dev/null; then
       xattr -w "$1" "$2" "$3" 1>&2
     elif hash attr 2>/dev/null; then
