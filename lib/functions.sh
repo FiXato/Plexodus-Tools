@@ -666,6 +666,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
     curl_args="$3 "
   fi
   curl_headers=("Accept-Charset: utf-8, iso-8859-1;q=0.5, *;q=0.1")
+  curl_headers+=("Accept-Language: en-GB;q=0.9, en;q=0.8, en-US;q=0.7, *;q=0.5")
   log_file="$4"
 
   if [ "$document_url" == "" ]; then
