@@ -834,8 +834,8 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
         fi
         debug "curl Headers: '${curl_headers[@]/##/ }'"
         status_code="$(curl -A "$USER_AGENT" "${curl_headers[@]/#/-H}" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url")"; exit_code="$?"
-        setxattr "status_code" "$status_code" "$2" 1>&2
-        setxattr "tries" "$count/$retries" "$2" 1>&2
+        setxattr "status_code" "$status_code" "$target_file_path" 1>&2
+        setxattr "tries" "$count/$retries" "$target_file_path" 1>&2
 
         if (( $exit_code >= 1 )); then
           errormsg="[\$?=$exit_code]'$document_url' -> '$target_file_path' # curl exited with code $exit_code"
