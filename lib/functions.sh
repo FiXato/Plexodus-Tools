@@ -374,9 +374,8 @@ function timestamp() {
   elif [ "$1" == "rfc-3339" ]; then
     date_arguments=("--$1=seconds")
     ts_format=""
-  elif [ "$1" == "rfc-5322" -o "$1" == "rfc-email" ]; then
-    date_arguments=("--rfc-email")
-    ts_format=""
+  elif [ "$1" == "rfc-5322" -o "$1" == "rfc-email" -o "$1" == "--rfc-email" ]; then
+    ts_format="%a, %d %b %Y %H:%M:%S %z"
   elif [ "$1" == "rss" -o "$1" == "rfc-822" ]; then # per https://groups.yahoo.com/neo/groups/rss-public/conversations/topics/536
     ts_format="%a, %d %b %Y %H:%M:%S %z"
   else
