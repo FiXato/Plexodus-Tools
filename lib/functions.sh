@@ -45,7 +45,7 @@ function urlsafe_plus_profile_url() {
   plus_url_custom_handle_base="https://plus.google.com/+"
   escaped_plus_url_custom_handle_base="^$(printf "$plus_url_custom_handle_base" | sed 's/\./\\./g;s/\+/\\+/g')"
   if [[ "$source_url" == $plus_url_custom_handle_base* ]]; then
-    urlencoded_username="$(echo "$clean_source_url" | gnugrep -zoP "$escaped_plus_url_custom_handle_base"'\K([^/]+)' | curl_urlencode)"
+    urlencoded_username="$(echo "$clean_source_url" | gnugrep -oP "$escaped_plus_url_custom_handle_base"'\K([^/]+)' | curl_urlencode)"
     url_path_suffix="$(echo "$clean_source_url" | gnugrep -oP "$escaped_plus_url_custom_handle_base"'[^/]+\K(/.+)')"
     clean_source_url="${plus_url_custom_handle_base}${urlencoded_username}${url_path_suffix}"
   fi
