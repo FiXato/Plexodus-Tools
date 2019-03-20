@@ -53,4 +53,4 @@ find "$extracted_takeout_directory/Google+ Communities" -type f -path '*/Posts/*
 #
 # jq -r '[.items[]|select(.visibility == "PUBLIC")]|map(.pollVoteAddedItem .postPermalink)|join("\n")' "$extracted_takeout_directory/Google+ Stream/ActivityLog/Poll Votes.json" | tee "$output_post_urls_from_activitylog_poll_votes"
 
-sort -u $(find data/output/urls/profile_urls -iname 'from_takeout_*.txt' -type f | xargs) > "$output_all_unique_profile_urls"
+sort -u $(find data/output/urls/profile_urls -iname 'from_takeout_*.txt' -type f | xargs) | grep -v "^$" > "$output_all_unique_profile_urls"
