@@ -715,19 +715,22 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
 
           if [ "$status_code" -eq 403 ]; then # Forbidden. Possibly the result of Exceeded Quota Usage. Preferably don't retry immediately
             echo -e "403 FORBIDDEN Error while retrieving '$document_url' -> '$target_file_path'.\nRequest returned:\n\n---\n$(cat "$target_file_path")\n---\n" 1>&2
-            read -p $'=!!!= (a)bort, (r)etry or (c)ontinue with next item? [a/r/C]\n' input < /dev/tty
+            input=""
+            if [ "$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION" == "" ];then
+              read -p $'=!!!= (a)bort, (r)etry or (c)ontinue with next item? [a/r/C]\n' input < /dev/tty
+            fi
 
-            if [ "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "r" ]; then
+            if [ "$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION" == "retry" -o "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "r" ]; then
               retrymsg="'$document_url' -> '$target_file_path' # User requested retry (input: '$input')"
               debug "  =!= $retrymsg"
               append_log_msg "$retrymsg" "$log_file"
               continue
-            elif [ "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "a" ]; then
+            elif [ "$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION" == "abort" -o "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "a" ]; then
               retrymsg="'$document_url' -> '$target_file_path' # User requested ABORT (input: '$input')"
               debug "  =!!!= $retrymsg"
               append_log_msg "$retrymsg" "$log_file"
               exit 255
-            elif [ "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "c" ]; then
+            elif [ "$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION" == "continue" -o "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "c" ]; then
               retrymsg="'$document_url' -> '$target_file_path' # User requested to continue with next item (input: '$input')"
               debug "  =!= $retrymsg"
               append_log_msg "$retrymsg" "$log_file"
