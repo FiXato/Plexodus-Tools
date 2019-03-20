@@ -12,12 +12,13 @@ fi
 output_dir="data/output/urls/public_post_urls"
 extracted_takeout_directory="extracted/Takeout"
 
-output_public_post_urls_from_takeout_stream_posts="$(ensure_path "$output_dir" "from_takeout_stream_posts")"
-output_public_post_urls_from_takeout_community_posts="$(ensure_path "$output_dir" "from_takeout_community_posts")"
-output_post_urls_from_activitylog_comments="$(ensure_path "$output_dir" "from_activitylog_comments")"
-output_post_urls_from_activitylog_poll_votes="$(ensure_path "$output_dir" "from_activitylog_poll_votes")"
-output_post_urls_from_activitylog_plusones_on_comments="$(ensure_path "$output_dir" "from_activitylog_plusones_on_comments")"
-output_post_urls_from_activitylog_plusones_on_posts="$(ensure_path "$output_dir" "from_activitylog_plusones_on_posts")"
+output_public_post_urls_from_takeout_stream_posts="$(ensure_path "$output_dir" "from_takeout_stream_posts.txt")"
+output_public_post_urls_from_takeout_community_posts="$(ensure_path "$output_dir" "from_takeout_community_posts.txt")"
+output_post_urls_from_activitylog_comments="$(ensure_path "$output_dir" "from_activitylog_comments.txt")"
+output_post_urls_from_activitylog_poll_votes="$(ensure_path "$output_dir" "from_activitylog_poll_votes.txt")"
+output_post_urls_from_activitylog_plusones_on_comments="$(ensure_path "$output_dir" "from_activitylog_plusones_on_comments.txt")"
+output_post_urls_from_activitylog_plusones_on_posts="$(ensure_path "$output_dir" "from_activitylog_plusones_on_posts.txt")"
+output_all_unique_public_post_urls="$(ensure_path "$output_dir" "all_unique_public_post_urls.txt")"
 
 find "$extracted_takeout_directory/Google+ Stream/Posts" -type f -print0 -iname '*.json' | $xargs_cmd -0 jq -r 'select(.postAcl .isPublic == true)| [.]|map(.url)|[.]|flatten|add|[.]|unique|join("\n")' | tee "$output_public_post_urls_from_takeout_stream_posts"
 
@@ -33,9 +34,11 @@ jq -r '[.items[]|select(.visibility == "PUBLIC")]|map(.postPlusOneAddedItem .pos
 
 jq -r '[.items[]|select(.visibility == "PUBLIC")]|map(.pollVoteAddedItem .postPermalink)|join("\n")' "$extracted_takeout_directory/Google+ Stream/ActivityLog/Poll Votes.json" | tee "$output_post_urls_from_activitylog_poll_votes"
 
-echo "$output_public_post_urls_from_takeout_stream_posts"
-echo "$output_public_post_urls_from_takeout_community_posts"
-echo "$output_post_urls_from_activitylog_comments"
-echo "$output_post_urls_from_activitylog_plusones_on_comments"
-echo "$output_post_urls_from_activitylog_plusones_on_posts"
-echo "$output_post_urls_from_activitylog_poll_votes"
+# echo "$output_public_post_urls_from_takeout_stream_posts"
+# echo "$output_public_post_urls_from_takeout_community_posts"
+# echo "$output_post_urls_from_activitylog_comments"
+# echo "$output_post_urls_from_activitylog_plusones_on_comments"
+# echo "$output_post_urls_from_activitylog_plusones_on_posts"
+# echo "$output_post_urls_from_activitylog_poll_votes"
+
+sort -u "$output_public_post_urls_from_takeout_stream_posts" "$output_public_post_urls_from_takeout_community_posts" "$output_post_urls_from_activitylog_comments" "$output_post_urls_from_activitylog_poll_votes" "$output_post_urls_from_activitylog_plusones_on_comments" "$output_post_urls_from_activitylog_plusones_on_posts" > "$output_all_unique_public_post_urls"
