@@ -4,6 +4,7 @@
 #FIXME: move this to an variables.env file
 REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 USER_AGENT="${USER_AGENT:-PlexodusToolsBot/0.9.0}"
+MAX_RETRIEVAL_RETRIES=${MAX_RETRIEVAL_RETRIES:-3}
 #Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3724.8 Safari/537.36
 
 #TODO: Implement LOG_LEVEL
@@ -671,7 +672,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
     if [ "$target_file_path" == "" ]; then
       echo -e "=!!!= cache_external_document_to_file() needs a target file path.\n$function_usage" 1>&2 && return 255
     elif [ ! -f "$target_file_path" -o "$IGNORE_CACHE" == 'true' ]; then
-      local retries=3
+      local retries=$MAX_RETRIEVAL_RETRIES
       local count=0
       while [ $count -lt $retries ]; do
         if (( $count > 0 )); then  # Don't sleep on the first try

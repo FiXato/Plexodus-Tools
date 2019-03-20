@@ -3,6 +3,12 @@
 caller_path="$(dirname "$(realpath "$0")")"
 source "$caller_path/../lib/functions.sh"
 
+ignore_errors=false
+if [ "$1" == '--ignore-errors' ]; then
+  ignore_errors=true
+  shift
+fi
+
 usage="# Archive a webpage through the WayBackMachine and cache it locally\n# usage: $(basename "$0") \$source_url"
 check_help "$1" "$usage" || exit 255
 source_url="$1"
@@ -21,7 +27,9 @@ exit_code="$?"
 if (( $exit_code >= 1 )); then
   echo "=!= cache_remote_document_to_file('$wbm_save_url' '$target_filepath') exited with $exit_code and returned '$filename'" 1>&2
   setxattr "exit_code" "$exit_code" "$filename"
-  exit 255
+  if [ "$ignore_errors" != true ]; then
+    exit 255
+  fi
 fi
 setxattr "source_url" "$source_url" "$filename"
 setxattr "wbm_save_url" "$wbm_save_url" "$filename"
