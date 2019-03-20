@@ -212,19 +212,34 @@ function gnugrep() {
   fi
 }
 
+# Inspired by https://stackoverflow.com/a/3557165 by @drAlberT
+function unique_append() {
+  string="$1"
+  filepath="$2"
+  
+  append=false
+  if [ ! -f "$filepath" ];then
+    append=true
+  fi
+  
+  [ $append == false ] && grep -qxF -- "$string" "$filepath" || echo "$string" >> "$filepath"
+}
+
 function setxattr() {
   if [ "$XATTR_DISABLED" == true ]; then
     return
   fi
-  # TODO: support additional .metadata file if xattr isn't supported
-  if hash xattr 2>/dev/null; then
-    if [ -f "$3" ]; then
+  
+  if [ -f "$3" ]; then
+    if [ "$XATTR_METADATA_SUFFIX" != "" ];
+      unique_append "\"$1\": \"$2\"" "${3}${XATTR_METADATA_SUFFIX}"
+    elif hash xattr 2>/dev/null; then
       xattr -w "$1" "$2" "$3" 1>&2
-    fi
-  elif hash attr 2>/dev/null; then
-    if [ -f "$3" ]; then
+    elif hash attr 2>/dev/null; then
       attr -s "$1" -V "$2" "$3" 1>&2
     fi
+  else
+    echo "setxattr('$1' '$2' '$3') File '$3' does not exist." 1>&2
   fi
 }
 
