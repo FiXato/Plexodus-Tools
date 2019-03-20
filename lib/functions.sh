@@ -721,22 +721,22 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
             fi
 
             if [ "$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION" == "retry" -o "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "r" ]; then
-              retrymsg="'$document_url' -> '$target_file_path' # User requested retry (input: '$input')"
+              retrymsg="'$document_url' -> '$target_file_path' # User requested retry (input: '$input'; MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION=$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION)"
               debug "  =!= $retrymsg"
               append_log_msg "$retrymsg" "$log_file"
               continue
             elif [ "$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION" == "abort" -o "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "a" ]; then
-              retrymsg="'$document_url' -> '$target_file_path' # User requested ABORT (input: '$input')"
+              retrymsg="'$document_url' -> '$target_file_path' # User requested ABORT (input: '$input'; MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION=$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION)"
               debug "  =!!!= $retrymsg"
               append_log_msg "$retrymsg" "$log_file"
               exit 255
             elif [ "$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION" == "continue" -o "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "c" ]; then
-              retrymsg="'$document_url' -> '$target_file_path' # User requested to continue with next item (input: '$input')"
+              retrymsg="'$document_url' -> '$target_file_path' # User requested to continue with next item (input: '$input'; MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION=$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION)"
               debug "  =!= $retrymsg"
               append_log_msg "$retrymsg" "$log_file"
               break
             else
-              retrymsg="'$document_url' -> '$target_file_path' # Unrecognised user input; continuing with next item (input: '$input')"
+              retrymsg="'$document_url' -> '$target_file_path' # Unrecognised user input; continuing with next item (input: '$input'; MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION=$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION)"
               debug "  =!= $retrymsg"
               append_log_msg "$retrymsg" "$log_file"
               break
