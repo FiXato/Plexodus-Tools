@@ -228,6 +228,7 @@ function unique_append() {
 }
 
 function xattr_metadata_filepath() {
+  #TODO: Add support for putting the metadata files in a separate directory instead
   local filepath="$1"
   if [ "$XATTR_METADATA_SUFFIX" == "" ]; then
     echo "xattr_metadata_filepath(): XATTR_METADATA_SUFFIX not set!" 1>&2
