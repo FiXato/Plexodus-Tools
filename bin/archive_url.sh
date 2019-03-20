@@ -31,12 +31,12 @@ filename="$(cache_remote_document_to_file "$wbm_save_url" "$target_filepath" "" 
 exit_code="$?"
 if (( $exit_code >= 1 )); then
   echo "=!= cache_remote_document_to_file('$wbm_save_url' '$target_filepath') exited with $exit_code and returned '$filename'" 1>&2
-  setxattr "exit_code" "$exit_code" "$filename"
+  setxattr "exit_code" "$exit_code" "$target_filepath"
   if [ "$ignore_errors" != true ]; then
     exit 255
   fi
 fi
-setxattr "source_url" "$source_url" "$filename"
-setxattr "wbm_save_url" "$wbm_save_url" "$filename"
+setxattr "source_url" "$source_url" "$target_filepath"
+setxattr "wbm_save_url" "$wbm_save_url" "$target_filepath"
 
 echo "$filename"
