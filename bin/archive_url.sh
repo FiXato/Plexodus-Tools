@@ -20,7 +20,12 @@ else
 fi
 
 wbm_save_base_url="https://web.archive.org/save"
-wbm_save_url="$wbm_save_base_url/$clean_source_url"
+wbm_save_url="$wbm_save_base_url/$clean_source_url?hl=en"
+if [ "$FORCED_GOOGLE_LOCALE" != "" ];then
+  if [[ "$domain" == *.google.com || "$domain" == google.com ]]; then
+    wbm_save_url="$wbm_save_url?hl=$FORCED_GOOGLE_LOCALE"
+  fi
+fi
 target_filepath="$(wbm_archive_filepath "$source_url")"
 filename="$(cache_remote_document_to_file "$wbm_save_url" "$target_filepath" "" "./logs/archive_url-errors-$domain.log")"
 exit_code="$?"
