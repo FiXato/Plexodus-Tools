@@ -714,7 +714,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
           echo -e "    crdf(): =!!= [$status_code] Error while retrieving remote document." 1>&2
 
           if [ "$status_code" -eq 403 ]; then # Forbidden. Possibly the result of Exceeded Quota Usage. Preferably don't retry immediately
-            echo -e "404 FORBIDDEN Error while retrieving '$document_url' -> '$target_file_path'.\nCould be the result of Exceeded Quota Usage. Request returned:\n\n---\n$(cat "$target_file_path")\n---\n" 1>&2
+            echo -e "403 FORBIDDEN Error while retrieving '$document_url' -> '$target_file_path'.\nRequest returned:\n\n---\n$(cat "$target_file_path")\n---\n" 1>&2
             read -p $'=!!!= (a)bort, (r)etry or (c)ontinue with next item? [a/r/C]\n' input < /dev/tty
 
             if [ "$(echo "$input" | tr '[:upper:]' '[:lower:]')" == "r" ]; then
