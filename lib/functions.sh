@@ -213,6 +213,9 @@ function gnugrep() {
 }
 
 function setxattr() {
+  if [ "$XATTR_DISABLED" == true ]; then
+    return
+  fi
   # TODO: support additional .metadata file if xattr isn't supported
   if hash xattr 2>/dev/null; then
     if [ -f "$3" ]; then
