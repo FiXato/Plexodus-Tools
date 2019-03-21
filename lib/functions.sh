@@ -5,9 +5,8 @@
 
 #FIXME: move this to an variables.env file
 REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
-USER_AGENT="${USER_AGENT:-PlexodusToolsBot/0.9.0}"
+USER_AGENT="${USER_AGENT:-PlexodusToolsBot/0.9.0}" #Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3724.8 Safari/537.36
 MAX_RETRIEVAL_RETRIES=${MAX_RETRIEVAL_RETRIES:-3}
-#Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3724.8 Safari/537.36
 
 #TODO: Implement LOG_LEVEL
 function debug() {
@@ -42,13 +41,14 @@ function curl_urlencode() {
   curl -Gso /dev/null -w %{url_effective} --data-urlencode @- "" | cut -c 3- | sed 's/%00$//g'
 }
 
+#FIXME: this can probably be simplified with get_user_id
 function urlsafe_plus_profile_url() {
-  clean_source_url="$1"
-  plus_url_custom_handle_base="https://plus.google.com/+"
-  escaped_plus_url_custom_handle_base="^$(printf "$plus_url_custom_handle_base" | sed 's/\./\\./g;s/\+/\\+/g')"
+  local clean_source_url="$1"
+  local plus_url_custom_handle_base="https://plus.google.com/+"
+  local escaped_plus_url_custom_handle_base="^$(printf "$plus_url_custom_handle_base" | sed 's/\./\\./g;s/\+/\\+/g')"
   if [[ "$source_url" == $plus_url_custom_handle_base* ]]; then
-    urlencoded_username="$(echo "$clean_source_url" | gnugrep -oP "$escaped_plus_url_custom_handle_base"'\K([^/]+)' | curl_urlencode | sed 's/%0A$//' )"
-    url_path_suffix="$(echo "$clean_source_url" | gnugrep -oP "$escaped_plus_url_custom_handle_base"'[^/]+\K(/.+)')"
+    local urlencoded_username="$(echo "$clean_source_url" | gnugrep -oP "$escaped_plus_url_custom_handle_base"'\K([^/]+)' | curl_urlencode | sed 's/%0A$//' )"
+    local url_path_suffix="$(echo "$clean_source_url" | gnugrep -oP "$escaped_plus_url_custom_handle_base"'[^/]+\K(/.+)')"
     clean_source_url="${plus_url_custom_handle_base}${urlencoded_username}${url_path_suffix}"
   fi
   echo "$clean_source_url"
