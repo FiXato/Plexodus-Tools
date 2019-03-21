@@ -106,7 +106,7 @@ function ensure_gnutools() {
   missing_gnu_utils=()
   install_suggestion=""
   if [ "$(machine_type)" == "macOS" ]; then
-    install_suggestion="$(machine_type)"' comes with the BSD versions of many of the CLI utilities this script uses. Unfortunately these are often limited in their usage options. I would suggest installing the GNU versions through Homebrew (https://brew.sh), which the script should automatically detect as Homebrew prefixes them with "g". E.g.: `brew install gawk findutils gnu-sed grep coreutils`'
+    install_suggestion="$(machine_type)"' comes with the BSD versions of many of the CLI utilities this script uses. Unfortunately these are often limited in their usage options. I would suggest installing the GNU versions through Homebrew (https://brew.sh), which the script should automatically detect as Homebrew prefixes them with "g". E.g.: `brew install gawk findutils gnu-sed grep coreutils moreutils`'
   fi
   if [[ $(gnufind "--version") == *"GNU findutils"* ]]; then
     gnu_utils+=('find')
@@ -970,4 +970,8 @@ function title_from_html() {
   else
     echo "$title"
   fi
+}
+
+function exclude_empty_lines() {
+  grep -v "^$"
 }
