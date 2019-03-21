@@ -19,8 +19,6 @@ else
   clean_source_url="$(urlsafe_plus_profile_url "$source_url")"
 fi
 
-#TODO: Also resolve to numeric IDs and cache/archive those URLs too
-
 wbm_save_base_url="https://web.archive.org/save"
 wbm_save_url="$wbm_save_base_url/$clean_source_url?hl=en"
 if [ "$FORCED_GOOGLE_LOCALE" != "" ];then

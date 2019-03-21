@@ -7,6 +7,34 @@
 REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 USER_AGENT="${USER_AGENT:-PlexodusToolsBot/0.9.0}" #Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3724.8 Safari/537.36
 MAX_RETRIEVAL_RETRIES=${MAX_RETRIEVAL_RETRIES:-3}
+USER_ID_CUSTOM_TO_NUMERIC_MAP_DIRECTORY="${caller_path:-bin}/../data/gplus/custom_to_numeric_user_id_mappings"
+FG_BLACK=$(tput setaf 0)
+FG_RED=$(tput setaf 1)
+FG_GREEN=$(tput setaf 2)
+FG_YELLOW=$(tput setaf 3)
+FG_BLUE=$(tput setaf 4)
+FG_MAGENTA=$(tput setaf 5)
+FG_CYAN=$(tput setaf 6)
+FG_WHITE=$(tput setaf 7)
+
+BG_BLACK=$(tput setaf 0)
+BG_RED=$(tput setaf 1)
+BG_GREEN=$(tput setaf 2)
+BG_YELLOW=$(tput setaf 3)
+BG_BLUE=$(tput setaf 4)
+BG_MAGENTA=$(tput setaf 5)
+BG_CYAN=$(tput setaf 6)
+BG_WHITE=$(tput setaf 7)
+
+TP_BOLD="$(tput bold)"
+TP_DIM="$(tput dim)"
+TP_UON="$(tput smul)"
+TP_UOFF="$(tput rmul)"
+TP_INV="$(tput rev)"
+TP_REV="$TP_INV"
+TP_SOON="$(tput smso)"
+TP_SOOFF="$(tput rmso)"
+TP_RESET="$(tput sgr0)"
 
 #TODO: Implement LOG_LEVEL
 function debug() {
@@ -52,6 +80,45 @@ function urlsafe_plus_profile_url() {
     clean_source_url="${plus_url_custom_handle_base}${urlencoded_username}${url_path_suffix}"
   fi
   echo "$clean_source_url"
+}
+
+function custom_to_numeric_user_id_map_filepath() {
+  ensure_path "$(realpath "$USER_ID_CUSTOM_TO_NUMERIC_MAP_DIRECTORY")" "${1}.txt"
+}
+
+function get_numeric_user_id_for_custom_user_id() {
+  local user_id="$1"
+  local user_id_map_filepath="$(custom_to_numeric_user_id_map_filepath "$user_id")"
+  if [ -f "$user_id_map_filepath" ]; then
+    debug "Retrieved numeric user_id for '$user_id' from '$user_id_map_filepath'."
+    cat "$user_id_map_filepath"
+    return 0
+  fi
+
+  local archived_profile_page="$("$caller_path/archive_url.sh" "https://plus.google.com/+${user_id}")"
+  local exit_code="$?"
+  if (( $exit_code > 0 )); then
+    echo "Error while archiving G+ profile page for ${user_id}. Exited with error code $exit_code" 1>&2
+    return $exit_code
+  fi
+
+  if hash pup 2>/dev/null; then
+    debug "archived profile page: $archived_profile_page"
+    cat "$archived_profile_page" | pup 'link[itemprop] attr{href}' | gnused 's/^https:\/\/plus\.google\.com\///' | tee "$user_id_map_filepath"
+  else
+    cat "$archived_profile_page" | gnugrep -oP '<link itemprop="url" href="\K([^"]+)' | tee "$user_id_map_filepath"
+  fi
+}
+
+function set_user_id_array_from_gplus_url() {
+  declare -n ___="$1" # $1 = name of the target array variable
+  debug "Source url: $2"
+  user_ids['unparsed']="$(get_user_id "$2")" # $2 is the plus.google.com profile/post URL
+  if [ "${user_ids['unparsed']:0:1}" == "+" ]; then
+    user_ids['custom']="${user_ids['unparsed']:1}"
+  else
+    user_ids['numeric']="${user_ids['unparsed']}"
+  fi
 }
 
 function parse_template() {
@@ -563,6 +630,7 @@ function get_user_id() {
   fi
   user_id="${user_id/#https:\/\/plus.google.com\/u\/?\//}"
   user_id="${user_id/#https:\/\/plus.google.com\//}"
+  user_id="${user_id/%\/*/}"
   if [[ "$user_id" =~ $uid_regex ]]; then
     echo "$user_id"
     return
