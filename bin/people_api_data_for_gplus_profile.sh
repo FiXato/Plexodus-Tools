@@ -33,6 +33,7 @@ function handle_failure() {
   fi
 }
 
+# FIXME: # REFACTORME Replace this with the logic used in archive_gplus_url.sh
 # Get the numeric UserID from the profile page if the given $user_id is in the +CustomHandle format.
 if [ "${user_id:0:1}" == "+" ]; then
   user_id_custom_to_numeric_map_filepath="$(ensure_path "${caller_path}/../data/gplus/custom_to_numeric_user_id_mappings" "${user_id:1}.txt")"
