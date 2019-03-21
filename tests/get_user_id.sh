@@ -16,6 +16,7 @@ test_cases['https://plus.google.com/+PeggyKTC/posts/i2KiCNbMwC4']='+PeggyKTC'
 test_cases['https://plus.google.com/+PeggyKTC']='+PeggyKTC'
 test_cases['https://plus.google.com/112064652966583500522']='112064652966583500522'
 test_cases['https://plus.google.com/112064652966583500522/posts/jfnSz1YrxWS']='112064652966583500522'
+test_cases['https://plus.google.com/+NguyễnSỹBằng/posts/TUNMVAa6Sm6']='+NguyễnSỹBằng'
 nr_of_test_cases="${#test_cases[@]}"
 echo "${TP_BOLD}Found $nr_of_test_cases test cases that should succeed:${TP_RESET}"
 counter=0
