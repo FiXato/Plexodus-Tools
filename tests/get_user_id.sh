@@ -28,9 +28,9 @@ do
   exit_code="$?"
   if [ "$result" != "$target_uid" ]; then
     echo "Input '$input' does not match target UID '$target_uid'. Exited with $exit_code" 1>&2
-    echo_fail_msg "[$counter/$nr_of_test_cases] '$input' (\$?=$exit_code)"
+    echo_fail_msg "[$counter/$nr_of_test_cases] '$input' (\$?=$exit_code; \$result=$result)"
   else
-    echo_pass_msg "[$counter/$nr_of_test_cases] '$input' (\$?=$exit_code)"
+    echo_pass_msg "[$counter/$nr_of_test_cases] '$input' (\$?=$exit_code; \$result=$result)"
   fi
 done
 echo
