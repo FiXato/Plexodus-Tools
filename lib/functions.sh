@@ -918,6 +918,10 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
           # TODO: check for empty "items": or "error":
           return 0
         else
+          # FIXME: abstract this hardcoded log path:
+          status_log_path="$(ensure_path "logs/cache/$(timestamp_date)" "error.${status_code}.log")"
+          append_log_msg "$document_url" "$status_log_path"
+          
           echo -e "    crdf(): =!!= [$status_code] Error while retrieving remote document." 1>&2
 
           if [ "$status_code" -eq 403 ]; then # Forbidden. Possibly the result of Exceeded Quota Usage. Preferably don't retry immediately
