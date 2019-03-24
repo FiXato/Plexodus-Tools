@@ -41,4 +41,4 @@ jq -r '[.items[]|select(.visibility == "PUBLIC")]|map(.pollVoteAddedItem .postPe
 # echo "$output_post_urls_from_activitylog_plusones_on_posts"
 # echo "$output_post_urls_from_activitylog_poll_votes"
 
-sort -u $(find "$output_dir" -iname 'from_*.txt' -type f | xargs) | exclude_empty_lines > "$output_all_unique_public_post_urls"
+sort -u $(find "$output_dir" -iname 'from_*.txt' -type f | $xargs_cmd) | exclude_empty_lines > "$output_all_unique_public_post_urls"
