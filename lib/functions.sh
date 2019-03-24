@@ -39,7 +39,7 @@ TP_RESET="$(tput sgr0)"
 #TODO: Implement LOG_LEVEL
 function debug() {
   if [ "$DEBUG" == "1" -o "$DEBUG" == "true" -o "$DEBUG" == "TRUE" ]; then
-    echo -e "[$(basename "$0")] $@" 1>&2
+    echo -e "${FG_YELLOW}${TP_BOLD}[$(basename "$0")] $@${TP_RESET}" 1>&2
   fi
 }
 
