@@ -3,14 +3,6 @@
 caller_path="$(dirname "$(realpath "$0")")"
 source "$caller_path/../lib/functions.sh"
 
-function echo_fail_msg() {
-  echo -e "[❌ ${FG_RED}${TP_BOLD}FAIL${TP_RESET}] $@"
-}
-
-function echo_pass_msg() {
-  echo "[✅ ${FG_GREEN}${TP_BOLD}PASS${TP_RESET}] $@"
-}
-
 declare -A test_cases
 test_cases['https://plus.google.com/+PeggyKTC/posts/i2KiCNbMwC4']='+PeggyKTC'
 test_cases['https://plus.google.com/+PeggyKTC']='+PeggyKTC'

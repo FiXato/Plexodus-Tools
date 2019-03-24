@@ -51,6 +51,14 @@ function printarr() {
   done
 }
 
+function echo_fail_msg() {
+  echo -e "[❌ ${FG_RED}${TP_BOLD}FAIL${TP_RESET}] $@"
+}
+
+function echo_pass_msg() {
+  echo "[✅ ${FG_GREEN}${TP_BOLD}PASS${TP_RESET}] $@"
+}
+
 # https://stackoverflow.com/a/17841619 by @gniourf_gniourf and @nicholas-sushkin with edits from @lynn
 # function join_by() { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
 
