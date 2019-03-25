@@ -40,4 +40,30 @@ if [ ! -f "$PLEXODUS_ENV_PATH" ]; then
   touch "$PLEXODUS_ENV_PATH"
 fi
 
-. "$PLEXODUS_ENV_PATH"
+reload_env() {
+  . "$PLEXODUS_ENV_PATH"
+}
+
+reload_env
+
+append_to_env_file() {
+  echo "${1}=\${$1:-$2}" >> "$PLEXODUS_ENV_PATH"
+}
+replace_in_env_file() {
+  sed -Ee "s/${1}=.{1,}/${1}=${2}/" -i "" "$PLEXODUS_ENV_PATH"
+}
+update_env_file() {
+  variable="$1"
+  default="$2"
+    
+  if [ ! -f "$PLEXODUS_ENV_PATH" ]; then
+    append_to_env_file "$variable" "$default"
+  else
+    grep -q -- "^${variable}=" "$PLEXODUS_ENV_PATH"
+    if [ "$?" == "0" ]; then
+      replace_in_env_file "$variable" "$default"
+    else 
+      append_to_env_file "$variable" "$default"
+    fi
+  fi
+}

@@ -1,6 +1,12 @@
 #!/usr/bin/env sh
 # encoding: utf-8
 caller_path="$(dirname "$(realpath "$0")")"
+
+env_lib_filepath="$caller_path/../lib/env.sh"
+if [ -f "$env_lib_filepath" ]; then
+  . "$env_lib_filepath"
+fi
+
 formatting_filepath="$caller_path/../lib/formatting.sh"
 if [ -f "$formatting_filepath" ]; then
   . "$formatting_filepath"
@@ -30,6 +36,18 @@ setup() {
   fi
 }
 
+toggle_debug() {
+  if [ "$DEBUG" == "1" ]; then
+    update_env_file "DEBUG" "0"
+    printf "%s\n" "DEBUG disabled"
+  else
+    update_env_file "DEBUG" "1"
+    printf "%s\n" "DEBUG enabled"
+  fi
+  reload_env
+  printf "%s\n" "ENVironment file reloaded"  
+}
+
 save_screen() {
   tput smcup
 }
@@ -47,6 +65,7 @@ menu() {
       ${TP_BOLD}${BG_BLUE}${FG_WHITE}Please Select:${BG_FORMAT}
 
       1. Install required packages
+      2. $([ "$DEBUG" == "1" ] && echo "Disable" || echo "Enable") DEBUG
       Q. Quit
 
 _EOF_
@@ -61,6 +80,8 @@ _EOF_
     # Act on selection
     case $selection in
       1)  setup
+          ;;
+      2)  toggle_debug
           ;;
       q)  break
           ;;
