@@ -1,16 +1,16 @@
 #!/usr/bin/env sh
 # encoding: utf-8
-caller_path="$(dirname "$(realpath "$0")")"
-formatting_filepath="$caller_path/../lib/formatting.sh"
-if [ -f "$formatting_filepath" ]; then
-  source "$formatting_filepath"
-fi
-
 tput() {
   if hash tput 2>/dev/null; then
     tput "$@"
   fi
 }
+
+caller_path="$(dirname "$(realpath "$0")")"
+formatting_filepath="$caller_path/../lib/formatting.sh"
+if [ -f "$formatting_filepath" ]; then
+  source "$formatting_filepath"
+fi
 
 setup() {
   if hash pkg 2>/dev/null; then
@@ -22,39 +22,29 @@ setup() {
   fi
 }
 
-save_screen() {
-  tput smcup
-}
-
-restore_screen() {
-  tput rmcup
-}
-
 menu() {
   BG_FORMAT="${TP_RESET}${BG_BLUE}${FG_WHITE}"
-  while [ $REPLY != "0" ]; do
+  while true; do
     printf "%s" ${BG_FORMAT}""
     clear
     cat <<- _EOF_
       ${TP_BOLD}${BG_BLUE}${FG_WHITE}Please Select:${BG_FORMAT}
 
       1. Install required packages
-      0. Quit
+      Q. Quit
 
 _EOF_
 
-    read -p "Enter selection [0-1] > " selection
-    # Clear area beneath menu
-    tput cup 10 0
-    printf "%s" "${BG_BLACK}${FG_GREEN}"
-    tput ed
-    tput cup 11 0
+    read -p "Enter selection [1, Q] > " selection
+    printf "\n%s" "${BG_BLACK}${FG_GREEN}"
 
     # Act on selection
     case $selection in
       1)  setup
           ;;
-      0)  break
+      q)  break
+          ;;
+      Q)  break
           ;;
       *)  printf "%s" "Invalid entry." 1>&2
           ;;
@@ -64,11 +54,5 @@ _EOF_
   done
 }
 
-# Save screen
-save_screen
-
 # Display menu until selection == 0
 menu
-
-# Restore screen
-restore_screen
