@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # encoding: utf-8
+caller_path="$(dirname "$(realpath "$0")")"
+source "$caller_path/../lib/formatting.sh"
 
 #FIXME: Make sure all functions use *local* variables.
 
@@ -8,33 +10,7 @@ REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 USER_AGENT="${USER_AGENT:-PlexodusToolsBot/0.9.0}" #Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3724.8 Safari/537.36
 MAX_RETRIEVAL_RETRIES=${MAX_RETRIEVAL_RETRIES:-3}
 USER_ID_CUSTOM_TO_NUMERIC_MAP_DIRECTORY="${caller_path:-bin}/../data/gplus/custom_to_numeric_user_id_mappings"
-FG_BLACK=$(tput setaf 0)
-FG_RED=$(tput setaf 1)
-FG_GREEN=$(tput setaf 2)
-FG_YELLOW=$(tput setaf 3)
-FG_BLUE=$(tput setaf 4)
-FG_MAGENTA=$(tput setaf 5)
-FG_CYAN=$(tput setaf 6)
-FG_WHITE=$(tput setaf 7)
 
-BG_BLACK=$(tput setaf 0)
-BG_RED=$(tput setaf 1)
-BG_GREEN=$(tput setaf 2)
-BG_YELLOW=$(tput setaf 3)
-BG_BLUE=$(tput setaf 4)
-BG_MAGENTA=$(tput setaf 5)
-BG_CYAN=$(tput setaf 6)
-BG_WHITE=$(tput setaf 7)
-
-TP_BOLD="$(tput bold)"
-TP_DIM="$(tput dim)"
-TP_UON="$(tput smul)"
-TP_UOFF="$(tput rmul)"
-TP_INV="$(tput rev)"
-TP_REV="$TP_INV"
-TP_SOON="$(tput smso)"
-TP_SOOFF="$(tput rmso)"
-TP_RESET="$(tput sgr0)"
 
 #TODO: Implement LOG_LEVEL
 function debug() {
