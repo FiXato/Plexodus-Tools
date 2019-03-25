@@ -3,31 +3,31 @@ caller_path="$(dirname "$(realpath "$0")")"
 PLEXODUS_ENV_PATH=${PLEXODUS_ENV_PATH:-""}
 
 test_path="./plexodus-tools.env"
-ls "${test_path}" 2>1 > /dev/null
+ls "${test_path}" 2>&1 > /dev/null
 if [ "$PLEXODUS_ENV_PATH" != "" -a "$?" == 0 ]; then
   PLEXODUS_ENV_PATH="${test_path}"
 fi
 
 test_path="${caller_path}/../plexodus-tools.env"
-ls "${test_path}" 2>1 > /dev/null
+ls "${test_path}" 2>&1 > /dev/null
 if [ "$PLEXODUS_ENV_PATH" != "" -a "$?" == 0 ]; then
   PLEXODUS_ENV_PATH="${test_path}"
 fi
 
 test_path="~/.config"
-ls "${test_path}/" 2>1 > /dev/null
+ls "${test_path}/" 2>&1 > /dev/null
 if [ "$PLEXODUS_ENV_PATH" != "" -a "$?" == 0 ]; then
   PLEXODUS_ENV_PATH="${test_path}/plexodus-tools.env"
 fi
 
 test_path="~/.configs"
-ls "${test_path}/" 2>1 > /dev/null
+ls "${test_path}/" 2>&1 > /dev/null
 if [ "$PLEXODUS_ENV_PATH" != "" -a "$?" == 0 ]; then
   PLEXODUS_ENV_PATH="${test_path}/plexodus-tools.env"
 fi
 
 test_path="~/.plexodus-tools.env"
-ls "${test_path}" 2>1 > /dev/null
+ls "${test_path}" 2>&1 > /dev/null
 if [ "$PLEXODUS_ENV_PATH" != "" -a "$?" == 0 ]; then
   PLEXODUS_ENV_PATH="${test_path}"
 fi
