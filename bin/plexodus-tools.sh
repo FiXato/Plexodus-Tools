@@ -2,14 +2,9 @@
 # encoding: utf-8
 caller_path="$(dirname "$(realpath "$0")")"
 
-env_lib_filepath="$caller_path/../lib/env.sh"
-if [ -f "$env_lib_filepath" ]; then
-  . "$env_lib_filepath"
-fi
-
-formatting_filepath="$caller_path/../lib/formatting.sh"
-if [ -f "$formatting_filepath" ]; then
-  . "$formatting_filepath"
+functions_lib_filepath="$caller_path/../lib/functions.sh"
+if [ -f "$functions_lib_filepath" ]; then
+  . "$functions_lib_filepath"
 fi
 
 if ! hash tput 2>/dev/null; then
@@ -20,7 +15,8 @@ fi
 
 setup() {
   if hash pkg 2>/dev/null; then
-    pkg install gawk findutils sed grep coreutils attr bash git ncurses-utils curl p7zip
+    pkg install gawk findutils sed grep coreutils attr bash git ncurses-utils curl p7zip termux-tools
+    printf "%s\n" "Running termux-setup-storage, so you can access your Downloads directory from within Termux. This might request for storage permissions on Android 6 and newer." && termux-setup-storage
   elif hash brew 2>/dev/null; then
     brew install gawk findutils gnu-sed grep coreutils moreutils bash git curl p7zip
   elif hash apt-get 2>/dev/null; then
@@ -69,6 +65,9 @@ menu() {
       1. Install required packages
       2. Update Plexodus-Tools
       3. $([ "$DEBUG" == "1" ] && echo "Disable" || echo "Enable") DEBUG
+      4. Extract data files from takeout-*.zip into ./extracted/Takeout
+         It looks in the current directory, and ~/storage/downloads (which on Android is your Downloads folder).
+      5. Extract all relevant URLs from ./extracted/Takeout data files 
       Q. Quit
 
 _EOF_
@@ -87,6 +86,10 @@ _EOF_
       2)  git pull && printf "%s\n" "If new code was fetched, please exit and restart Plexodus-Tools to apply the updates."
           ;;
       3)  toggle_debug
+          ;;
+      4)  $(gnufind_string) {.,~/storage/downloads} -maxdepth 1 -iname 'takeout-*.zip' -exec 7z x "{}" '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -oextracted/ \; 2>/dev/null 
+          ;;
+      5) "${caller_path}/../bin/get_all_unique_urls_from_takeout.sh"
           ;;
       q)  break
           ;;
