@@ -87,7 +87,7 @@ _EOF_
           ;;
       3)  toggle_debug
           ;;
-      4)  $(gnufind_string) {.,~/storage/downloads} -maxdepth 1 -iname 'takeout-*.zip' -exec 7z x "{}" '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -oextracted/ \; 2>/dev/null 
+      4)  $(gnufind_string) {.,~/storage/downloads/} -maxdepth 1 -iname 'takeout-*.zip' -exec 7z x "{}" '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -oextracted/ \; 2>/dev/null 
           ;;
       5) "${caller_path}/../bin/get_all_unique_urls_from_takeout.sh"
           ;;
