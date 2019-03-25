@@ -32,14 +32,14 @@ restore_screen() {
 
 menu() {
   BG_FORMAT="${TP_RESET}${BG_BLUE}${FG_WHITE}"
-  while true; do
+  while [ "$REPLY"  != "Q" ]; do
     printf "%s" ${BG_FORMAT}""
     clear
     cat <<- _EOF_
       ${TP_BOLD}${BG_BLUE}${FG_WHITE}Please Select:${BG_FORMAT}
 
       1. Install required packages
-      0. Quit
+      Q. Quit
 
 _EOF_
 
@@ -61,8 +61,8 @@ _EOF_
       *)  printf "%s" "Invalid entry." 1>&2
           ;;
     esac
-    printf "\n\nPress any key to continue."
-    read -n 1
+    printf "\n"
+    read -p "Hit enter to continue." input
   done
 }
 
