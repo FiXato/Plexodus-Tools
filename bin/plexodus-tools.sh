@@ -8,7 +8,7 @@ fi
 
 if ! hash tput 2>/dev/null; then
   tput() {
-    print ""
+    printf ""
   }
 fi
 
