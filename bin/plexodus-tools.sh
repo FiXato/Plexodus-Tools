@@ -25,6 +25,8 @@ setup() {
     brew install gawk findutils gnu-sed grep coreutils moreutils bash git curl p7zip
   elif hash apt-get 2>/dev/null; then
     sudo apt-get install gawk findutils sed grep coreutils moreutils bash git python-xattr curl p7zip-full
+  else
+    printf "%s\n" "Unsupported package manager. Please install the following packages via your platform's package manager:\ngawk findutils sed grep coreutils moreutils bash git python-xattr curl p7zip-full" 1>&2
   fi
   
   if hash git 2>/dev/null; then
