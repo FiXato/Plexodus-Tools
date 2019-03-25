@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # encoding: utf-8
 caller_path="$(dirname "$(realpath "$0")")"
 

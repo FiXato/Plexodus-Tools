@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 caller_path="$(dirname "$(realpath "$0")")"
 PLEXODUS_ENV_PATH=${PLEXODUS_ENV_PATH:-""}
 
