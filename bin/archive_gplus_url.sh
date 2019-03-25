@@ -33,14 +33,20 @@ set_user_id_array_from_gplus_url user_ids "$source_url"
 
 if [ "${user_ids['custom']}" != "" -a "${user_ids['numeric']}" == "" ]; then
   user_ids['numeric']="$(get_numeric_user_id_for_custom_user_id "${user_ids['custom']}")"
-  # debug "unparsed: ${user_ids['unparsed']}"
-  # debug "custom: ${user_ids['custom']}"
-  # debug "numeric: ${user_ids['numeric']}"
-  base_url="https://plus.google.com"
-  pattern="${base_url}/${user_ids['unparsed']}"
-  replacement="${base_url}/${user_ids['numeric']}"
-  numeric_url="${source_url/#$pattern/$replacement}"
-  debug "Calling archiver with numeric URL: $numeric_url"
-  "$caller_path/archive_url.sh" ${ignore_errors}"$numeric_url"
+  if [ "${user_ids['numeric']}" == "" ]; then
+    echo "Failed retrieving numeric user id for ${user_ids['custom']}" 1>&2
+    failed_numeric_uid_for_custom_uid_logpath="$(ensure_path "logs/failed_numeric_uid_for_custom_uid" "$(timestamp_date).log")"
+    append_log_msg "${user_ids['custom']}" "$failed_numeric_uid_for_custom_uid_logpath"
+  else
+    # debug "unparsed: ${user_ids['unparsed']}"
+    # debug "custom: ${user_ids['custom']}"
+    # debug "numeric: ${user_ids['numeric']}"
+    base_url="https://plus.google.com"
+    pattern="${base_url}/${user_ids['unparsed']}"
+    replacement="${base_url}/${user_ids['numeric']}"
+    numeric_url="${source_url/#$pattern/$replacement}"
+    debug "Calling archiver with numeric URL: $numeric_url"
+    "$caller_path/archive_url.sh" ${ignore_errors}"$numeric_url"
+  fi
 fi
 
