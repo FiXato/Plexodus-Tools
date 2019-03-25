@@ -20,6 +20,14 @@ setup() {
   elif hash apt-get 2>/dev/null; then
     sudo apt-get install gawk findutils sed grep coreutils moreutils bash git python-xattr
   fi
+  
+  if hash git 2>/dev/null; then
+    git status > /dev/null
+    if [ "$?" != "0" ]; then
+      echo "Replacing this script with the full git repository"
+      git clone https://github.com/FiXato/Plexodus-Tools && rm plexodus-tools.sh && ln -s bin/plexodus-tools.sh ./
+    fi
+  fi
 }
 
 save_screen() {
