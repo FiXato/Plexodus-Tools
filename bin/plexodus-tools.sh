@@ -1,15 +1,15 @@
 #!/usr/bin/env sh
 # encoding: utf-8
-tput() {
-  if hash tput 2>/dev/null; then
-    tput "$@"
-  fi
-}
-
 caller_path="$(dirname "$(realpath "$0")")"
 formatting_filepath="$caller_path/../lib/formatting.sh"
 if [ -f "$formatting_filepath" ]; then
   . "$formatting_filepath"
+fi
+
+if ! hash tput 2>/dev/null; then
+  tput() {
+    print ""
+  }
 fi
 
 setup() {
@@ -22,6 +22,14 @@ setup() {
   fi
 }
 
+save_screen() {
+  tput smcup
+}
+
+restore_screen() {
+  tput rmcup
+}
+
 menu() {
   BG_FORMAT="${TP_RESET}${BG_BLUE}${FG_WHITE}"
   while true; do
@@ -31,12 +39,16 @@ menu() {
       ${TP_BOLD}${BG_BLUE}${FG_WHITE}Please Select:${BG_FORMAT}
 
       1. Install required packages
-      Q. Quit
+      0. Quit
 
 _EOF_
 
     read -p "Enter selection [1, Q] > " selection
-    printf "\n%s" "${BG_BLACK}${FG_GREEN}"
+    # Clear area beneath menu
+    tput cup 10 0
+    printf "%s" "${BG_BLACK}${FG_GREEN}"
+    tput ed
+    tput cup 11 0
 
     # Act on selection
     case $selection in
@@ -54,5 +66,11 @@ _EOF_
   done
 }
 
+# Save screen
+save_screen
+
 # Display menu until selection == 0
 menu
+
+# Restore screen
+restore_screen
