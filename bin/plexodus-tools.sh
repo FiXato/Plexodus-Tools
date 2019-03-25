@@ -14,7 +14,7 @@ fi
 
 setup() {
   if hash pkg 2>/dev/null; then
-    pkg install gawk findutils gnu-sed grep coreutils moreutils bash git
+    pkg install gawk findutils gnu-sed grep coreutils moreutils bash git ncurses-utils
   elif hash brew 2>/dev/null; then
     brew install gawk findutils gnu-sed grep coreutils moreutils bash git
   elif hash apt-get 2>/dev/null; then
