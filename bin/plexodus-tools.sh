@@ -25,7 +25,7 @@ setup() {
     git status > /dev/null
     if [ "$?" != "0" ]; then
       echo "Replacing this script with the full git repository"
-      git clone https://github.com/FiXato/Plexodus-Tools && rm plexodus-tools.sh && ln -s bin/plexodus-tools.sh ./
+      git clone https://github.com/FiXato/Plexodus-Tools && rm plexodus-tools.sh && cd Plexodus-Tools && ln -s bin/plexodus-tools.sh ./
     fi
   fi
 }
