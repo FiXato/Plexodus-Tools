@@ -2,6 +2,7 @@
 # encoding: utf-8
 caller_path="$(dirname "$(realpath "$0")")"
 source "$caller_path/../lib/formatting.sh"
+. "$caller_path/../lib/env.sh"
 
 #FIXME: Make sure all functions use *local* variables.
 
