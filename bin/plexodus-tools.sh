@@ -24,8 +24,8 @@ setup() {
   if hash git 2>/dev/null; then
     git status > /dev/null
     if [ "$?" != "0" ]; then
-      echo "Replacing this script with the full git repository"
-      git clone https://github.com/FiXato/Plexodus-Tools && rm plexodus-tools.sh && cd Plexodus-Tools && ln -s bin/plexodus-tools.sh ./
+      printf "%s\n" "Replacing this script with the full git repository"
+      git clone https://github.com/FiXato/Plexodus-Tools && rm plexodus-tools.sh && cd Plexodus-Tools && ln -s bin/plexodus-tools.sh ./ && printf "%s\n" 'Repository cloned. You can now `cd Plexodus-Tools && ./plexodus-tools.sh`' && exit && cd Plexodus-Tools && ./plexodus-tools.sh
     fi
   fi
 }
