@@ -12,6 +12,7 @@
 /tmp/
 data/
 archived*
+extracted/
 logs/
 tmp*
 **.tgz
