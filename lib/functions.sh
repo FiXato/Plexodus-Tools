@@ -898,7 +898,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
         fi
         count=$[$count+1]
 
-        debug "  =!= [Try #$count/$retries]: Storing '$document_url' to '$target_file_path'"
+        debug "  =!= [Try #$count/$retries]: Storing ${TP_UON}'$document_url'${TP_UOFF} to ${TP_UON}'$target_file_path'${TP_UOFF}"
         # TODO: add support for extracting more metadata such as returned charset and content-type, and storing it via setxattr
 
         if [[ $url == https://*.googleapis.com/* || $url == https://googleapis.com/* ]]; then
@@ -908,7 +908,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
             curl_headers+=("Authorization: Bearer $GOOGLE_OAUTH_ACCESS_TOKEN")
           fi
         fi
-        debug "curl Headers: '${curl_headers[@]/##/ }'"
+        debug "    curl Headers: '${curl_headers[@]/##/ }'"
         status_code="$(curl -A "$USER_AGENT" "${curl_headers[@]/#/-H}" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url")"; exit_code="$?"
         setxattr "status_code" "$status_code" "$target_file_path" 1>&2
         setxattr "tries" "$count/$retries" "$target_file_path" 1>&2
@@ -922,6 +922,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
         fi
       
         if [ "$status_code" -eq 200 ]; then
+          debug "    ${FG_GREEN}${TP_BOLD}✅  [${status_code}] Success ${TP_RESET}"
           echo "$target_file_path"
           # TODO: check for empty "items": or "error":
           return 0
@@ -933,7 +934,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
           echo -e "    crdf(): =!!= [$status_code] Error while retrieving remote document." 1>&2
 
           if [ "$status_code" -eq 403 ]; then # Forbidden. Possibly the result of Exceeded Quota Usage. Preferably don't retry immediately
-            echo -e "403 FORBIDDEN Error while retrieving '$document_url' -> '$target_file_path'.\nRequest returned:\n\n---\n$(cat "$target_file_path")\n---\n" 1>&2
+            echo -e "    ${FG_RED}${TP_BOLD}❌ [${status_code}] FORBIDDEN${TP_RESET} Error while retrieving '$document_url' -> '$target_file_path'.\nRequest returned:\n\n---\n$(cat "$target_file_path")\n---\n" 1>&2
             input=""
             if [ "$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION" == "" ];then
               read -p $'=!!!= (a)bort, (r)etry or (c)ontinue with next item? [a/r/C]\n' input < /dev/tty
@@ -962,12 +963,12 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
             fi
           elif [ "$status_code" -eq 204 -o "$status_code" -eq 404 ]; then # Known problematic HTTP Status codes that should be okay to retry automatically
             retrymsg="[$status_code]'$document_url' -> '$target_file_path' # FAIL with 'safe' HTTP Status Code [$count/$retries]"
-            debug "    crdf(): =!= $retrymsg"
+            debug "    ${FG_RED}${TP_BOLD}❌ [${status_code}] ${TP_RESET}    crdf(): =!= $retrymsg"
             append_log_msg "$retrymsg"
             continue
           else # The rest is probably also okay
             retrymsg="[$status_code]'$document_url' -> '$target_file_path' # FAIL with potentially 'non-safe' HTTP Status Code; retrying regardless [$count/$retries]"
-            debug "    crdf(): =!= $retrymsg"
+            debug "    ${FG_RED}${TP_BOLD}❌ [${status_code}] ${TP_RESET}    crdf(): =!= $retrymsg"
             append_log_msg "$retrymsg"
             continue
           fi

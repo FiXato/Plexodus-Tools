@@ -24,6 +24,7 @@ if [ $domain != 'plus.google.com' ]; then
   exit 255
 fi
 
+echo -e "\n" 1>&2
 debug "Calling archiver with source URL: $source_url"
 "$caller_path/archive_url.sh" ${ignore_errors}"${source_url}"
 
