@@ -1,9 +1,18 @@
 #!/usr/bin/env sh
 # encoding: utf-8
 caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/formatting.sh"
+formatting_filepath="$caller_path/../lib/formatting.sh"
+if [ -f "$formatting_filepath" ]; then
+  source "$formatting_filepath"
+fi
 
-function setup() {
+tput() {
+  if hash tput 2>/dev/null; then
+    tput "$@"
+  fi
+}
+
+setup() {
   if hash pkg 2>/dev/null; then
     pkg install gawk findutils gnu-sed grep coreutils moreutils bash git
   elif hash brew 2>/dev/null; then
@@ -13,17 +22,17 @@ function setup() {
   fi
 }
 
-function save_screen() {
+save_screen() {
   tput smcup
 }
 
-function restore_screen() {
+restore_screen() {
   tput rmcup
 }
 
-function menu() {
+menu() {
   BG_FORMAT="${TP_RESET}${BG_BLUE}${FG_WHITE}"
-  while [[ $REPLY != 0 ]]; do
+  while [ $REPLY != "0" ]; do
     printf "%s" ${BG_FORMAT}""
     clear
     cat <<- _EOF_
