@@ -9,6 +9,89 @@ With the shutdown originally being scheduled for August 2019, but following the 
 
 This repository will hopefully provide some of those tools.
 
+## Installation Instructions
+
+This section is divided into two parts: 
+
+1. platform-specific instructions to get the Plexodus-Tools toolset installed
+
+2. generic platform-independent instructions to set up Plexodus-Tools' dependencies and run its wrapper command.
+
+### 1. Platform-specific instructions
+
+Select your desired platform below, and follow its instructions:
+
+* [Android](#android-via-termux)
+* [macOS](#macos-via-homebrew)
+* [GNU Linux (Ubuntu)](#gnu-linux-ubuntu)
+
+#### Android via Termux
+
+While most versions of Android don't come with a terminal emulator, the Google Play Store does have an excellent app called Termux, which allows you to install and run various Linux applications.
+
+1. Get [Termux from the Play Store](https://play.google.com/store/apps/details?id=com.termux&hl=en)
+
+2. Open the Termux App
+
+3. Update Termux packages, by running on the command-line prompt: 
+
+  ```
+  pkg upgrade
+  ```
+
+4. Install git and bash, by running on the command-line prompt: 
+
+  ```
+  pkg install git bash
+  ```
+  
+5. You should now be able to continue with [2. Plexodus-Tools Installation Instructions](#2-plexodus-tools-installation-instructions)
+
+#### macOS via Homebrew
+
+1. Start your preferred Terminal emulator. While I personally prefer [iTerm2](https://www.iterm2.com/), macOS itself already comes with Terminal.app, which should work fine as well.
+
+2. Install Homebrew. Homebrew is the package manager used by Plexodus-Tools, and is one of the most popular CLI package managers for macOS used to install CLI tools and dependencies. On [Homebrew's homepage](https://brew.sh) you can find the preferred command to install Homebrew on macOS (`/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`), but you can also find more advanced installation instructions on [Homebrew's Installation page](https://docs.brew.sh/Installation)
+
+3. Update Bash and install Git: `brew install bash git`
+
+4. You should now be able to continue with [2. Plexodus-Tools Installation Instructions](#2-plexodus-tools-installation-instructions)
+
+
+#### GNU Linux (Ubuntu)
+
+These instructions are for Ubuntu, but should work for other versions of Linux as well, replacing apt-get with your preferred package manager.
+
+1. Install Bash and Git:
+
+```
+sudo apt-get install bash git
+```
+
+2. That's it. You should now be able to continue with [2. Plexodus-Tools Installation Instructions](#2-plexodus-tools-installation-instructions)
+
+
+### 2. Plexodus-Tools Installation instructions:
+
+On the command-line prompt, run:
+
+```bash
+  git clone https://github.com/FiXato/Plexodus-Tools && cd Plexodus-Tools
+```
+
+This will clone the source code into the Plexodus-Tools directory, and change the current working directory to this newly created directory.
+
+Next you can run the wrapper script:
+
+```bash
+  ./bin/plexodus-tools.sh
+```
+
+This should bring up a console-based menu. Press "1" followed by your enter key to set up the required dependencies for Plexodus-Tools.
+
+Once the `Setup` task has run, you should be able to run all the other scripts without issues. 
+
+
 ## Extract files from a Zip/Zip64 archive
 If your (Takeout) Zip-archive is greater than 2GB, and has to be extracted on a platform that doesn't support extracting zip64 files natively, I suggest you install [p7zip](http://p7zip.sourceforge.net/), a port of [7-Zip](https://www.7-zip.org/) for POSIX systems. On macOS the easiest would be to install it through [Homebrew](https://brew.sh) with `brew install p7zip`. Once (p)7-Zip has been installed, you can extract all files while retaining their directory structure with:
 ```bash
