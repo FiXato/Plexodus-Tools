@@ -891,13 +891,26 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
         setxattr "tries" "$count/$retries" "$target_file_path" 1>&2
 
         if (( $exit_code >= 1 )); then
+
           errormsg="[\$?=$exit_code]'$document_url' -> '$target_file_path' # curl exited with code $exit_code"
           debug "    =!= $errormsg"
+
+          if (( $exit_code == 23 )); then #CURL_WRITE_ERROR
+            printf "%s\n" "${TP_BOLD}${FG_RED}It looks like cURL could not write to the file. Are you perhaps running out of disk space / inodes?${TP_RESET}" 1>&2
+            df -h 1>&2
+            read -p $'# Please check the cause of the error and press enter to continue, or ctrl-c to abort' input < /dev/tty
+          fi
+
           append_log_msg "$errormsg" "$log_file"
+
+          # FIXME: abstract this hardcoded log path:
+          status_log_path="$(ensure_path "logs/cache/$(timestamp_date)" "exit_code.${exit_code}.error${status_code}.log")"
+          append_log_msg "'$document_url' -> '$target_file_path'" "$status_log_path"
+
           setxattr "exit_code" "$exit_code" "$target_file_path" 1>&2
           continue
         fi
-      
+
         if [ "$status_code" -eq 200 ]; then
           debug "    ${FG_GREEN}${TP_BOLD}✅  [${status_code}] Success ${TP_RESET}"
           echo "$target_file_path"

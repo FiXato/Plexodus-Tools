@@ -30,7 +30,7 @@ target_filepath="$(wbm_archive_filepath "$source_url")"
 filename="$(cache_remote_document_to_file "$wbm_save_url" "$target_filepath" "" "./logs/archive_url-errors-$domain.log")"
 exit_code="$?"
 if (( $exit_code >= 1 )); then
-  echo "=!= cache_remote_document_to_file('$wbm_save_url' '$target_filepath') exited with $exit_code and returned '$filename'" 1>&2
+  echo "${FG_RED}${TP_BOLD}=!= cache_remote_document_to_file('$wbm_save_url' '$target_filepath') exited with $exit_code and returned '$filename'${TO_RESET}" 1>&2
   setxattr "exit_code" "$exit_code" "$target_filepath"
   if [ "$ignore_errors" != true ]; then
     exit 255
