@@ -84,7 +84,7 @@ _EOF_
     case $selection in
       1)  setup
           ;;
-      2)  git pull
+      2)  git pull && printf "%s\n" "If new code was fetched, please exit and restart Plexodus-Tools to apply the updates."
           ;;
       3)  toggle_debug
           ;;
