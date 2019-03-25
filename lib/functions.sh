@@ -875,7 +875,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
         fi
         count=$[$count+1]
 
-        debug "  =!= [Try #$count/$retries]: Storing ${TP_UON}'$document_url'${TP_UOFF} to ${TP_UON}'$target_file_path'${TP_UOFF}"
+        debug "  =!= [Try #$count/$retries]: ⬇️  Storing ${TP_UON}'$document_url'${TP_UOFF} to ${TP_UON}'$target_file_path'${TP_UOFF}"
         # TODO: add support for extracting more metadata such as returned charset and content-type, and storing it via setxattr
 
         if [[ $url == https://*.googleapis.com/* || $url == https://googleapis.com/* ]]; then
