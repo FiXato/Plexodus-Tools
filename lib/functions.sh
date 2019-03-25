@@ -98,7 +98,7 @@ function get_numeric_user_id_for_custom_user_id() {
   local user_id="$1"
   local user_id_map_filepath="$(custom_to_numeric_user_id_map_filepath "$user_id")"
   if [ -f "$user_id_map_filepath" -a "$IGNORE_CACHE" != 'true' ]; then
-    debug "Retrieved numeric user_id for '$user_id' from '$user_id_map_filepath'."
+    debug "Retrieved numeric user_id for '$user_id' from '${user_id_map_filepath/#$PWD/.}'."
     cat "$user_id_map_filepath"
     return 0
   fi
