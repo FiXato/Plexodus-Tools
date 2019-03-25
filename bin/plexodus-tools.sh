@@ -20,11 +20,11 @@ fi
 
 setup() {
   if hash pkg 2>/dev/null; then
-    pkg install gawk findutils sed grep coreutils attr bash git ncurses-utils curl
+    pkg install gawk findutils sed grep coreutils attr bash git ncurses-utils curl p7zip
   elif hash brew 2>/dev/null; then
-    brew install gawk findutils gnu-sed grep coreutils moreutils bash git curl
+    brew install gawk findutils gnu-sed grep coreutils moreutils bash git curl p7zip
   elif hash apt-get 2>/dev/null; then
-    sudo apt-get install gawk findutils sed grep coreutils moreutils bash git python-xattr curl
+    sudo apt-get install gawk findutils sed grep coreutils moreutils bash git python-xattr curl p7zip-full
   fi
   
   if hash git 2>/dev/null; then
