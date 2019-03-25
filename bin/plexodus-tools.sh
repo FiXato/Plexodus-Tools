@@ -9,7 +9,7 @@ tput() {
 caller_path="$(dirname "$(realpath "$0")")"
 formatting_filepath="$caller_path/../lib/formatting.sh"
 if [ -f "$formatting_filepath" ]; then
-  source "$formatting_filepath"
+  . "$formatting_filepath"
 fi
 
 setup() {
