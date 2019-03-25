@@ -73,7 +73,7 @@ menu() {
 
 _EOF_
 
-    read -p "Enter selection [1, Q] > " selection
+    read -p "Enter selection [1-3, Q] > " selection
     # Clear area beneath menu
     tput cup 10 0
     printf "%s" "${BG_BLACK}${FG_GREEN}"
