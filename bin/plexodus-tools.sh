@@ -65,7 +65,8 @@ menu() {
       ${TP_BOLD}${BG_BLUE}${FG_WHITE}Please Select:${BG_FORMAT}
 
       1. Install required packages
-      2. $([ "$DEBUG" == "1" ] && echo "Disable" || echo "Enable") DEBUG
+      2. Update Plexodus-Tools
+      3. $([ "$DEBUG" == "1" ] && echo "Disable" || echo "Enable") DEBUG
       Q. Quit
 
 _EOF_
@@ -81,7 +82,9 @@ _EOF_
     case $selection in
       1)  setup
           ;;
-      2)  toggle_debug
+      2)  git pull
+          ;;
+      3)  toggle_debug
           ;;
       q)  break
           ;;
