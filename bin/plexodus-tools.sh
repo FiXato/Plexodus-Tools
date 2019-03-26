@@ -46,68 +46,139 @@ toggle_debug() {
   printf "%s\n" "ENVironment file reloaded"  
 }
 
-save_screen() {
-  tput smcup
+menu_items_ohash_name() {
+  printf "%s" "menu_items_${1}"
 }
 
-restore_screen() {
-  tput rmcup
+menu_items_formatted() {
+  printf_ohash "$(menu_items_ohash_name "$1")" "${FORMAT_MENU_ITEM_PREFIX}[%s] ${FORMAT_MENU_ITEM}%s${FORMAT_MENU_DEFAULT}\n"
+}
+
+menu_items_keys() {
+  printf_ohash_keys "$(menu_items_ohash_name "$1")"
+}
+
+menu_item_add() {
+  ohash_add "$(menu_items_ohash_name "$1")" "$2" "${3//$'\n'/$'\n    '}"
+}
+
+menu_items_clear() {
+  ohash_clear "$(menu_items_ohash_name "$1")"
+}
+
+menu_text_main()
+{
+  menu_items_clear 'main'
+  menu_item_add 'main' '1' 'Install required packages'
+  menu_item_add 'main' '2' 'Update Plexodus-Tools'
+  menu_item_add 'main' '3' $'Extract data files from takeout-*.zip into ./extracted/Takeout\nIt looks in the current directory, and ~/storage/downloads\n(which on Android is your Downloads folder).'
+  menu_item_add 'main' '4' "Extract all relevant URLs from $PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH data files"
+  menu_item_add 'main' 'S' 'Settings'
+  menu_item_add 'main' 'Q' 'Quit'
+}
+
+menu_text_settings()
+{
+  menu_items_clear 'settings'
+  menu_item_add 'settings' '1' "$([ "$DEBUG" == "1" ] && echo "Disable" || echo "Enable") DEBUG"
+  menu_item_add 'settings' 'Q' 'Return to main menu'
+}
+
+handle_settings_menu() {
+  declare -n _selection="$1"
+  local output=""
+  # Act on selection
+  case $_selection in
+    1)  output="$(toggle_debug)" && reload_env
+        ;;
+    q)  return 255
+        ;;
+    Q)  return 255
+        ;;
+    *)  output="${TP_BOLD}${FG_RED}Invalid entry.${FORMAT_MENU_DEFAULT}"
+        ;;
+  esac
+
+  printf "\n\n"
+  align_block "$output" display_center "${FORMAT_MENU_DEFAULT}%s\n"
+  printf "\n"
+  display_center "${TP_BOLD}Hit enter to continue.${FORMAT_MENU_DEFAULT}"
+  read input
+  printf "\n"
+  return 0
+}
+
+extract_data_from_takeout_archives() {
+  gnufind {.,~/storage/downloads/} -maxdepth 1 -iname 'takeout-*.zip' -exec 7z x "{}" '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -o${PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH}/ \; 2>/dev/null
+}
+
+handle_main_menu() {
+  declare -n _selection="$1"
+  local output=""
+  # Act on selection
+  case $_selection in
+    1)  output="$(setup)"
+        ;;
+    2)  output="$(git pull && printf "%s\n" "If new code was fetched, please exit and restart Plexodus-Tools to apply the updates.")"
+        ;;
+    4)  output="$(extract_data_from_takeout_archives)"
+        ;;
+    5) output="$("${caller_path}/../bin/get_all_unique_urls_from_takeout.sh")"
+        ;;
+    S) menu 'SETTINGS MENU' 'settings' && return 0
+        ;;
+    s) menu 'SETTINGS MENU' 'settings' && return 0
+        ;;
+    q)  return 255
+        ;;
+    Q)  return 255
+        ;;
+    *)  output="${TP_BOLD}${FG_RED}Invalid entry.${FORMAT_MENU_DEFAULT}"
+        ;;
+  esac
+
+  printf "\n\n"
+  align_block "$output" display_center "${FORMAT_MENU_DEFAULT}%s\n"
+  printf "\n"
+  display_center "${TP_BOLD}Hit enter to continue.${FORMAT_MENU_DEFAULT}"
+  read input
+  printf "\n"
+  return 0
 }
 
 menu() {
-  BG_FORMAT="${TP_RESET}${BG_BLUE}${FG_WHITE}"
   while [ "$REPLY"  != "Q" ]; do
-    printf "%s" ${BG_FORMAT}""
+    # Initialize menu
+    "menu_text_$2"
+
+    printf "%s" "${FORMAT_MENU_DEFAULT}"
     clear
-    cat <<- _EOF_
-      ${TP_BOLD}${BG_BLUE}${FG_WHITE}Please Select:${BG_FORMAT}
 
-      1. Install required packages
-      2. Update Plexodus-Tools
-      3. $([ "$DEBUG" == "1" ] && echo "Disable" || echo "Enable") DEBUG
-      4. Extract data files from takeout-*.zip into ./extracted/Takeout
-         It looks in the current directory, and ~/storage/downloads (which on Android is your Downloads folder).
-      5. Extract all relevant URLs from ./extracted/Takeout data files 
-      Q. Quit
+    display_center "${FORMAT_MENU_HEADER}${1}${FORMAT_MENU_DEFAULT}"
+    printf "\n\n"
 
-_EOF_
 
-    read -p "Enter selection [1-3, Q] > " selection
-    # Clear area beneath menu
-    tput cup 10 0
+    local menu_text="$(menu_items_formatted "$2")"
+    local prompt_title="Enter selection [$(menu_items_keys "$2")] > "
+    
+    align_block "$menu_text" display_center
+    printf "\n\n"
+
+    local menu_selections_prompt="$(display_center "${FORMAT_MENU_SELECTIONS_PROMPT}${prompt_title}${FORMAT_MENU_DEFAULT}")"
+    read -p "$menu_selections_prompt" selection
+    
     printf "%s" "${BG_BLACK}${FG_GREEN}"
-    tput ed
-    tput cup 11 0
 
-    # Act on selection
-    case $selection in
-      1)  setup
-          ;;
-      2)  git pull && printf "%s\n" "If new code was fetched, please exit and restart Plexodus-Tools to apply the updates."
-          ;;
-      3)  toggle_debug
-          ;;
-      4)  $(gnufind_string) {.,~/storage/downloads/} -maxdepth 1 -iname 'takeout-*.zip' -exec 7z x "{}" '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -oextracted/ \; 2>/dev/null 
-          ;;
-      5) "${caller_path}/../bin/get_all_unique_urls_from_takeout.sh"
-          ;;
-      q)  break
-          ;;
-      Q)  break
-          ;;
-      *)  printf "%s" "Invalid entry." 1>&2
-          ;;
-    esac
+    "handle_$2_menu" selection || break
+
     printf "\n"
-    read -p "Hit enter to continue." input
   done
 }
 
 # Save screen
 save_screen
 
-# Display menu until selection == 0
-menu
+menu "MAIN MENU" "main"
 
 # Restore screen
 restore_screen

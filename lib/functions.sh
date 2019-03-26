@@ -1046,3 +1046,54 @@ function title_from_html() {
 function exclude_empty_lines() {
   grep -v "^$"
 }
+
+ohash_name() {
+  printf "%s" "ohash_${1}"
+}
+
+ohash_order_name() {
+  printf "%s" "order_ohash_${1}"
+}
+
+printf_ohash() {
+  declare -n ohash="$(ohash_name "$1")"
+  declare -n ohash_order="$(ohash_order_name "$1")"
+  local format="${2:-'%s\n'}"
+
+  for key in "${ohash_order[@]}"
+  do
+    printf "$format" "$key" "${ohash["$key"]}"
+  done
+}
+
+printf_ohash_keys() {
+  declare -n ohash_order="$(ohash_order_name "$1")"
+  local format="${2:-"%s, "}"
+
+  for key in "${ohash_order[@]}"
+  do
+    printf "$format" "$key"
+  done
+}
+
+ohash_clear() {
+  local hash_name="$(ohash_name "$1")"
+  local hash_name_order="$(ohash_order_name "$1")"
+  declare -A new_hash
+  declare -a new_array
+  declare -gA "${hash_name}"
+  declare -ga "${hash_name_order}"
+  declare -n ohash="${hash_name}"
+  declare -n ohash_order="${hash_name_order}"
+  ohash_order=()
+  ohash="${new_hash[@]}"
+}
+ohash_add() {
+  local hash_name="$(ohash_name "$1")"
+  local hash_name_order="$(ohash_order_name "$1")"
+  declare -n ohash="${hash_name}"
+  declare -n ohash_order="${hash_name_order}"
+  
+  ohash_order+=("$2")
+  ohash["$2"]="$3"
+}

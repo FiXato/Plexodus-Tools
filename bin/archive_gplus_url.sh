@@ -50,3 +50,4 @@ if [ "${user_ids['custom']}" != "" -a "${user_ids['numeric']}" == "" ]; then
   fi
 fi
 
+sleep 1

@@ -13,6 +13,7 @@
 data/
 archived*
 extracted/
+extracted
 logs/
 tmp*
 **.tgz

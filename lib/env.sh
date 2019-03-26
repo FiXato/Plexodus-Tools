@@ -67,3 +67,7 @@ update_env_file() {
     fi
   fi
 }
+
+PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH="${PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH:-"./extracted"}"
+PLEXODUS_OUTPUT_DIR_ALL_FROM_TAKEOUT="${PLEXODUS_OUTPUT_DIR_ALL_FROM_TAKEOUT:-"./data/output/urls/all_from_takeout"}"
+
