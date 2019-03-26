@@ -146,9 +146,9 @@ handle_main_menu() {
         ;;
     2)  output="$(git pull && printf "%s\n" "If new code was fetched, please exit and restart Plexodus-Tools to apply the updates.")"
         ;;
-    4)  output="$(extract_data_from_takeout_archives)"
+    3)  output="$(extract_data_from_takeout_archives)"
         ;;
-    5) output="$("${caller_path}/../bin/get_all_unique_urls_from_takeout.sh")"
+    4) output="$("${caller_path}/../bin/get_all_unique_urls_from_takeout.sh")"
         ;;
     [sS]) menu 'SETTINGS MENU' 'settings' && return 0
         ;;
