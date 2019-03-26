@@ -55,7 +55,12 @@ set_extracted_takeout_path() {
     ls "${input}/"  > /dev/null 2>&1
     if (( $? > 0 )); then
       echo "${FG_RED}'$input' is not an accessible directory." 1>&2
-      return 255
+      read -p "Want to create it? [y/n]" response
+      if [ "$response" == 'y' -o "$response" == "Y" -o "$response" == "yes" ]; then
+        mkdir -p "$input"
+      else
+        return 255
+      fi
     fi
     update_env_file "PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH" "$input"
     unset PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH
@@ -109,13 +114,11 @@ handle_settings_menu() {
   local output=""
   # Act on selection
   case $_selection in
-    1)  output="$(toggle_debug)" && unset DEBUG && reload_env # unset, or else reloading will not just use the current setting
+    1)  output="$(toggle_debug)" && unset DEBUG && reload_env || read -p "Hit enter to continue" && return 0 # unset, or else reloading will not just use the current setting
         ;;
-    2)  output="$(set_extracted_takeout_path)" && unset PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH && reload_env
+    2)  output="$(set_extracted_takeout_path)" && unset PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH && reload_env || read -p "Hit enter to continue" && return 0
         ;;
-    q)  return 255
-        ;;
-    Q)  return 255
+    [qQ])  return 255
         ;;
     *)  output="${TP_BOLD}${FG_RED}Invalid entry.${FORMAT_MENU_DEFAULT}"
         ;;
@@ -147,13 +150,9 @@ handle_main_menu() {
         ;;
     5) output="$("${caller_path}/../bin/get_all_unique_urls_from_takeout.sh")"
         ;;
-    S) menu 'SETTINGS MENU' 'settings' && return 0
+    [sS]) menu 'SETTINGS MENU' 'settings' && return 0
         ;;
-    s) menu 'SETTINGS MENU' 'settings' && return 0
-        ;;
-    q)  return 255
-        ;;
-    Q)  return 255
+    [qQ])  return 255
         ;;
     *)  output="${TP_BOLD}${FG_RED}Invalid entry.${FORMAT_MENU_DEFAULT}"
         ;;
