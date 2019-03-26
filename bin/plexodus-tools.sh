@@ -37,13 +37,12 @@ setup() {
 toggle_debug() {
   if [ "$DEBUG" == "1" ]; then
     update_env_file "DEBUG" "0"
-    printf "%s\n" "DEBUG disabled"
   else
     update_env_file "DEBUG" "1"
-    printf "%s\n" "DEBUG enabled"
   fi
+  unset DEBUG # unset, or else the reload won't have any effect, as it won't use the new default.
   reload_env
-  printf "%s\n" "ENVironment file reloaded"  
+  printf "%s\n" "DEBUG $([ "$DEBUG" == "1" ] && echo "Enabled" || echo "Disabled") DEBUG"
 }
 
 menu_items_ohash_name() {
@@ -89,7 +88,7 @@ handle_settings_menu() {
   local output=""
   # Act on selection
   case $_selection in
-    1)  output="$(toggle_debug)" && reload_env
+    1)  output="$(toggle_debug)" && unset DEBUG && reload_env # unset, or else reloading will not just use the current setting
         ;;
     q)  return 255
         ;;

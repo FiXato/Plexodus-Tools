@@ -214,6 +214,14 @@ function gnused_string() {
   fi
 }
 
+function gnused_cmdstring() {
+  if hash gsed 2>/dev/null; then
+    printf "%s" 'gsed'
+  else
+    printf "%s" 'sed'
+  fi
+}
+
 function gnudate_string() {
   if hash gdate 2>/dev/null; then
     echo 'LC_ALL=en_GB gdate'
