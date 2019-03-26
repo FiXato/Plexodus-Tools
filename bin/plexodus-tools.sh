@@ -45,6 +45,26 @@ toggle_debug() {
   printf "%s\n" "DEBUG $([ "$DEBUG" == "1" ] && echo "Enabled" || echo "Disabled") DEBUG"
 }
 
+set_extracted_takeout_path() {
+  local input
+  read -e -p "Please enter the path to the parent directory of where the Takeout folder is/will be extracted: " input
+  if [ "$input" == "" ]; then
+    echo "${FG_RED}PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH cannot be empty" 1>&2
+    return 255
+  else
+    ls "${input}/"  > /dev/null 2>&1
+    if (( $? > 0 )); then
+      echo "${FG_RED}'$input' is not an accessible directory." 1>&2
+      return 255
+    fi
+    update_env_file "PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH" "$input"
+    unset PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH
+    reload_env
+  fi
+  printf "%s\n" "PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH is set to '$PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH'"
+  return 0
+}
+
 menu_items_ohash_name() {
   printf "%s" "menu_items_${1}"
 }
@@ -80,6 +100,7 @@ menu_text_settings()
 {
   menu_items_clear 'settings'
   menu_item_add 'settings' '1' "$([ "$DEBUG" == "1" ] && echo "Disable" || echo "Enable") DEBUG"
+  menu_item_add 'settings' '2' "Change PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH (current: $PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH)"
   menu_item_add 'settings' 'Q' 'Return to main menu'
 }
 
@@ -89,6 +110,8 @@ handle_settings_menu() {
   # Act on selection
   case $_selection in
     1)  output="$(toggle_debug)" && unset DEBUG && reload_env # unset, or else reloading will not just use the current setting
+        ;;
+    2)  output="$(set_extracted_takeout_path)" && unset PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH && reload_env
         ;;
     q)  return 255
         ;;
