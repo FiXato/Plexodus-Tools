@@ -146,7 +146,7 @@ handle_main_menu() {
         ;;
     2)  output="$(git pull && printf "%s\n" "If new code was fetched, please exit and restart Plexodus-Tools to apply the updates.")"
         ;;
-    3)  extract_data_from_takeout_archives | tee "$LAST_COMMAND_OUTPUT_LOGPATH" && output="$(cat "$LAST_COMMAND_OUTPUT_LOGPATH")" || read -p "Error while trying to extract takeout archive. Maybe none could be found?" && return 0
+    3)  extract_data_from_takeout_archives | tee "$LAST_COMMAND_OUTPUT_LOGPATH" && output="$(cat "$LAST_COMMAND_OUTPUT_LOGPATH")" || read -p "Error while trying to extract takeout archive. Maybe none could be found?" _ && return 0
         ;;
     4) output="$("${caller_path}/../bin/get_all_unique_urls_from_takeout.sh")"
         ;;
