@@ -15,12 +15,12 @@ fi
 
 setup() {
   if hash pkg 2>/dev/null; then
-    pkg install gawk findutils sed grep coreutils attr bash git ncurses-utils curl p7zip termux-tools
+    pkg install gawk findutils sed grep coreutils attr bash git ncurses-utils curl p7zip termux-tools jq
     printf "%s\n" "Running termux-setup-storage, so you can access your Downloads directory from within Termux. This might request for storage permissions on Android 6 and newer." && termux-setup-storage
   elif hash brew 2>/dev/null; then
-    brew install gawk findutils gnu-sed grep coreutils moreutils bash git curl p7zip
+    brew install gawk findutils gnu-sed grep coreutils moreutils bash git curl p7zip jq
   elif hash apt-get 2>/dev/null; then
-    sudo apt-get install gawk findutils sed grep coreutils moreutils bash git python-xattr curl p7zip-full
+    sudo apt-get install gawk findutils sed grep coreutils moreutils bash git python-xattr curl p7zip-full jq
   else
     printf "%s\n" "Unsupported package manager. Please install the following packages via your platform's package manager:\ngawk findutils sed grep coreutils moreutils bash git python-xattr curl p7zip-full" 1>&2
   fi
