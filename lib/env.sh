@@ -3,6 +3,7 @@ caller_path="$(dirname "$(realpath "$0")")"
 PLEXODUS_ENV_PATH=${PLEXODUS_ENV_PATH:-""}
 PLEXODUS_ENV_FILENAME="${PLEXODUS_ENV_FILENAME:-"plexodus-tools.env"}"
 
+# Maybe use find -name "$1" -maxdepth 0 for this instead?
 file_exists() {
   ls -- "$1" > /dev/null 2>&1
 }

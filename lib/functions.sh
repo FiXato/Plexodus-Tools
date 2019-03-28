@@ -1139,7 +1139,7 @@ add_directory_to_default_takeout_archives_list_file() {
     initialise_default_takeout_archives_list_file
   fi
 
-  find "$1/" > /dev/null 2>&1
+  find "$1/" -maxdepth 0 > /dev/null 2>&1
   if (( $? > 0 )); then
     error "Directory '$1' does not seem accessible."
     return 255
@@ -1161,7 +1161,7 @@ dirmask_from_list_file() {
 
   declare -a directories
   while IFS= read -r line || [ -n "$line" ]; do
-    find "$line/" > /dev/null 2>&1
+    find "$line/" -maxdepth 0 > /dev/null 2>&1
     if (( $? > 0 )); then
       error "Directory '$line' does not seem accessible; ignoring it"
     else
