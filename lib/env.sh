@@ -1,44 +1,37 @@
 #!/usr/bin/env bash
 caller_path="$(dirname "$(realpath "$0")")"
 PLEXODUS_ENV_PATH=${PLEXODUS_ENV_PATH:-""}
+PLEXODUS_ENV_FILENAME="${PLEXODUS_ENV_FILENAME:-"plexodus-tools.env"}"
 
-test_path="./plexodus-tools.env"
-ls "${test_path}" > /dev/null 2>&1
-if [ "$PLEXODUS_ENV_PATH" != "" -a "$?" == 0 ]; then
-  PLEXODUS_ENV_PATH="${test_path}"
-fi
+file_exists() {
+  ls "$1" > /dev/null 2>&1
+}
 
-test_path="${caller_path}/../plexodus-tools.env"
-ls "${test_path}" > /dev/null 2>&1
-if [ "$PLEXODUS_ENV_PATH" != "" -a "$?" == 0 ]; then
-  PLEXODUS_ENV_PATH="${test_path}"
-fi
+dir_exists() {
+  file_exists "$1/"
+}
 
-test_path="~/.config"
-ls "${test_path}/" > /dev/null 2>&1
-if [ "$PLEXODUS_ENV_PATH" != "" -a "$?" == 0 ]; then
-  PLEXODUS_ENV_PATH="${test_path}/plexodus-tools.env"
-fi
+test_path="./${PLEXODUS_ENV_FILENAME}"
+[ "$PLEXODUS_ENV_PATH" == "" ] && file_exists "$test_path" && PLEXODUS_ENV_PATH="${test_path}"
 
-test_path="~/.configs"
-ls "${test_path}/" > /dev/null 2>&1
-if [ "$PLEXODUS_ENV_PATH" != "" -a "$?" == 0 ]; then
-  PLEXODUS_ENV_PATH="${test_path}/plexodus-tools.env"
-fi
+test_path="${caller_path}/../${PLEXODUS_ENV_FILENAME}"
+[ "$PLEXODUS_ENV_PATH" == "" ] && file_exists "$test_path" && PLEXODUS_ENV_PATH="${test_path}"
 
-test_path="~/.plexodus-tools.env"
-ls "${test_path}" > /dev/null 2>&1
-if [ "$PLEXODUS_ENV_PATH" != "" -a "$?" == 0 ]; then
-  PLEXODUS_ENV_PATH="${test_path}"
-fi
+test_path="${HOME}/.config"
+[ "$PLEXODUS_ENV_PATH" == "" ] && dir_exists "$test_path" && PLEXODUS_ENV_PATH="${test_path}/${PLEXODUS_ENV_FILENAME}"
 
-if [ "$PLEXODUS_ENV_PATH" == "" ]; then
-  PLEXODUS_ENV_PATH="./plexodus-tools.env"
-fi
+test_path="${HOME}/.configs"
+[ "$PLEXODUS_ENV_PATH" == "" ] && dir_exists "$test_path" && PLEXODUS_ENV_PATH="${test_path}/${PLEXODUS_ENV_FILENAME}"
 
-if [ ! -f "$PLEXODUS_ENV_PATH" ]; then
-  touch "$PLEXODUS_ENV_PATH"
-fi
+test_path="${HOME}/.${PLEXODUS_ENV_FILENAME}"
+[ "$PLEXODUS_ENV_PATH" == "" ] && file_exists "$test_path" && PLEXODUS_ENV_PATH="${test_path}"
+
+test_path="${HOME}/${PLEXODUS_ENV_FILENAME}"
+[ "$PLEXODUS_ENV_PATH" == "" ] && file_exists "$test_path" && PLEXODUS_ENV_PATH="${test_path}"
+
+[ "$PLEXODUS_ENV_PATH" == "" ] && PLEXODUS_ENV_PATH="./${PLEXODUS_ENV_FILENAME}"
+
+[ ! -f "$PLEXODUS_ENV_PATH" ] && touch "$PLEXODUS_ENV_PATH"
 
 reload_env() {
   . "$PLEXODUS_ENV_PATH"
@@ -53,8 +46,8 @@ append_to_env_file() {
 }
 replace_in_env_file() {
   declare -n env_var="${1}"
-  env_var="$2"
-  $(gnused_cmdstring) -Ee "s/${1}=.{1,}/${1}=\${${1}:-$env_var}/" -i"" "$PLEXODUS_ENV_PATH"
+  env_var="${2}"
+  $(gnused_cmdstring) -Ee "s/${1}=.{1,}/${1}=\${${1}:-$(printf '%s' "$env_var" | $(gnused_cmdstring) -e 's/[\/&]/\\&/g')}/" -i"" "$PLEXODUS_ENV_PATH"
 }
 update_env_file() {
   local variable="$1"
