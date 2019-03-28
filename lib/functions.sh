@@ -20,6 +20,10 @@ function debug() {
   fi
 }
 
+function error() {
+  echo -e "${FG_RED}[$(basename "$0")] ${TP_BOLD}$@${TP_RESET}" 1>&2
+}
+
 # By @ilkkachu from https://unix.stackexchange.com/a/366655
 function printarr() {
   declare -n __p="$1"
@@ -1104,4 +1108,73 @@ ohash_add() {
   
   ohash_order+=("$2")
   ohash["$2"]="$3"
+}
+
+
+
+default_takeout_archives_dir_mask() {
+  if [ -f "$PLEXODUS_DEFAULT_TAKEOUT_ARCHIVES_SEARCH_DIRECTORIES_LIST_FILEPATH" ]; then
+    dirmask_from_list_file "$PLEXODUS_DEFAULT_TAKEOUT_ARCHIVES_SEARCH_DIRECTORIES_LIST_FILEPATH" || dirmask_from_array_reference "PLEXODUS_DEFAULT_TAKEOUT_ARCHIVES_SEARCH_DIRECTORIES"
+  else
+    dirmask_from_array_reference "PLEXODUS_DEFAULT_TAKEOUT_ARCHIVES_SEARCH_DIRECTORIES"
+  fi
+}
+
+dirmask_from_array_reference() {
+  declare -n __dirs="${1}"
+  printf "{%s}" "$(join_by ',' "${__dirs[@]}")"
+}
+
+initialise_default_takeout_archives_list_file() {
+  touch "$PLEXODUS_DEFAULT_TAKEOUT_ARCHIVES_SEARCH_DIRECTORIES_LIST_FILEPATH"
+  for dir in "${PLEXODUS_DEFAULT_TAKEOUT_ARCHIVES_SEARCH_DIRECTORIES[@]}"
+  do
+    add_directory_to_default_takeout_archives_list_file "$dir" "$PLEXODUS_DEFAULT_TAKEOUT_ARCHIVES_SEARCH_DIRECTORIES_LIST_FILEPATH" || continue
+  done
+}
+
+add_directory_to_default_takeout_archives_list_file() {
+  local dir
+  if [ ! -f "$PLEXODUS_DEFAULT_TAKEOUT_ARCHIVES_SEARCH_DIRECTORIES_LIST_FILEPATH" ];then
+    initialise_default_takeout_archives_list_file
+  fi
+
+  find "$1/" > /dev/null 2>&1
+  if (( $? > 0 )); then
+    error "Directory '$1' does not seem accessible."
+    return 255
+  else
+    unique_append "$1" "$PLEXODUS_DEFAULT_TAKEOUT_ARCHIVES_SEARCH_DIRECTORIES_LIST_FILEPATH"
+  fi
+  return 0
+}
+
+dirmask_from_list_file() {
+  local line
+  if [ "$1" == "" ]; then
+    error "You need to specify a file to read the list of directories from."
+    return 255
+  elif [ ! -f "$1" ]; then
+    error "The specified list to read the list of directories from, does not exist."
+    return 255
+  fi
+
+  declare -a directories
+  while IFS= read -r line || [ -n "$line" ]; do
+    find "$line/" > /dev/null 2>&1
+    if (( $? > 0 )); then
+      error "Directory '$line' does not seem accessible; ignoring it"
+    else
+      directories+=("$line")
+    fi
+  done < "$1"
+
+  dirmask_from_array_reference directories
+  return 0
+}
+
+extract_data_from_takeout_archives() {
+  local directory_mask="${1:-}"
+  local filemask=${2:-'takeout-*.zip'}
+  gnufind "$directory_mask" -maxdepth 1 -iname "$filemask" -exec 7z x "{}" '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -o${PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH}/ \; 2>/dev/null
 }

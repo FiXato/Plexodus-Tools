@@ -106,6 +106,7 @@ menu_text_settings()
   menu_items_clear 'settings'
   menu_item_add 'settings' '1' "$([ "$DEBUG" == "1" ] && echo "Disable" || echo "Enable") DEBUG"
   menu_item_add 'settings' '2' "Change PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH (current: $PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH)"
+  menu_item_add 'settings' '3' "Add directory to Takeout archives directories list: $(printf '\n') (current: $(default_takeout_archives_dir_mask))"
   menu_item_add 'settings' 'Q' 'Return to main menu'
 }
 
@@ -118,6 +119,8 @@ handle_settings_menu() {
         ;;
     2)  output="$(set_extracted_takeout_path)" && unset PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH && reload_env || read -p "Hit enter to continue" && return 0
         ;;
+    3)  output="$(read -ep "Which directory do you want to add to the Takeout archives directories list?" directory && add_directory_to_default_takeout_archives_list_file "$directory")" && read -p "Hit enter to continue" || read -p "Hit enter to continue" && return 0
+    ;;
     [qQ])  return 255
         ;;
     *)  output="${TP_BOLD}${FG_RED}Invalid entry.${FORMAT_MENU_DEFAULT}"
@@ -131,10 +134,6 @@ handle_settings_menu() {
   read input
   printf "\n"
   return 0
-}
-
-extract_data_from_takeout_archives() {
-  gnufind {.,~/storage/downloads/} -maxdepth 1 -iname 'takeout-*.zip' -exec 7z x "{}" '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -o${PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH}/ \; 2>/dev/null
 }
 
 handle_main_menu() {
