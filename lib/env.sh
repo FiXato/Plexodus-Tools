@@ -4,7 +4,7 @@ PLEXODUS_ENV_PATH=${PLEXODUS_ENV_PATH:-""}
 PLEXODUS_ENV_FILENAME="${PLEXODUS_ENV_FILENAME:-"plexodus-tools.env"}"
 
 file_exists() {
-  ls "$1" > /dev/null 2>&1
+  ls -- "$1" > /dev/null 2>&1
 }
 
 dir_exists() {

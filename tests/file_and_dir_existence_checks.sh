@@ -8,7 +8,7 @@ if [ "$TMPDIR" == "" ]; then
   exit 255
 else
   TMPDIR="$TMPDIR/tmp-pid-${$}"
-  mkdir "$TMPDIR" || exit 255
+  mkdir -- "$TMPDIR" || exit 255
 fi
 
 unset _PLEXODUS_TEST_ENV_VAR
@@ -132,4 +132,20 @@ fi
 rm -rf "$test_path"
 unset _PLEXODUS_TEST_ENV_VAR
 #cleanup:
-rm -r "$TMPDIR"
+
+cd "${TMPDIR}/"
+test_path="-existent-file-starting-with-hyphen"
+touch -- "$test_path"
+result="$(file_exists "$test_path")" && _PLEXODUS_TEST_ENV_VAR="${test_path}"
+exit_code="$?"
+test_msg="[11] File starting with hyphen ${TP_BOLD}Should be supported${TP_RESET}: '$test_path' (\$?=$exit_code; \$result=$result; \$_PLEXODUS_TEST_ENV_VAR=$_PLEXODUS_TEST_ENV_VAR)"
+if [ "$_PLEXODUS_TEST_ENV_VAR" == "$test_path" ]; then
+  echo_pass_msg "$test_msg"
+else
+  echo_fail_msg "$test_msg"
+fi
+rm -rf -- "$test_path"
+cd -
+unset _PLEXODUS_TEST_ENV_VAR
+#cleanup:
+rm -r -- "$TMPDIR"
