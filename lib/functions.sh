@@ -1178,3 +1178,16 @@ extract_data_from_takeout_archives() {
   local filemask=${2:-'takeout-*.zip'}
   gnufind "$directory_mask" -maxdepth 1 -iname "$filemask" -exec 7z x "{}" '*.json' '*.html' '*.csv' '*.vcf' '*.ics' -r -o${PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH}/ \; 2>/dev/null
 }
+
+dir_exists_or_is_created() {
+  local response
+  if ! dir_exists "$1"; then
+    echo "${FG_RED}'$1' is not an accessible directory." 1>&2
+    read -p "Want to create it? [y/n]" response
+    if [ "$response" == 'y' -o "$response" == "Y" -o "$response" == "yes" ]; then
+      mkdir -p "$1"
+    else
+      return 255
+    fi
+  fi
+}

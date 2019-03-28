@@ -52,15 +52,7 @@ set_extracted_takeout_path() {
     echo "${FG_RED}PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH cannot be empty" 1>&2
     return 255
   else
-    if ! dir_exists "$input"; then
-      echo "${FG_RED}'$input' is not an accessible directory." 1>&2
-      read -p "Want to create it? [y/n]" response
-      if [ "$response" == 'y' -o "$response" == "Y" -o "$response" == "yes" ]; then
-        mkdir -p "$input"
-      else
-        return 255
-      fi
-    fi
+    dir_exists_or_is_created "$input" || return 255
     update_env_file "PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH" "$input"
     unset PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH
     reload_env
