@@ -19,6 +19,7 @@ tmp*
 **.tgz
 **.zip
 **.env
+.plexodus-takeout-search-dirs.txt
 
 # Used by dotenv library to load environment variables.
 # .env
