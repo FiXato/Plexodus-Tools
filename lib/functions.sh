@@ -1191,3 +1191,31 @@ dir_exists_or_is_created() {
     fi
   fi
 }
+
+non_existing_filename() {
+  local directory_path="$1"
+  local source_filename="$2"
+  local filename="$source_filename"
+  local max_tries="${3:-3}"
+  local count=0
+  debug "'${directory_path}/${source_filename}'"
+
+  if ! dir_exists "$directory_path"; then
+    local exit_code="$?"
+    error "non_existing_filename(): directory '$directory_path' does not exist"
+    return $exit_code
+  fi
+
+  while [ -f "${directory_path}/${filename}" ]; do
+    count=$[$count+1]
+    if [ $count -gt $max_tries ]; then
+      error "non_existing_filename(): exceeded maximum number of attempts ($count) to find a unique, non-existing filename."
+      return $count
+    fi
+    local filename="${source_filename}.${count}"
+    debug "count: $count/$max_tries; filename: $filename"
+  done
+  debug "$count"
+  printf '%s' "$filename"
+  return 0
+}
