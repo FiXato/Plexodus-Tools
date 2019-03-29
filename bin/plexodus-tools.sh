@@ -87,7 +87,7 @@ menu_text_main()
   menu_item_add 'main' '1' 'Install required packages'
   menu_item_add 'main' '2' 'Update Plexodus-Tools'
   menu_item_add 'main' '3' "Extract data files from takeout-*.zip into $PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH/Takeout/"$'\n'"It looks in the directories $(default_takeout_archives_dir_mask)$(uname -a | gnugrep -q 'Android\S{0,}$' && printf '\n%s' $'On Termux for Android, ~/storage/downloads is where Android stores the Downloads.')"
-  menu_item_add 'main' '4' "Extract all relevant URLs from $PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH data files"
+  menu_item_add 'main' '4' "Extract all relevant URLs from $PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH data files to $PLEXODUS_OUTPUT_DIR_ALL_FROM_TAKEOUT"
   menu_item_add 'main' 'S' 'Settings'
   menu_item_add 'main' 'Q' 'Quit'
 }
