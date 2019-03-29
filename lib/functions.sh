@@ -333,7 +333,7 @@ function xattr_metadata_get_key() {
     return 255
   fi
 
-  gnuawk -v key="^$1$" 'BEGIN { FS="\31"; RS="\0"; exit_code=1} $1 ~ key { print "\""$1"\": "$2; exit_code=0 }; END { exit exit_code }' "$2"
+  gnuawk -v key="^$1$" 'BEGIN { FS="\31"; RS="\0"; exit_code=1} $1 ~ key { print $2; exit_code=0 }; END { exit exit_code }' "$2"
 }
 
 function xattr_metadata_test_key() {
@@ -472,6 +472,17 @@ function sanitise_filename() {
   gnused "$additional_rules"$'s/[^-a-zA-Z0-9_.]/-/g'
 }
 
+function lesser_sanitise_filename() {
+  # debug "sanitising filename $@"
+  rules=$''
+  rules+=$'s/\+/ /g;'
+  rules+=$'s/\s/_/g;'
+  rules+=$'s/\\u00/%/g;'
+  rules+=$'s/\$/%2A/g;'
+  rules+=$'s/[*\\/:"><|]/-/g'
+  gnused "$rules"
+}
+
 function add_file_extension() {
   # debug "adding file extension: $@"
   extension="$1"
@@ -505,7 +516,7 @@ function ensure_path() {
     echo "ensure_path called with an undefined filename \$2" 1>&2
     exit 255
   else
-    mkdir -p "$1"
+    mkdir -p -- "$1"
     echo "$1/$2"
   fi
 }
@@ -1198,7 +1209,7 @@ non_existing_filename() {
   local filename="$source_filename"
   local max_tries="${3:-3}"
   local count=0
-  debug "'${directory_path}/${source_filename}'"
+  debug "non_existing_filename() '${directory_path}/${source_filename}'"
 
   if ! dir_exists "$directory_path"; then
     local exit_code="$?"
@@ -1215,7 +1226,6 @@ non_existing_filename() {
     local filename="${source_filename}.${count}"
     debug "count: $count/$max_tries; filename: $filename"
   done
-  debug "$count"
   printf '%s' "$filename"
   return 0
 }
