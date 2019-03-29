@@ -1229,3 +1229,7 @@ non_existing_filename() {
   printf '%s' "$filename"
   return 0
 }
+
+unique_characters_in_document() {
+  $(hash god 2>/dev/null && printf '%s' "god" || printf '%s' "od" ) -cvAnone -w1 | sort -bu
+}
