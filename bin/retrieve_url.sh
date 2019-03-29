@@ -63,7 +63,6 @@ log_download(){
 local_path_for_downloaded_url() {
   xattr_metadata_get_key "$1" "$2"
   exit_code="$?"
-  debug "local_path_for_downloaded_url(): \$?=$exit_code"
   exit $exit_code
   # gnuawk -v key="^$1$" 'BEGIN { FS="\31"; RS="\n\0"; exit_code=1} $1 ~ key { print "\""$1"\": "$2; exit_code=0 }; END { exit exit_code }' "$2"
 }
@@ -71,7 +70,7 @@ local_path_for_downloaded_url() {
 if [ -f "$domain_cache_metadata_downloads_log_path" ]; then
   local_path="$(local_path_for_downloaded_url "$source_url" "$domain_cache_metadata_downloads_log_path")"
   exit_code="$?"
-  debug "\$local_path='$local_path'"
+  debug "local_path_for_downloaded_url(): \$?=$exit_code; \$local_path='$local_path'"
   if (( $exit_code == 0 )); then
   #TODO: allow for  "$IGNORE_CACHE" == 'true'
     debug "📁  URL '${source_url}' has already been downloaded: $local_path"
