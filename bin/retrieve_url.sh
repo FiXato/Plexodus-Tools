@@ -70,7 +70,7 @@ local_path_for_downloaded_url() {
 if [ -f "$domain_cache_metadata_downloads_log_path" ]; then
   local_path="$(local_path_for_downloaded_url "$source_url" "$domain_cache_metadata_downloads_log_path")"
   exit_code="$?"
-  debug "local_path_for_downloaded_url(): \$?=$exit_code; \$local_path='$local_path'"
+  [ "$local_path" != "" ] && debug "local_path_for_downloaded_url(): \$?=$exit_code; \$local_path='$local_path'"
   if (( $exit_code == 0 )); then
   #TODO: allow for  "$IGNORE_CACHE" == 'true'
     debug "📁  URL '${source_url}' has already been downloaded: $local_path"
@@ -141,4 +141,8 @@ while [ $count -lt $retries ]; do
   printf "%s\n" "$curl_output_filepath"
   exit 0
 done
-exit "${exit_code:-255}"
+if [ "$ignore_errors" == 'true' ]; then
+  exit 0
+else
+  exit "${exit_code:-255}"
+fi
