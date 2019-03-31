@@ -242,6 +242,14 @@ function gnugrep_string() {
   fi
 }
 
+function gnugrep_cmdstring() {
+  if hash ggrep 2>/dev/null; then
+    printf "%s" 'ggrep'
+  else
+    printf "%s" 'grep'
+  fi
+}
+
 function gnufind_string() {
   if hash gfind 2>/dev/null; then
     echo 'gfind'
