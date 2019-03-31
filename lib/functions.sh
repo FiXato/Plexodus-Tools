@@ -535,8 +535,8 @@ function ensure_blogger_api() {
 }
 
 function ensure_gplus_api() {
-  if [ "$GPLUS_APIKEY" == "" -a "$GOOGLE_OAUTH_ACCESS_TOKEN" == "" ]; then
-    echo "This command requires access to the Google+ API via an API key, but ENVironment variable GPLUS_APIKEY is not set. Please set it to your Google Plus API key." 1>&2
+  if [ "$GPLUS_APIKEY" == "" -a "$GOOGLE_OAUTH_ACCESS_TOKEN" == "" -a "$GOOGLE_OAUTH_ACCESS_TOKEN_FILE" == "" ]; then
+    echo "This command requires access to the Google+ API via an API key, or OAuth2 token, but ENVironment variables GPLUS_APIKEY, GOOGLE_OAUTH_ACCESS_TOKEN, or GOOGLE_OAUTH_ACCESS_TOKEN_FILE are not set." 1>&2
     exit 255
   fi
 }
