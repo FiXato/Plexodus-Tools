@@ -8,7 +8,7 @@ source "$caller_path/../lib/functions.sh"
 ensure_gplus_api||exit 255
 #ensure_gnutools||exit 255
 LOG_DIR="./logs"
-FAILED_FILES_LOGFILE="failed-profile-retrievals.txt"
+FAILED_FILES_LOGFILE="failed-profile-retrievals-$(timestamp_date).txt"
 
 usage="Usage: $0 \$profile [--delete-target]\nThe optional --delete-target flag will delete the JSON output file for the given Profile if an error occurs; without it, it will log the filepath to '$LOG_DIR/$FAILED_FILES_LOGFILE' and leave the JSON output file intact instead.\n\$profile can be a numeric profile ID, a +PrefixedCustomURLName, or full plus.google.com profile URL."
 
@@ -26,10 +26,10 @@ fi
 
 function handle_failure() {
   echo "'$profile_api_url' -> '$json_output_file'" >> $(ensure_path "$LOG_DIR" "$FAILED_FILES_LOGFILE")
-  debug "handle_failure(): \$1: '$1'"
-  if [ -n "$1" -a "$1" == '--delete-target' ]; then
-    debug "removing output file"
-    rm "$json_output_file"
+  # debug "handle_failure(): \$1: '$1'"
+  if [ "$1" == '--delete-target' ]; then
+    # debug "removing output file"
+    [ -f "$json_output_file" ] && rm "$json_output_file"
   fi
 }
 
@@ -40,12 +40,17 @@ if [ "${user_id:0:1}" == "+" ]; then
   if [ -f "$user_id_custom_to_numeric_map_filepath" ]; then
     numeric_user_id="$(cat "$user_id_custom_to_numeric_map_filepath")"
     debug "Retrieved numeric user_id '$numeric_user_id' for '$user_id' from '$user_id_custom_to_numeric_map_filepath'."
-  else
+    [ "$numeric_user_id" == "" ] && error "\$numeric_user_id for ''$user_id' is empty! \$1='$1'"
+  fi
+  if [ "$numeric_user_id" == "" ]; then
     archived_profile_page="$("$caller_path/archive_url.sh" "https://plus.google.com/${user_id}")"
     exit_code="$?"
     if (( $exit_code > 0 )); then
-      echo "Error while archiving G+ profile page for ${user_id}. Exited with error code $exit_code" 1>&2
-      exit $exit_code
+      error "Error while archiving G+ profile page for ${user_id}. Exited with error code $exit_code"
+      # [ -f "$archived_profile_page" -a "$2" == '--delete-target' ] && rm "$archived_profile_page"
+      [ "$IGNORE_ERRORS" != 'true' ] && exit $exit_code
+      # debug "\$IGNORE_ERRORS=$IGNORE_ERRORS"
+      exit 0
     fi
     
     if hash pup 2>/dev/null; then
@@ -59,11 +64,18 @@ else
   numeric_user_id="$user_id"
 fi
 
+if [ "$numeric_user_id" == "" ]; then
+  error "\$numeric_user_id for '$user_id' is empty! \$1='$1'"
+  [ "$IGNORE_ERRORS" != 'true' ] && exit 255
+  exit 0
+fi
+
 json_output_file="$(user_profile_file "$numeric_user_id" "day")" || exit 255
 profile_api_url="$(api_url "gplus" "people" "get" "$numeric_user_id")" || exit 255
 
 #filename=$(cache_remote_document_to_file "$profile_api_url" "$json_output_file") && cat "$filename" || handle_failure
-filename=$(cache_remote_document_to_file "$profile_api_url" "$json_output_file")
+# debug "${FG_MAGENTA}IGNORE_ERRORS=$IGNORE_ERRORS"
+filename="$(cache_remote_document_to_file "$profile_api_url" "$json_output_file")"
 if (( $? >= 1 )); then
   # FIXME: find out why I can't exit with an error code, as it seems to make xargs running in parallel mode stop working when it encounters an error on one of its processes.
   handle_failure "$2" # && exit 255

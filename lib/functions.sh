@@ -21,7 +21,7 @@ function debug() {
 }
 
 function error() {
-  echo -e "${FG_RED}[$(basename "$0")] ${TP_BOLD}$@${TP_RESET}" 1>&2
+  echo -e "${FG_RED}!E! [$(basename "$0")] ${TP_BOLD}$@${TP_RESET}" 1>&2
 }
 
 # By @ilkkachu from https://unix.stackexchange.com/a/366655
@@ -535,7 +535,7 @@ function ensure_blogger_api() {
 }
 
 function ensure_gplus_api() {
-  if [ -z "$GPLUS_APIKEY" -o "$GPLUS_APIKEY" == "" ]; then
+  if [ "$GPLUS_APIKEY" == "" -a "$GOOGLE_OAUTH_ACCESS_TOKEN" == "" ]; then
     echo "This command requires access to the Google+ API via an API key, but ENVironment variable GPLUS_APIKEY is not set. Please set it to your Google Plus API key." 1>&2
     exit 255
   fi
@@ -900,15 +900,26 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
 
         debug "  =!= [Try #$count/$retries]: ⬇️  Storing ${TP_UON}'$document_url'${TP_UOFF} to ${TP_UON}'$target_file_path'${TP_UOFF}"
         # TODO: add support for extracting more metadata such as returned charset and content-type, and storing it via setxattr
-
-        if [[ $url == https://*.googleapis.com/* || $url == https://googleapis.com/* ]]; then
+        if [[ $document_url == https://*.googleapis.com/* || $document_url == https://googleapis.com/* ]]; then
+          if [ "$GOOGLE_OAUTH_ACCESS_TOKEN_FILE" != "" ]; then
+            export GOOGLE_OAUTH_ACCESS_TOKEN="$(cat "$GOOGLE_OAUTH_ACCESS_TOKEN_FILE")"
+          fi
           if [ "$GOOGLE_OAUTH_ACCESS_TOKEN" != "" ]; then
+            if hash oauth2l 2>/dev/null; then
+              #debug "${FG_MAGENTA}Testing ACCESS Token${FG_YELLOW}"
+              oauth2l_response="$(oauth2l test "$GOOGLE_OAUTH_ACCESS_TOKEN")"
+              if (( $? > 0 || "$oauth2l_response" > 0 )); then
+                read -p "oauth2l test says Google Oauth2 token is invalid. Please enter new token:" new_token < /dev/tty
+                export GOOGLE_OAUTH_ACCESS_TOKEN="$new_token"
+              fi
+            fi
             document_url="$(printf '%s' "$document_url" | gnused 's/\?key=[^=&?]+&/?/;s/\?key=[^=&?]+//;s/&key=[^=&?]+//')"
-            debug "Google OAuth2 Access Token set, so removed key parameter from document_url: '${document_url}'"
+            #debug "Google OAuth2 Access Token set, so removed key parameter from document_url: '${document_url}'"
             curl_headers+=("Authorization: Bearer $GOOGLE_OAUTH_ACCESS_TOKEN")
           fi
         fi
-        debug "    curl Headers: '${curl_headers[@]/##/ }'"
+        debug "    curl Headers: '${curl_headers[@]/##/-H }'"
+        debug "curl -A "$USER_AGENT" "${curl_headers[@]/#/-H}" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url""
         status_code="$(curl -A "$USER_AGENT" "${curl_headers[@]/#/-H}" --write-out %{http_code} --silent ${curl_args}--output "$target_file_path" "$document_url")"; exit_code="$?"
         setxattr "status_code" "$status_code" "$target_file_path" 1>&2
         setxattr "tries" "$count/$retries" "$target_file_path" 1>&2
@@ -944,10 +955,10 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
           status_log_path="$(ensure_path "logs/cache/$(timestamp_date)" "error.${status_code}.log")"
           append_log_msg "$document_url" "$status_log_path"
           
-          echo -e "    crdf(): =!!= [$status_code] Error while retrieving remote document." 1>&2
+          error "    crdf(): =!!= [$status_code] Error while retrieving remote document."
 
           if [ "$status_code" -eq 403 ]; then # Forbidden. Possibly the result of Exceeded Quota Usage. Preferably don't retry immediately
-            echo -e "    ${FG_RED}${TP_BOLD}❌ [${status_code}] FORBIDDEN${TP_RESET} Error while retrieving '$document_url' -> '$target_file_path'.\nRequest returned:\n\n---\n$(cat "$target_file_path")\n---\n" 1>&2
+            error "    ${FG_RED}${TP_BOLD}❌ [${status_code}] FORBIDDEN${TP_RESET} Error while retrieving '$document_url' -> '$target_file_path'.\nRequest returned:\n\n---\n$(cat "$target_file_path")\n---\n"
             input=""
             if [ "$MAX_RETRIEVAL_RETRIES_EXCEEDED_ACTION" == "" ];then
               read -p $'=!!!= (a)bort, (r)etry or (c)ontinue with next item? [a/r/C]\n' input < /dev/tty
@@ -993,7 +1004,7 @@ function cache_remote_document_to_file() { # $1=url, $2=local_file, $3=curl_args
       echo "$target_file_path"
     fi
   else
-    echo -e "cache_external_document_to_file(): unsupported protocol for \$document_url ('$document_url'); only http(s) and ftp(s) are currently supported.\n$function_usage" 1>&2 && return 255
+    error "cache_external_document_to_file(): unsupported protocol for \$document_url ('$document_url'); only http(s) and ftp(s) are currently supported.\n$function_usage" && return 255
   fi
 }
 
