@@ -133,10 +133,10 @@ with open(fname) as f:
     try:
       with open(saved_pages_json_path, "w") as of:
         of.write(json.dumps(pages))
+    except Exception as x:
+      print("Exception while dumping pages JSON: ", x)
     print("Dumped pages JSON to: " + saved_pages_json_path)
     pages.append(page)
     time.sleep(0.5)
     print("\n")
-  except Exception as x:
-    print("Exception while dumping pages JSON: ", x)
 
