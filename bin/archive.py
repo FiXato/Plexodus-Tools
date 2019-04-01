@@ -140,7 +140,7 @@ with open(fname) as f:
         print("Scrolling to %s" % scroll_y)
         browser.execute_script("window.scrollTo(0, %s);" % scroll_y)
         print("Resized browser to %sx%s" % (dimensions['width'], height))
-        screenshot_filepath = os.path.join(screenshots_dir, 'BATCH1-%s-%s-%sx%s' % (filename, counter, dimensions['width'], height))
+        screenshot_filepath = os.path.join(screenshots_dir, '%s-%s-%sx%s' % (filename, counter, dimensions['width'], height))
         print("Trying to save screenshot to: '%s.png'" % screenshot_filepath)
         screenshot_filepath=browser.screenshot(name=screenshot_filepath, suffix='.png')
         page["screenshot_paths"].append(screenshot_filepath)
