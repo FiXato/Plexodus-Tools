@@ -2,6 +2,7 @@ import os
 import sys
 import urllib.parse
 import time
+import datetime
 import json
 from splinter import Browser
 # argv[1] #=> Browser profile
@@ -25,7 +26,7 @@ try:
     os.makedirs(saved_pages_dir)
 except Exception as x:
   print(x)
-saved_pages_json_path = os.path.join(fxheadless_data_dir, 'saved_pages.json')
+saved_pages_json_path = os.path.join(fxheadless_data_dir, 'saved_pages-%s.json' % '{0:%Y-%m-%d-%H-%M}'.format(datetime.datetime.now()))
 pages = []
 
 previous_comments_xpath=".//span[contains(text(), 'previous comments')]"
@@ -129,13 +130,13 @@ with open(fname) as f:
     except Exception as x:
       print("Exception while dumping page JSON: ", x)
       page["exceptions"]["saving_metadata"] = str(x)
+    try:
+      with open(saved_pages_json_path, "w") as of:
+        of.write(json.dumps(pages))
+    print("Dumped pages JSON to: " + saved_pages_json_path)
     pages.append(page)
     time.sleep(0.5)
     print("\n")
-  try:
-    with open(saved_pages_json_path, "w") as of:
-      of.write(json.dumps(pages))
-    print("Dumped pages JSON to: " + saved_pages_json_path)
   except Exception as x:
     print("Exception while dumping pages JSON: ", x)
 
