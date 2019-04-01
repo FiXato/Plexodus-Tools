@@ -11,7 +11,7 @@ from splinter import Browser
 browser = Browser('firefox', headless=True, profile=sys.argv[1])
 print("Browser started")
 default_width=1920
-default_height=32000
+default_height=30000
 browser.driver.set_window_size(default_width,default_height)
 dimensions=browser.driver.get_window_size()
 print("Browser resolution set: %sx%s" % (dimensions['width'], dimensions['height']))
@@ -30,14 +30,18 @@ except Exception as x:
 saved_pages_json_path = os.path.join(fxheadless_data_dir, 'saved_pages-%s.json' % '{0:%Y-%m-%d-%H-%M}'.format(datetime.datetime.now()))
 pages = []
 
-previous_comments_xpath=".//span[contains(text(), 'previous comments')]"
+expandComments=True
+expandPosts=False
+takeScreenshots=True
 
+previous_comments_xpath=".//span[contains(text(), 'previous comments')]"
 fname=sys.argv[3]
 print("Loading URLs from " + fname)
 with open(fname) as f:
   for url in f:
+    browser.driver.set_window_size(default_width,default_height)
     url = url.strip()
-    page={"url": url, "exceptions": {}, "screenshot_paths": []}
+    page={"url": url, "exceptions": {"expando": []}, "screenshot_paths": []}
     print("Visiting URL: " + url)
     browser.visit(url)
     page["title"]=browser.find_by_css('html head title').first.html
@@ -55,34 +59,38 @@ with open(fname) as f:
       page["error"]=browser.find_by_css('#af-error-container > p + p').first.text
     
     browser.driver.set_window_size(default_width,default_height)
-    try:
+    if expandComments:
       if browser.is_element_present_by_xpath(previous_comments_xpath, 1):
         expand_links=browser.find_by_xpath(previous_comments_xpath)
+        counter=0
         for link in expand_links:
-          link.click()
-          print("Clicked to expand comments. Sleeping for a second.")
+          if counter > 3:
+            break
+          try:
+            link.click()
+          except Exception as x:
+            print("Exception while expanding object", str(link), str(x))
+            page["exceptions"]["expando"].append(str(x))
+          print("clicked read more", link['class'])
+          counter+=1
       else:
-        page["exceptions"]["expanding_comments"] = "Could not find element to expand comments"
-        print(page["exceptions"]["expanding_comments"])
-      if browser.is_element_present_by_css('span[jsname=xuZcmb]'):
-        read_more_links=browser.find_by_css('span[jsname=xuZcmb]')
+        page["exceptions"]["expando"].append("Could not find element to expand comments")
+        print(page["exceptions"]["expando"][-1])
+    if expandPosts:
+      if browser.is_element_present_by_css('span[jsname=xuZcmb],span[jsname=KFvZSd]', 1):
+        read_more_links=browser.find_by_css('span[jsname=xuZcmb],span[jsname=KFvZSd]')
+        counter=0
         for link in read_more_links:
-          link.click()
-          print("clicked xuZcmb")
-      if browser.is_element_present_by_css('span[jsname=KFvZSd]'):
-        read_more_links=browser.find_by_css('span[jsname=KFvZSd]')
-        for link in read_more_links:
-          link.click()
-          print("clicked KFvZSd")
-      if browser.is_element_present_by_css('div.SlwI7e'):
-        read_more_divs=browser.find_by_css('div.SlwI7e')
-        for link in read_more_links:
-          link.click()
-          print("clicked: div.SlwI7e")
+          if counter > 5:
+            break
+          try:
+            link.click()
+          except Exception as x:
+            print("Exception while expanding object", str(link), str(x))
+            page["exceptions"]["expando"].append(str(x))
+          print("clicked read more", link['class'])
+          counter+=1
       time.sleep(2)
-    except Exception as x:
-      print("Exception while expanding comments", x)
-      page["exceptions"]["expanding_comments"] = str(x)
     try:
       paths=["div.Q1Rnie", "div.m2bmxb", "div[role=main]", "body", "html"]
       current_path=paths.pop(0)
@@ -125,36 +133,53 @@ with open(fname) as f:
     except Exception as x:
       print("Exception while saving HTML: ", x)
       page["exceptions"]["saving_html"] = str(x)
-    screenshots_dir = os.path.join(saved_pages_dir, subdir, 'screenshots')
-    if not os.path.isdir(screenshots_dir):
-      os.makedirs(screenshots_dir)
-    counter=0
-    remainder_height=total_height
-    try:
-      scroll_y=0
-      while remainder_height > 0:
-        height=remainder_height
-        if height > default_height:
-          height=default_height
-        browser.driver.set_window_size(dimensions['width'], height)
-        print("Scrolling to %s" % scroll_y)
-        browser.execute_script("window.scrollTo(0, %s);" % scroll_y)
-        print("Resized browser to %sx%s" % (dimensions['width'], height))
-        screenshot_filepath = os.path.join(screenshots_dir, '%s-%s-%sx%s' % (filename, counter, dimensions['width'], height))
-        print("Trying to save screenshot to: '%s.png'" % screenshot_filepath)
-        screenshot_filepath=browser.screenshot(name=screenshot_filepath, suffix='.png')
-        page["screenshot_paths"].append(screenshot_filepath)
-        print("Saved screenshot to: " + screenshot_filepath)
-        counter+=1
-        offset=300
-        remainder_height-=(height - offset)
-        if remainder_height == offset:
-          break
-        scroll_y+=(height)
-    except Exception as x:
-      print("Exception while trying to save screenshot: ")
-      print(dir(x))
-      page["exceptions"]["taking_screenshot"] = str(dir(x))
+    if takeScreenshots:
+      try:
+        paths=["div.Q1Rnie", "div.m2bmxb", "div[role=main]", "body", "html"]
+        current_path=paths.pop(0)
+        while (browser.is_element_not_present_by_css(current_path, 0) and len(paths) > 0):
+          current_path=paths.pop(0)
+          
+        total_height=browser.driver.execute_script('return document.querySelector("%s").offsetHeight' % current_path)
+        total_height+=800
+        browser.driver.set_window_size(default_width,total_height)
+        dimensions=browser.driver.get_window_size()
+        print("Browser resolution set to %sx%s" % (dimensions['width'], dimensions['height']))
+      except Exception as x:
+        print("Changing resolution failed: %s" % str(x))
+      browser.execute_script("window.scrollTo(0, 0);")
+      screenshots_dir = os.path.join(saved_pages_dir, subdir, 'screenshots')
+      if not os.path.isdir(screenshots_dir):
+        os.makedirs(screenshots_dir)
+      counter=0
+      remainder_height=total_height
+      try:
+        scroll_y=0
+        while remainder_height > 0:
+          height=remainder_height
+          if height > default_height:
+            height=default_height
+          browser.driver.set_window_size(dimensions['width'], height)
+          print("Scrolling to %s" % scroll_y)
+          browser.execute_script("window.scrollTo(0, %s);" % scroll_y)
+          print("Resized browser to %sx%s" % (dimensions['width'], height))
+          screenshot_filepath = os.path.join(screenshots_dir, '%s-%s-%sx%s' % (filename, counter, dimensions['width'], height))
+          print("Trying to save screenshot to: '%s.png'" % screenshot_filepath)
+          screenshot_filepath=browser.screenshot(name=screenshot_filepath, suffix='.png')
+          page["screenshot_paths"].append(screenshot_filepath)
+          print("Saved screenshot to: " + screenshot_filepath)
+          counter+=1
+          offset=300
+          remainder_height-=height
+          remainder_height+=offset
+          scroll_y+=(height - offset)
+          if remainder_height == offset:
+            break
+
+      except Exception as x:
+        print("Exception while trying to save screenshot: ")
+        print(dir(x))
+        page["exceptions"]["taking_screenshot"] = str(dir(x))
 
     metadata_filepath = output_filepath + '.metadata.json'
     try:
@@ -171,6 +196,6 @@ with open(fname) as f:
       print("Exception while dumping pages JSON: ", x)
     print("Dumped pages JSON to: " + saved_pages_json_path)
     pages.append(page)
-    time.sleep(0.5)
+    # time.sleep(0.5)
     print("\n")
 
