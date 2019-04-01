@@ -14,7 +14,7 @@ default_width=1920
 default_height=60000
 browser.driver.set_window_size(default_width,default_height)
 print("Browser resolution set")
-fxheadless_data_dir = sys.argv[2]
+fxheadless_data_dir = os.path.realpath(sys.argv[2])
 try:
   if not os.path.isdir(fxheadless_data_dir):
     os.makedirs(fxheadless_data_dir)
