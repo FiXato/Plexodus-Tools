@@ -30,21 +30,35 @@ except Exception as x:
 saved_pages_json_path = os.path.join(fxheadless_data_dir, 'saved_pages-%s.json' % '{0:%Y-%m-%d-%H-%M}'.format(datetime.datetime.now()))
 pages = []
 
-expandComments=True
+expandComments=False
 expandPosts=False
-takeScreenshots=True
+takeScreenshots=False
 
 previous_comments_xpath=".//span[contains(text(), 'previous comments')]"
 fname=sys.argv[3]
 print("Loading URLs from " + fname)
 with open(fname) as f:
+  url_counter=0
   for url in f:
+    url_counter+=1
     browser.driver.set_window_size(default_width,default_height)
     url = url.strip()
     page={"url": url, "exceptions": {"expando": []}, "screenshot_paths": []}
-    print("Visiting URL: " + url)
+    print("[%s] Visiting URL: %s" % (url_counter, url))
     browser.visit(url)
     page["title"]=browser.find_by_css('html head title').first.html
+    print('Title: %s' % page["title"])
+    if page["title"] == "Google+":
+      print("ERROR: Likely hit the 'no longer available' wall")
+      if browser.is_element_present_by_css('div.wTeX3'):
+        message=browser.find_by_css('div.wTeX3').first.text
+        print(message)
+        if message.startswith('Google+ is no longer available '):
+          url+="?hl=en"
+          print("Trying again with different locale: %s" % url)
+          browser.visit(url)
+          page["title"]=browser.find_by_css('html head title').first.html
+          print('Title: %s' % page["title"])
     if page["title"] == "302 Moved":
       page["status_code"]="302"
       page["error"]=browser.find_by_css('html body').first.text
@@ -57,6 +71,7 @@ with open(fname) as f:
       browser.driver.set_window_size(1920,1080)
       page["status_code"]=browser.find_by_css('#af-error-container > p > b').first.html.strip('.')
       page["error"]=browser.find_by_css('#af-error-container > p + p').first.text
+      print('Error %s: %s' % (page["status_code"], page["error"]))
     
     browser.driver.set_window_size(default_width,default_height)
     if expandComments:
