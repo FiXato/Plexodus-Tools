@@ -352,13 +352,13 @@ So, `reshares` is an array of which the child members contain the hash key `resh
 
 In JSON this would be equivalent to:
 ```json
-  'reshares': [
+  "reshares": [
     {
-      'resharer': {
-        'avatarImageUrl': 'some url',
-        'displayName': 'some display name',
-        'profilePageUrl': 'some url',
-        'resourceName': 'some/resource/path'
+      "resharer": {
+        "avatarImageUrl": "some url",
+        "displayName": "some display name",
+        "profilePageUrl": "some url",
+        "resourceName": "some/resource/path"
       }
     }
   ]
