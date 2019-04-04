@@ -152,11 +152,14 @@ activity_post =  {
   }
 ```
 
+*(NOTE: This Ruby structure has not been kept up to date; for now it's merely still here as illustration/clarification)*
+
 ## Flat Representation of all possible JSON keys for Activity posts
 
 What follows is a list of all _*possible*_ JSON keys encountered after analysing a complete archive of 2145 Google+ Stream posts from 2011-06-30 till 2019-03-07:
 
 ```
+
 activityId
 album
 album.media
@@ -200,6 +203,7 @@ comments[].link.url
 comments[].media
 comments[].media.contentType
 comments[].media.height
+comments[].media.localFilePath
 comments[].media.resourceName
 comments[].media.url
 comments[].media.width
@@ -276,6 +280,7 @@ postAcl.eventAcl
 postAcl.eventAcl.event
 postAcl.eventAcl.event.displayName
 postAcl.eventAcl.event.resourceName
+postAcl.isDomainRestricted
 postAcl.isLegacyAcl
 postAcl.isPublic
 postAcl.visibleToStandardAcl
@@ -288,6 +293,7 @@ postAcl.visibleToStandardAcl.users
 postAcl.visibleToStandardAcl.users[]
 postAcl.visibleToStandardAcl.users[].displayName
 postAcl.visibleToStandardAcl.users[].resourceName
+postKind
 resharedPost
 resharedPost.album
 resharedPost.album.media
