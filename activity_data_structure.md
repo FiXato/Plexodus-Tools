@@ -156,7 +156,7 @@ activity_post =  {
 
 ## Flat Representation of all possible JSON keys for Activity posts
 
-What follows is a list of all _*possible*_ JSON keys encountered after analysing a complete archive of 2145 Google+ Stream posts from 2011-06-30 till 2019-03-07:
+What follows is a list of all _*possible*_ JSON keys encountered after analysing a set of complete archive of Google+ Stream posts from 2011-06-30 till 2019-04-02, from various accounts, including a G Suite account:
 
 ```
 
@@ -342,7 +342,7 @@ url
 This list was generated with the following command:
 
   ```bash
-  jq -s 'map(.)' takeout_archive_2018/*.json | jq -r 'paths|map(.|tostring)|join(".")' |gsed -r 's/^[0-9]+(\.|$)//'|gsed -r 's/\.[0-9]+/[]/g'|sort -u > unique_keys.txt
+  find /path/to/{first,second,third}/extracted/takeout-archive/Google+\ Stream/Posts/ -iname '*.json' -type f -exec jq -rs 'paths|map(.|tostring)|join(".")' '{}' \; | sed -E 's/^[0-9]{1,}(\.|$)//' | sed -E 's/\.[0-9]{1,}/[]/g' | sort -u | tee unique_keys_in_takeout_posts.txt
   ```
 
 I used `gsed` instead of `sed` to indicate it's GNU sed, rather than for instance the default sed that comes with for example macOS; though the regular expression is probably simple enough to work regardless.
