@@ -58,7 +58,7 @@ def has_user_circles_acl:
   [.[]|select(.postAcl.visibleToStandardAcl.circles|not_empty|any(.type == "CIRCLE_TYPE_USER_CIRCLE"))];
 
 def has_album_media_without_local_file_path:
-  select(.album.media//[] | map(.localFilePath) | any(. == null))
+  select(.album.media//[] | map(.localFilePath) | any(. == null));
 
 # FIXME: this could theoretically also return matches for Collections or Communities with a matching name...
 def with_interaction_with(displayNames):
@@ -122,7 +122,10 @@ def get_all_media_content_types:
   [.[]|.media.contentType|not_empty]|unique;
 
 def get_all_resource_urls_for_items_without_local_files:
-  [.album.media//[] | .[] | select(.localFilePath == null) .url]
+  [.album.media//[] | .[] | select(.localFilePath == null) .url];
+
+def avatar_urls:
+  [.author.avatarImageUrl, .collectionAttachment.owner.avatarImageUrl, (.comments//[] | .[].author.avatarImageUrl), (.plusOnes//[] | .[].plusOner.avatarImageUrl), (.poll.choices//[] | .[].votes//[] | .[].voter.avatarImageUrl)]|select(. != null)|del(.[] | nulls);
 
 # def sourceBy(displayNames):
 #   [.[]];
