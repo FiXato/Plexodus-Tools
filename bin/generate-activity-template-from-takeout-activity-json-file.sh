@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 template="$1"
 author_template="$2"
 takeout_activity_json_filename="$3"

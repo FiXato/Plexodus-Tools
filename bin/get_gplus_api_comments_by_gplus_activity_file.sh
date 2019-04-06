@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 ensure_jq || exit 255
-LOG_DIR="./logs"
+LOG_DIR="${LOG_DIR:-"./logs"}"
 ACTIVITIES_WITHOUT_COMMENTS_LOG="gplus-api-activities-without-comments.txt"
 
 usage="usage: $(basename "$0") \$activity_file"
@@ -30,7 +30,7 @@ activity_id=$(jq -r '.id' "$activity_file")
 commentsCount=$(jq -r ' .object | .replies | .totalItems ' "$activity_file")
 if [ -n "$commentsCount" -a "$commentsCount" != "0"  ]; then
   debug "Activity with ID $activity_id stored at $activity_file has $commentsCount comments:"
-  echo $("$caller_path/get_gplus_api_comments_by_gplus_activity_id.sh" "$activity_id")
+  echo $("$PT_PATH/bin/get_gplus_api_comments_by_gplus_activity_id.sh" "$activity_id")
 else
   debug "Activity with ID $activity_id stored at $activity_file has no comments."
   echo "'$activity_id' -> '$activity_file'" >> $(ensure_path "$LOG_DIR" "$ACTIVITIES_WITHOUT_COMMENTS_LOG")

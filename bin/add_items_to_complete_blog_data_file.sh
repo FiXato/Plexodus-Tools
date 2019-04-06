@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 data="$1"
 complete_blog_data_file="$2"
 new_items_jq_path="$3"

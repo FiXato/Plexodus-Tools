@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 
 declare -a sed_rules=()
 sed_rules+=('s/\\u003ds[0-9]{2,}-[a-zA-Z]//') # strip =s64-c and similar attributes from the URL

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-caller_path="$(dirname "$(realpath "$0")")"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 
-functions_lib_filepath="$caller_path/../lib/functions.sh"
+functions_lib_filepath="$PT_PATH/lib/functions.sh"
 if [ -f "$functions_lib_filepath" ]; then
   . "$functions_lib_filepath"
 fi
@@ -138,7 +139,7 @@ handle_main_menu() {
         ;;
     3)  extract_data_from_takeout_archives | tee "$LAST_COMMAND_OUTPUT_LOGPATH" && output="$(cat "$LAST_COMMAND_OUTPUT_LOGPATH")" || read -p "Error while trying to extract takeout archive. Maybe none could be found?" _
         ;;
-    4) output="$("${caller_path}/../bin/get_all_unique_urls_from_takeout.sh")"
+    4) output="$("${PT_PATH}/bin/get_all_unique_urls_from_takeout.sh")"
         ;;
     [sS]) menu 'SETTINGS MENU' 'settings' && return 0
         ;;

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 
 output_dir="$PLEXODUS_OUTPUT_DIR_ALL_FROM_TAKEOUT"
 extracted_takeout_directory="$PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH/Takeout"

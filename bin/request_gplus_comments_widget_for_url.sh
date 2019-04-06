@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # encoding: utf-8
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 DATA_WIDGETS_PATH="data/gplus_comments_widgets"
-LOG_DIR="./logs"
+LOG_DIR="${LOG_DIR:-"./logs"}"
 FAILED_FILES_LOGFILE="failed-gplus-comments-widgets-retrievals.txt"
 REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 api_url="https://apis.google.com/u/0/_/widget/render/comments?first_party_property=BLOGGER&query="
-
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
 
 usage="Usage: $0 \$blog_post_url\nIf you have a file with URLs, where every URL is on its own line, you can pass each line to this script with xargs: cat urls_list.txt | xargs -L 1 $0"
 

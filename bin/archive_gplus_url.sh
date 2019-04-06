@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 
 ignore_errors=""
 if [ "$1" == '--ignore-errors' ]; then
@@ -26,7 +26,7 @@ fi
 
 echo -e "\n" 1>&2
 debug "Calling archiver with source URL: $source_url"
-"$caller_path/archive_url.sh" ${ignore_errors}"${source_url}"
+"$PT_PATH/bin/archive_url.sh" ${ignore_errors}"${source_url}"
 
 declare -A user_ids
 set_user_id_array_from_gplus_url user_ids "$source_url"
@@ -46,7 +46,7 @@ if [ "${user_ids['custom']}" != "" -a "${user_ids['numeric']}" == "" ]; then
     replacement="${base_url}/${user_ids['numeric']}"
     numeric_url="${source_url/#$pattern/$replacement}"
     debug "Calling archiver with numeric URL: $numeric_url"
-    "$caller_path/archive_url.sh" ${ignore_errors}"$numeric_url"
+    "$PT_PATH/bin/archive_url.sh" ${ignore_errors}"$numeric_url"
   fi
 fi
 

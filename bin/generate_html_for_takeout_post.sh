@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # encoding: utf-8
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 OVERWRITE_LINKS="${OVERWRITE_LINKS:-false}"
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
 
 # FIXME: add usage example
 usage="Usage: $0 \$takeout_gstream_post_json_filepath"
@@ -111,15 +111,15 @@ done <<< "$activity_post_acl_keys"
 
 debug "Found filepaths:\n$(printarr target_output_filepath)"
 primary_filepath="${target_output_filepath[0]}"
-comment_template_script="$caller_path/generate-comment-template-from-takeout-activity-json-file.sh"
-activity_template_script="$caller_path/generate-activity-template-from-takeout-activity-json-file.sh"
-layout_template_script="$caller_path/generate-html-template-layout.sh"
-activity_template="$caller_path/../templates/h-entry-microformat.template.html"
-comment_template="$caller_path/../templates/h-entry-p-comment-microformat.template.html"
-author_template="$caller_path/../templates/h-entry-author.template.html"
+comment_template_script="$PT_PATH/bin/generate-comment-template-from-takeout-activity-json-file.sh"
+activity_template_script="$PT_PATH/bin/generate-activity-template-from-takeout-activity-json-file.sh"
+layout_template_script="$PT_PATH/bin/generate-html-template-layout.sh"
+activity_template="$PT_PATH/templates/h-entry-microformat.template.html"
+comment_template="$PT_PATH/templates/h-entry-p-comment-microformat.template.html"
+author_template="$PT_PATH/templates/h-entry-author.template.html"
 intermediate_activity_file="${primary_filepath}.activity.$(timestamp "%Y%m%d-%H%M%S")"
 intermediate_comments_file="${primary_filepath}.comments.$(timestamp "%Y%m%d-%H%M%S")"
-asset_directory="$(realpath "${caller_path}/../assets/")"
+asset_directory="$(realpath "${PT_PATH}/assets/")"
 
 comments="$(cat "$input_filepath" | jq -cr '.comments//[] | .[] | @base64')"
 counter=0

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 usage="usage: $(basename "$0") \$blogger_post_api_data_file\nExample: $(basename "$0") data/posts/\$blog_id-500-2019-03-02.json"
 check_help "$1" "$usage" || exit 255
 LOG_DIR="${LOG_DIR:-./logs}"

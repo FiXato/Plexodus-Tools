@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-caller_path="$(dirname "$(realpath "$0")")"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
 PLEXODUS_ENV_PATH=${PLEXODUS_ENV_PATH:-""}
 PLEXODUS_ENV_FILENAME="${PLEXODUS_ENV_FILENAME:-"plexodus-tools.env"}"
 
@@ -15,7 +15,7 @@ dir_exists() {
 test_path="./${PLEXODUS_ENV_FILENAME}"
 [ "$PLEXODUS_ENV_PATH" == "" ] && file_exists "$test_path" && PLEXODUS_ENV_PATH="${test_path}"
 
-test_path="${caller_path}/../${PLEXODUS_ENV_FILENAME}"
+test_path="${PT_PATH}/${PLEXODUS_ENV_FILENAME}"
 [ "$PLEXODUS_ENV_PATH" == "" ] && file_exists "$test_path" && PLEXODUS_ENV_PATH="${test_path}"
 
 test_path="${HOME}/.config"
@@ -96,3 +96,10 @@ function output_path() {
   printf '%s' ''
   return 255
 }
+
+XARGS_CMD="${XARGS_CMD:-"$(hash gxargs 2>/dev/null && echo 'gxargs' || echo 'xargs')"}"
+SED_CMD="${SED_CMD:-"$(hash gsed 2>/dev/null && echo 'gsed' || echo 'sed')"}"
+GREP_CMD="${GREP_CMD:-"$(hash ggrep 2>/dev/null && echo 'ggrep' || echo 'grep')"}"
+AWK_CMD="${AWK_CMD:-"$(hash gawk 2>/dev/null && echo 'gawk' || echo 'awk')"}"
+FIND_CMD="${FIND_CMD:-"$(hash gfind 2>/dev/null && echo 'gfind' || echo 'find')"}"
+DATE_CMD="${DATE_CMD:-"$(hash gdate 2>/dev/null && echo 'gdate' || echo 'date')"}"

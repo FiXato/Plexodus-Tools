@@ -3,11 +3,11 @@
 #
 # Retrieves People API data from the Google+ People API for given Google+ profile id/URL.
 #
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 ensure_gplus_api||exit 255
 #ensure_gnutools||exit 255
-LOG_DIR="./logs"
+LOG_DIR="${LOG_DIR:-"./logs"}"
 FAILED_FILES_LOGFILE="failed-profile-retrievals-$(timestamp_date).txt"
 
 usage="Usage: $0 \$profile [--delete-target]\nThe optional --delete-target flag will delete the JSON output file for the given Profile if an error occurs; without it, it will log the filepath to '$LOG_DIR/$FAILED_FILES_LOGFILE' and leave the JSON output file intact instead.\n\$profile can be a numeric profile ID, a +PrefixedCustomURLName, or full plus.google.com profile URL."
@@ -36,14 +36,14 @@ function handle_failure() {
 # FIXME: # REFACTORME Replace this with the logic used in archive_gplus_url.sh
 # Get the numeric UserID from the profile page if the given $user_id is in the +CustomHandle format.
 if [ "${user_id:0:1}" == "+" ]; then
-  user_id_custom_to_numeric_map_filepath="$(ensure_path "${caller_path}/../data/gplus/custom_to_numeric_user_id_mappings" "${user_id:1}.txt")"
+  user_id_custom_to_numeric_map_filepath="$(ensure_path "${PT_PATH}/data/gplus/custom_to_numeric_user_id_mappings" "${user_id:1}.txt")"
   if [ -f "$user_id_custom_to_numeric_map_filepath" ]; then
     numeric_user_id="$(cat "$user_id_custom_to_numeric_map_filepath")"
     debug "Retrieved numeric user_id '$numeric_user_id' for '$user_id' from '$user_id_custom_to_numeric_map_filepath'."
     [ "$numeric_user_id" == "" ] && error "\$numeric_user_id for ''$user_id' is empty! \$1='$1'"
   fi
   if [ "$numeric_user_id" == "" ]; then
-    archived_profile_page="$("$caller_path/archive_url.sh" "https://plus.google.com/${user_id}")"
+    archived_profile_page="$("$PT_PATH/bin/archive_url.sh" "https://plus.google.com/${user_id}")"
     exit_code="$?"
     if (( $exit_code > 0 )); then
       error "Error while archiving G+ profile page for ${user_id}. Exited with error code $exit_code"

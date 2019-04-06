@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/functions.sh"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/functions.sh"
 domain="$(domain_from_url "$1")"
 echo "Exporting Blogger blog at $domain"
 
-blog_id=$("$caller_path/get_blogger_id.sh" "$1")
+blog_id=$("$PT_PATH/bin/get_blogger_id.sh" "$1")
 complete_blog_data_file="$(ensure_path "data/output" "$domain.json")"
 debug "Storing initial data into: $complete_blog_data_file"
 echo '{"blog": {"id": "'$blog_id'", "posts": [], "post_urls": []}}' > "$complete_blog_data_file"
 
-blogger_posts_json_files=$("$caller_path/get_blogger_api_post_data_files.sh" "$blog_id")
+blogger_posts_json_files=$("$PT_PATH/bin/get_blogger_api_post_data_files.sh" "$blog_id")
 while read -r blogger_posts_json_file; do
   debug "\n==================================="
   debug "Processing $blogger_posts_json_file"
   data=$(jq '.items' "$blogger_posts_json_file")
-  "$caller_path/add_items_to_complete_blog_data_file.sh" "$data" "$complete_blog_data_file" "blog,posts" "$blogger_posts_json_file"
+  "$PT_PATH/bin/add_items_to_complete_blog_data_file.sh" "$data" "$complete_blog_data_file" "blog,posts" "$blogger_posts_json_file"
 
   # Call the script just to make sure the actual URLs files are also saved; a bit redundant perhaps?
-  # post_urls=$("$caller_path/get_blogger_post_urls_from_api_post_data_file.sh" "$blogger_posts_json_file")
+  # post_urls=$("$PT_PATH/bin/get_blogger_post_urls_from_api_post_data_file.sh" "$blogger_posts_json_file")
 
   last_index="$(echo "$data" | jq 'length - 1')"
   # last_index="1"
@@ -31,23 +31,23 @@ while read -r blogger_posts_json_file; do
       input="$(abort_if "a" "Cannot find URL item in data from '${blogger_post_json_file}'. (a)bort, (n)ext item? [a/N]")" && exit 255 || continue
     fi
     debug "Logging post url to .blog .post_urls: $post_url"
-    "$caller_path/add_items_to_complete_blog_data_file.sh" "[\"$post_url\"]" "$complete_blog_data_file" "blog,post_urls" "$blogger_posts_json_file"
+    "$PT_PATH/bin/add_items_to_complete_blog_data_file.sh" "[\"$post_url\"]" "$complete_blog_data_file" "blog,post_urls" "$blogger_posts_json_file"
     
     debug "-"
     debug "Requesting GPlus Comments Widget for: $post_url"
-    gplus_widget=$("$caller_path/request_gplus_comments_widget_for_url.sh" "$post_url")
+    gplus_widget=$("$PT_PATH/bin/request_gplus_comments_widget_for_url.sh" "$post_url")
     exit_code="$?"
     if (( "$exit_code" >= 1 )); then
       input="$(abort_if "a" "Error while requesting GPlus Comments Widget for '$post_url' while processing '${blogger_post_json_file}'. (a)bort, (n)ext item? [a/N]")"  && exit 255 || continue
     fi
-    "$caller_path/add_items_to_complete_blog_data_file.sh" "\"$gplus_widget\"" "$complete_blog_data_file" "blog,posts,$i,google_plus_comments_widget_file" "$blogger_posts_json_file"
+    "$PT_PATH/bin/add_items_to_complete_blog_data_file.sh" "\"$gplus_widget\"" "$complete_blog_data_file" "blog,posts,$i,google_plus_comments_widget_file" "$blogger_posts_json_file"
     
     debug "-"
     debug "Retrieving GPlus API Activity IDs from GPlus Comments Widget stored at: $gplus_widget"
-    gplus_activity_ids="$("$caller_path/get_gplus_api_activity_ids_from_gplus_comments_widget_file.sh" "$gplus_widget")"
+    gplus_activity_ids="$("$PT_PATH/bin/get_gplus_api_activity_ids_from_gplus_comments_widget_file.sh" "$gplus_widget")"
     debug "Activity IDs: $gplus_activity_ids"
     activity_ids_data="$(printf "$gplus_activity_ids" | jq -nR '[inputs | select(length>0)]')"
-    "$caller_path/add_items_to_complete_blog_data_file.sh" "$activity_ids_data" "$complete_blog_data_file" "blog,posts,$i,activity_ids" "$gplus_widget"
+    "$PT_PATH/bin/add_items_to_complete_blog_data_file.sh" "$activity_ids_data" "$complete_blog_data_file" "blog,posts,$i,activity_ids" "$gplus_widget"
     
     while read -r gplus_activity_id; do
       debug "\n---"
@@ -57,7 +57,7 @@ while read -r blogger_posts_json_file; do
         continue
       fi
       debug "Requesting JSON from GPlus Activity API for $gplus_activity_id:"
-      gplus_activity_file="$("$caller_path/get_gplus_api_activity_by_gplus_activity_id.sh" "$gplus_activity_id")"
+      gplus_activity_file="$("$PT_PATH/bin/get_gplus_api_activity_by_gplus_activity_id.sh" "$gplus_activity_id")"
       exit_code="$?"
       if (( "$exit_code" >= 1 )); then
         input=$(abort_if "a" "Error while requesting JSON from GPlus Activity API for Activity with id '$gplus_activity_id' while processing '${blogger_post_json_file}'. (a)bort, (r)etry, (n)ext Activity item? [a/r/N]") && exit 255
@@ -65,7 +65,7 @@ while read -r blogger_posts_json_file; do
           if [ -f "$gplus_activity_file" ]; then
             rm "$gplus_activity_file"
           fi
-          gplus_activity_file="$("$caller_path/get_gplus_api_activity_by_gplus_activity_id.sh" "$gplus_activity_id")"
+          gplus_activity_file="$("$PT_PATH/bin/get_gplus_api_activity_by_gplus_activity_id.sh" "$gplus_activity_id")"
           if (( "$?" >= 1 )); then
             debug "=!= Failed again; continuing with next item."
             continue
@@ -77,11 +77,11 @@ while read -r blogger_posts_json_file; do
       setxattr "activity_id" "$gplus_activity_id" "$gplus_activity_file" 1>&2
       setxattr "widget_file" "$gplus_widget" "$gplus_activity_file" 1>&2
       activity_data="$(cat "$gplus_activity_file" | jq -s)"
-      "$caller_path/add_items_to_complete_blog_data_file.sh" "$activity_data" "$complete_blog_data_file" "blog,posts,$i,activities" "$gplus_activity_file"
+      "$PT_PATH/bin/add_items_to_complete_blog_data_file.sh" "$activity_data" "$complete_blog_data_file" "blog,posts,$i,activities" "$gplus_activity_file"
       
       debug "-"
       debug "Checking if we need to request JSON from the GPlus Comments API for Activity '$gplus_activity_file' with ID $gplus_activity_id"
-      gplus_comments_file="$("$caller_path/get_gplus_api_comments_by_gplus_activity_file.sh" "$gplus_activity_file")"
+      gplus_comments_file="$("$PT_PATH/bin/get_gplus_api_comments_by_gplus_activity_file.sh" "$gplus_activity_file")"
       exit_code="$?"
       if (( "$exit_code" >= 1 )); then
         input=$(abort_if "a" "Error while requesting JSON from GPlus Comments API for Activity with id '$gplus_activity_id' while processing '${gplus_activity_file}'. (a)bort, (r)etry, (n)ext Activity item? [a/r/N]") && exit 255
@@ -89,7 +89,7 @@ while read -r blogger_posts_json_file; do
           if [ -f "$gplus_comments_file" ]; then
             rm "$gplus_comments_file"
           fi
-          gplus_comments_file="$("$caller_path/get_gplus_api_comments_by_gplus_activity_file.sh" "$gplus_activity_file")"
+          gplus_comments_file="$("$PT_PATH/bin/get_gplus_api_comments_by_gplus_activity_file.sh" "$gplus_activity_file")"
           if (( "$?" >= 1 )); then
             debug "=!= Failed again; continuing with next item."
             continue
@@ -132,7 +132,7 @@ done <<< "$blogger_posts_json_files"
 echo "$complete_blog_data_file"
 
 # Elaborate piping example; will probably gradually be replaced with the stage-wise above approach, so the final results will be in a neat, complete JSON file.
-# "$caller_path/get_blogger_post_urls.sh" "$("$caller_path/get_blogger_id.sh" "$1")" | xargs -L 1 "$caller_path/request_gplus_comments_widget_for_url.sh" | xargs -L 1 "$caller_path/get_gplus_api_activity_ids_from_gplus_comments_widget_file.sh" | xargs -L 1 "$caller_path/get_gplus_api_activity_by_gplus_activity_id.sh" | xargs -L 1 "$caller_path/get_gplus_api_comments_by_gplus_activity_file.sh"
+# "$PT_PATH/bin/get_blogger_post_urls.sh" "$("$PT_PATH/bin/get_blogger_id.sh" "$1")" | xargs -L 1 "$PT_PATH/bin/request_gplus_comments_widget_for_url.sh" | xargs -L 1 "$PT_PATH/bin/get_gplus_api_activity_ids_from_gplus_comments_widget_file.sh" | xargs -L 1 "$PT_PATH/bin/get_gplus_api_activity_by_gplus_activity_id.sh" | xargs -L 1 "$PT_PATH/bin/get_gplus_api_comments_by_gplus_activity_file.sh"
 
 
 
@@ -147,5 +147,5 @@ echo "$complete_blog_data_file"
 #   #FIXME: keep track of where you are, so you can abort, and continue again at a later time without having to restart.
 #   echo "$filename"
 #   echo $(basename "$filename")
-#   echo "$filename" | "$caller_path/get_gplus_api_activity_ids_from_gplus_comments_widget_file.sh" | "$caller_path/get_comments_from_google_plus_api_by_activity_id.sh" > "data/output/$domain/html/$(basename "$filename")"
+#   echo "$filename" | "$PT_PATH/bin/get_gplus_api_activity_ids_from_gplus_comments_widget_file.sh" | "$PT_PATH/bin/get_comments_from_google_plus_api_by_activity_id.sh" > "data/output/$domain/html/$(basename "$filename")"
 # done

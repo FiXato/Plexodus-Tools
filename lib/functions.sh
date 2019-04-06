@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-caller_path="$(dirname "$(realpath "$0")")"
-source "$caller_path/../lib/formatting.sh"
-. "$caller_path/../lib/env.sh"
+PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
+. "${PT_PATH}/lib/formatting.sh"
+. "${PT_PATH}/lib/env.sh"
 
 #FIXME: Make sure all functions use *local* variables.
 
@@ -10,7 +10,7 @@ source "$caller_path/../lib/formatting.sh"
 REQUEST_THROTTLE="${REQUEST_THROTTLE:-0}"
 USER_AGENT="${USER_AGENT:-PlexodusToolsBot/0.9.0}" #Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3724.8 Safari/537.36
 MAX_RETRIEVAL_RETRIES=${MAX_RETRIEVAL_RETRIES:-3}
-USER_ID_CUSTOM_TO_NUMERIC_MAP_DIRECTORY="${caller_path:-bin}/../data/gplus/custom_to_numeric_user_id_mappings"
+USER_ID_CUSTOM_TO_NUMERIC_MAP_DIRECTORY="${PT_PATH}/data/gplus/custom_to_numeric_user_id_mappings"
 
 
 #TODO: Implement LOG_LEVEL
@@ -84,7 +84,7 @@ function get_numeric_user_id_for_custom_user_id() {
     return 0
   fi
 
-  local archived_profile_page="$("$caller_path/archive_url.sh" "https://plus.google.com/+${user_id}")"
+  local archived_profile_page="$("${PT_PATH}/bin/archive_url.sh" "https://plus.google.com/+${user_id}")"
   local exit_code="$?"
   if (( $exit_code > 0 )); then
     echo "Error while archiving G+ profile page for ${user_id}. Exited with error code $exit_code" 1>&2
@@ -211,79 +211,39 @@ function ensure_gnutools() {
 }
 
 function gnused_string() {
-  if hash gsed 2>/dev/null; then
-    echo 'gsed -E'
-  else
-    echo 'sed -E'
-  fi
+  printf '%s -E' "${SED_CMD}"
 }
 
 function gnused_cmdstring() {
-  if hash gsed 2>/dev/null; then
-    printf "%s" 'gsed'
-  else
-    printf "%s" 'sed'
-  fi
+  printf '%s' "${SED_CMD}"
 }
 
 function gnudate_string() {
-  if hash gdate 2>/dev/null; then
-    echo 'LC_ALL=en_GB gdate'
-  else
-    echo 'LC_ALL=en_GB date'
-  fi
+  printf 'LC_ALL=en_GB %s' "${DATE_CMD}"
 }
 
 function gnugrep_string() {
-  if hash ggrep 2>/dev/null; then
-    echo 'ggrep -E'
-  else
-    echo 'grep -E'
-  fi
+  printf '%s -E' "${GREP_CMD}"
 }
 
 function gnugrep_cmdstring() {
-  if hash ggrep 2>/dev/null; then
-    printf "%s" 'ggrep'
-  else
-    printf "%s" 'grep'
-  fi
+  printf '%s' "${GREP_CMD}"
 }
 
 function gnufind_string() {
-  if hash gfind 2>/dev/null; then
-    echo 'gfind'
-  else
-    echo 'find'
-  fi
+  printf '%s' "${FIND_CMD}"
 }
 
 function gnuawk_string() {
-  if hash gawk 2>/dev/null; then
-    echo 'gawk'
-  else
-    echo 'awk'
-  fi
+  printf '%s' "${AWK_CMD}"
 }
 
 function gnused() {
-  if hash gsed 2>/dev/null; then
-    # debug "gnused(): gsed -E \"$@\""
-    gsed -E "$@"
-  else
-    # debug "gnused(): sed -E \"$@\""
-    sed -E "$@"
-  fi
+  "${SED_CMD}" -E "$@"
 }
 
 function gnugrep() {
-  if hash ggrep 2>/dev/null; then
-    # debug "gnugrep(): ggrep -E \"$@\""
-    ggrep "$@"
-  else
-    # debug "gnugrep(): grep -E \"$@\""
-    grep "$@"
-  fi
+  "${GREP_CMD}" "$@"
 }
 
 # Inspired by https://stackoverflow.com/a/3557165 by @drAlberT
@@ -442,33 +402,21 @@ function setxattr() {
 function gnudate() { # Taken from https://stackoverflow.com/a/677212 by @lhunath and @Cory-Klein
   #FIXME: find out how I can prevent the loss of the quotes around the format in the debug output
   # debug "gnudate(): $(gnudate_string) $@"
-  if hash gdate 2>/dev/null; then
-    gdate "$@"
-  else
-    date "$@"
-  fi
+  LC_ALL=en_GB "${DATE_CMD}" "$@"
 }
 
 function gnufind() {
   # debug "gnufind(): $(gnufind_string) $@"
-  if hash gfind 2>/dev/null; then
-    gfind "$@"
-  else
-    find "$@"
-  fi
+  "${FIND_CMD}" "$@"
 }
 
 function gnuawk() {
   # debug "gnuawk(): $(gnuawk_string) $@"
-  if hash gawk 2>/dev/null; then
-    gawk "$@"
-  else
-    awk "$@"
-  fi
+  "${AWK_CMD}" "$@"
 }
 
 function unsorted_uniques() {
-  gnuawk '!uniques[$0]++'
+  "${AWK_CMD}" '!uniques[$0]++'
 }
 
 function sanitise_filename() {
