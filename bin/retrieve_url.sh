@@ -12,7 +12,7 @@ fi
 
 usage="# Archive a remote document locally\n# usage: $(basename "$0") \$source_url"
 check_help "$1" "$usage" || exit 255
-source_url="$1"
+source_url="${1//$'\n'/}"
 if [ "$source_url" == "" ]; then
   error "Please supply the source page URL as \$source_url"
   exit 255
