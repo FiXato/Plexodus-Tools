@@ -506,6 +506,7 @@ function check_help() {
     echo -e "$2"
     exit 0
   fi
+  return 0
 }
 
 function timestamp() {
