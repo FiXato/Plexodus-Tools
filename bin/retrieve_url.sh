@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # encoding: utf-8
-
 PT_PATH="${PT_PATH:-"$(realpath "$(dirname "$0")/..")"}"
 . "${PT_PATH}/lib/functions.sh"
 
@@ -107,10 +106,16 @@ while [ $count -lt $retries ]; do
   debug "[$count/$retries] ⬇️  ${TP_UON}'$source_url'${TP_UOFF}\n    -> ${TP_UON}'$curl_output_filepath'${TP_UOFF}\n    -> ${TP_UON}'$curl_output_stderr_filepath'${TP_UOFF}"
   status_code="$(curl -v -A "$USER_AGENT" "${curl_headers[@]/#/-H}" --write-out %{http_code} --silent --output "$curl_output_filepath" "$source_url" 2>> "$curl_output_stderr_filepath")"
   exit_code="$?"
-  
+
   if (( $exit_code > 0 ));then
     error "❌ curl exited with a non-zero exit code: \$?=$exit_code"
     printf '%s\n' "$source_url" >> "${domain_cache_metadata_failed_downloads_log_path/%".failed.log"/".failed.exit.$exit_code.log"}"
+
+    if (( $exit_code == 23 )); then #CURL_WRITE_ERROR
+      error "${TP_BOLD}${FG_RED}It looks like cURL could not write to the file. Are you perhaps running out of disk space / inodes?${TP_RESET}"
+      df -h 1>&2
+      read -p $'# Please check the cause of the error and press enter to continue, or ctrl-c to abort' input < /dev/tty
+    fi
     continue
   fi
 
@@ -136,7 +141,7 @@ while [ $count -lt $retries ]; do
   else
     debug "Logged download to $domain_cache_metadata_downloads_log_path"
   fi
-  
+
   debug "  ${FG_GREEN}${TP_BOLD}✅  Successful download!"
   printf "%s\n" "$curl_output_filepath"
   exit 0
