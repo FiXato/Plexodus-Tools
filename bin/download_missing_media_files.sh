@@ -73,6 +73,8 @@ while IFS= read -r -d '' line; do
     fi
     continue
   fi
+  #TODO: I also want to store a reference to the JSON file in the xattr, so I need to redo the while loop; add another while loop for each JSON file.
+  #TODO: also download this, and perhaps add the reference to the local file path to the source JSON
   echo "$remote_url"
   # printf 'remote: "%s"\nlocal: %s\n\n' "$remote_url" "$local_filepath"
 done < <(find "${takeout_posts_paths[@]/%/\/Takeout\/Google+ Stream\/Posts\/}" -iname '*.json' -type f -exec jq -L "${PT_PATH}" -r --arg source_file "{}" 'include "plexodus-tools"; get_all_resource_urls_and_local_filepaths | map(.[0] as $remote| .[1] as $local| [$remote, (if $local|length > 0 then ($source_file|gsub("/[^/]+$"; "") + $local) else "" end)]|join("\u001F")) | join("\u0000")' '{}' \;)

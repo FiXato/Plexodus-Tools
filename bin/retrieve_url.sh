@@ -118,6 +118,8 @@ while [ $count -lt $retries ]; do
     fi
     continue
   fi
+  setxattr "status_code" "$status_code" "$curl_output_filepath" 1>&2
+  setxattr "source_url" "$source_url" "$curl_output_filepath" 1>&2
 
   if (( $status_code > 200 ));then
     error "❌ curl returned a non-200 HTTP Status Code: \$status_code=$status_code"
