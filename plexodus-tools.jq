@@ -124,6 +124,9 @@ def get_all_media_content_types:
 def get_all_resource_urls_for_items_without_local_files:
   [.album.media//[] | .[] | select(.localFilePath == null) .url];
 
+def get_all_resource_urls_and_local_filepaths:
+  [.album.media//[] | .[] | [.url, (.localFilePath//""|gsub("../Photos/(?<photos_type>Profile|Scrapbook) photos"; "../Photos/Miscellaneous Photos/" + .photos_type + " photos"))]];
+
 def avatar_urls:
   [.author.avatarImageUrl, .collectionAttachment.owner.avatarImageUrl, (.comments//[] | .[].author.avatarImageUrl), (.plusOnes//[] | .[].plusOner.avatarImageUrl), (.poll.choices//[] | .[].votes//[] | .[].voter.avatarImageUrl)]|select(. != null)|del(.[] | nulls);
 
