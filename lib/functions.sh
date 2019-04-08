@@ -1171,10 +1171,56 @@ dir_exists_or_is_created() {
   fi
 }
 
+
+strip_last_extension() {
+  printf '%s' "${1%.*}"
+}
+
+strip_all_extensions() {
+  printf '%s' "${1%%.*}"
+}
+
+all_extensions() {
+  [[ $1 == *.* ]] && printf '%s' "${1#*.}" || printf ''
+}
+
+last_extension() {
+  [[ $1 == *.* ]] && printf '%s' "${1##*.}" || printf ''
+}
+
+
+#FIXME: this function should perhaps limit to bytes, rather than characters
+limit_filename_length() {
+  MAX_FILELENGTH="${MAX_FILELENGTH:-200}"
+  MAX_EXTENSIONSLENGTH="${MAX_EXTENSIONSLENGTH:-50}"
+  filename="$1"
+  [ "$filename" == "" ] && echo "You need to specify a filename as \$1" && return 255
+
+  if (( "${#filename}" <= $MAX_FILELENGTH )); then
+    printf '%s' "$filename"
+    return 0
+  fi
+
+  debug "${FG_MAGENTA}Filename is too long. ${#filename} > ${MAX_FILELENGTH}: ${filename}${TP_RESET}"
+
+  extensions=".$(all_extensions "$filename")"
+  [ "$extensions" == '.' ] && extensions=""
+  if (( "${#extensions}" > $MAX_EXTENSIONSLENGTH )); then
+    debug "${FG_MAGENTA}File extension is too long. ${#filename} > ${MAX_EXTENSIONSLENGTH}: ${extensions}${TP_RESET}"
+    #FIXME: Actually handle this exception
+  fi
+
+  filename_without_extension="$(strip_all_extensions "$filename")"
+
+  target_filename_length=$(($MAX_FILELENGTH - ${#extensions}))
+  printf '%s%s' "${filename_without_extension:0:$target_filename_length}" "$extensions"
+}
+
+
 non_existing_filename() {
   local directory_path="$1"
   local source_filename="$2"
-  local filename="$source_filename"
+  local filename="$(limit_filename_length "$source_filename")" || return $?
   local max_tries="${3:-3}"
   local count=0
   debug "non_existing_filename() '${directory_path}/${source_filename}'"
@@ -1191,7 +1237,7 @@ non_existing_filename() {
       error "non_existing_filename(): exceeded maximum number of attempts ($count) to find a unique, non-existing filename."
       return $count
     fi
-    local filename="${source_filename}.${count}"
+    local filename="$(limit_filename_length "$source_filename").${count}"
     debug "count: $count/$max_tries; filename: $filename"
   done
   printf '%s' "$filename"
@@ -1200,4 +1246,17 @@ non_existing_filename() {
 
 unique_characters_in_document() {
   $(hash god 2>/dev/null && printf '%s' "god" || printf '%s' "od" ) -cvAnone -w1 | sort -bu
+}
+
+
+on_same_device() {
+  man ${STAT_CMD} | grep -- '--format'
+  if (($? > 0)); then
+    file_a_device="$(${STAT_CMD} --format="%d" "$1")"
+    file_b_device="$(${STAT_CMD} --format="%d" "$2")"
+  else
+    file_a_device="$(${STAT_CMD} -f "%Sdr" "$1")"
+    file_b_device="$(${STAT_CMD} -f "%Sdr" "$2")"
+  fi
+  [ "$file_a_device" == "$file_b_device" ] # && return 0 || return 1
 }
