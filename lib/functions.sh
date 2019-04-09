@@ -100,6 +100,7 @@ function get_numeric_user_id_for_custom_user_id() {
 }
 
 function set_user_id_array_from_gplus_url() {
+  #FIXME: this nameref isn't actually used?
   declare -n ___="$1" # $1 = name of the target array variable
   debug "Source url: $2"
   user_ids['unparsed']="$(get_user_id "$2")" # $2 is the plus.google.com profile/post URL
@@ -1171,21 +1172,47 @@ dir_exists_or_is_created() {
   fi
 }
 
-
+strip_last_by_delimiter() {
+  printf '%s' "${1%${2}*}"
+}
 strip_last_extension() {
-  printf '%s' "${1%.*}"
+  strip_last_by_delimiter "$1" '.'
 }
 
+strip_all_by_delimiter() {
+  printf '%s' "${1%%${2}*}"
+}
 strip_all_extensions() {
-  printf '%s' "${1%%.*}"
+  strip_all_by_delimiter "$1" '.'
 }
 
+all_after_first_delimiter() {
+  [[ $1 == *${2}* ]] && printf '%s' "${1#*${2}}" || printf ''
+}
 all_extensions() {
-  [[ $1 == *.* ]] && printf '%s' "${1#*.}" || printf ''
+  all_after_first_delimiter "$1" '.'
 }
 
+last_after_delimiter() {
+  [[ $1 == *${2}* ]] && printf '%s' "${1##*${2}}" || printf ''
+}
 last_extension() {
-  [[ $1 == *.* ]] && printf '%s' "${1##*.}" || printf ''
+  last_after_delimiter "$1" '.'
+}
+
+split(){
+  local input="$1"
+  declare -n _items="$2"
+  local delimiter="${3:-,}"
+  local first_input="$(all_after_first_delimiter "$input" "$delimiter")"
+  local first=$(strip_all_by_delimiter "$input" "$delimiter")
+  _items+=("$first")
+  while [ "$first" != "$input" ]; do
+    input="$(all_after_first_delimiter "$input" "$delimiter")"
+    first=$(strip_all_by_delimiter "$input" "$delimiter")
+    _items+=("$first")
+  done
+  return 0
 }
 
 
