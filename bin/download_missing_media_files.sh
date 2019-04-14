@@ -15,8 +15,14 @@ check_help "$1" "$usage" || exit $?
 declare -a takeout_parent_paths=()
 if [ "$1" != "" ]; then
   takeout_posts_paths+=("${@}")
+  missing_files_data_file="$(output_path "downloaded_missing_files_logs-for-${PLEXODUS_MISSING_FILES_DATA_FILE_SUFFIX:-custom}")"
 else
   takeout_posts_paths+=("${PLEXODUS_EXTRACTED_TAKEOUT_PARENT_PATH}")
+  missing_files_data_file="$(output_path "downloaded_missing_files_logs-for-${PLEXODUS_MISSING_FILES_DATA_FILE_SUFFIX:-default_archives_path}")"
+fi
+
+if [ ! -f "$missing_files_data_file" ]; then
+  printf '%s' '{"downloaded_items": {}, "already_downloaded_items": {}, "failed_items": {}}' | jq '.' > "$missing_files_data_file"
 fi
 
 #   find "${takeout_posts_paths[@]/%/\/Takeout\/Google+ Stream\/Posts\/}" -iname '*.json' -type f -exec jq -r '.album .media//[] | .[] .localFilePath//"" | gsub("/[^/]+$"; "")' '{}' \; | grep -v '^$'
@@ -41,6 +47,9 @@ link_file() {
   fi
 }
 
+declare -A downloaded_items
+declare -A already_downloaded_items
+declare -a failed_items=()
 declare -a items=()
 total_results="$(find "${takeout_posts_paths[@]/%/\/Takeout\/Google+ Stream\/Posts\/}" -iname '*.json' -type f -print0 2> /dev/null | "$GREP_CMD" -cz '^')"
 while IFS= read -r -d '' json_source_fp || [ -n "$json_source_fp" -a "$json_source_fp" != "" ]; do
@@ -59,36 +68,52 @@ ${FG_MAGENTA}Local: '$local_filepath'${TP_RESET}"
       if [ -f "$local_filepath" ]; then
         debug "\$local_filepath '$local_filepath' already exists"
         echo "$local_filepath"
+        already_downloaded_items["$remote_url"]="$local_filepath"
       else
         debug "${FG_MAGENTA}Local file '$local_filepath' does not exist"
-        downloaded_fps="$("$PT_PATH/bin/retrieve_googleusercontent_url.sh" "$remote_url")"
+        downloaded_fp="$(download_to_local_filepath "$remote_url" "$local_filepath" "$json_source_fp")"
         exit_code="$?"
-        if (( $exit_code == 0 )); then
-          downloaded_fp="$(realpath "${downloaded_fps//*$'\n'}")"
-          setxattr "json_source" "$json_source_fp" "$downloaded_fp" 1>&2
-
-          [ -f "$local_filepath" ] && debug "file '$local_filepath' exists"
-          link_file "$downloaded_fp" "$local_filepath"
-          exit_code="$?"
-          if (( $exit_code == 0 ));then
-            debug "linking succeeded: $downloaded_fp -> $local_filepath"
-            realpath --no-symlinks "$local_filepath"
-          else
-            debug "linking exited with $exit_code"
-            echo "$downloaded_fp"
-          fi
+        if (( $exit_code == 0)); then
+          downloaded_items["$remote_url"]="$downloaded_fp"
         else
-          error "[\$?=$exit_code] Error while retrieving $remote_url"
-          echo "$remote_url"
+          debug "Exit code: $exit_code"
+          failed_items+=("$downloaded_fp") # Remote URL
         fi
       fi
       continue
     fi
-    #TODO: also download this, and perhaps add the reference to the local file path to the source JSON
-    debug "No local filepath specified. Returning \$remote_url"
-    echo "$remote_url"
+
+    debug "No local filepath specified. Downloading \$remote_url to default location"
+    downloaded_fp="$(download_to_local_filepath "$remote_url" "" "$json_source_fp")"
+    exit_code="$?"
+    if (( $exit_code == 0)); then
+      downloaded_items["$remote_url"]="$downloaded_fp"
+    else
+      debug "Exit code: $exit_code"
+      failed_items+=("$downloaded_fp") # Remote URL
+    fi
     # printf 'remote: "%s"\nlocal: %s\n\n' "$remote_url" "$local_filepath"
   done < <(jq -L "${PT_PATH}" -r --arg source_file "$json_source_fp" 'include "plexodus-tools"; get_all_resource_urls_and_local_filepaths | map(.[0] as $remote| .[1] as $local| [$remote, (if $local|length > 0 then ($source_file|gsub("/[^/]+$"; "") + $local) else "" end)]|join("\u001F")) | join("\u0000")' "$json_source_fp")
+
+  # Store the downloaded files in a JSON file
+  tmp_missing_files_data_file="${missing_files_data_file}.$(timestamp "%Y%m%d%H%M%S")"
+  debug "${FG_CYAN}Storing results to '$tmp_missing_files_data_file' based on '${missing_files_data_file}'"
+  # debug "\$json_source_fp: $json_source_fp"
+  # debug "already_downloaded_items: $(hash_to_json already_downloaded_items)"
+  # debug "downloaded_items: $(hash_to_json downloaded_items)"
+  # debug "failed_items: $(array_to_json failed_items)"
+  #FIXME: if there are too many items per json file, the argument list could still end up too long.
+  jq --arg json_source_fp "$json_source_fp" \
+    --argjson failed_items "$(array_to_json failed_items)" \
+    'if ($failed_items|length > 0) then .failed_items[$json_source_fp] += $failed_items else . end' "$missing_files_data_file" > "$tmp_missing_files_data_file"
+  jq --argjson downloaded_items "$(hash_to_json downloaded_items)" '.downloaded_items += $downloaded_items' "$tmp_missing_files_data_file" > "$missing_files_data_file"
+  jq --argjson already_downloaded_items "$(hash_to_json already_downloaded_items)" '.already_downloaded_items += $already_downloaded_items' "$missing_files_data_file" > "$tmp_missing_files_data_file"
+  mv "$tmp_missing_files_data_file" "$missing_files_data_file"
+  failed_items=()
+  unset downloaded_items
+  declare -A downloaded_items
+  unset already_downloaded_items
+  declare -A already_downloaded_items
 done < <(find "${takeout_posts_paths[@]/%/\/Takeout\/Google+ Stream\/Posts\/}" -iname '*.json' -type f -print0)
 
 #gnugrep -v '^$' | gnused 's/^\/\//https:\/\//' | sort -u | "${XARGS_CMD}" -I@@ "${PT_PATH}/bin/retrieve_googleusercontent_url.sh" "@@"

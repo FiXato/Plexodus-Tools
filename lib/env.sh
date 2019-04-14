@@ -87,10 +87,12 @@ PLEXODUS_ON_URL_RETRIEVAL_FAILURE="${PLEXODUS_ON_URL_RETRIEVAL_FAILURE:-"DELETE_
 #PLEXODUS_ON_URL_RETRIEVAL_FAILURE="${PLEXODUS_ON_URL_RETRIEVAL_FAILURE:-"DELETE_DOWNLOAD:DELETE_METADATA"}"
 
 PLEXODUS_FIND_MAX_DEPTH=${PLEXODUS_FIND_MAX_DEPTH:-5}
+PLEXODUS_DATA_DOWNLOADED_MISSING_FILES_LOGS_PATH="${PLEXODUS_DATA_OUTPUT_PATH:-"${PLEXODUS_DATA_PATH}/downloaded_missing_files_logs"}"
 
 function output_path() {
   [[ "$1" == "all_avatar_image_urls-without_size"* ]] && printf '%s' "$(ensure_path "${PLEXODUS_DATA_GOOGLEUSERCONTENT_URLS_OUTPUT_PATH}" "$1.txt")" && return 0
   [[ "$1" == "all_retrieved_avatar_image_paths"* ]] && printf '%s' "$(ensure_path "${PLEXODUS_DATA_GOOGLEUSERCONTENT_FILEPATHS_OUTPUT_PATH}" "$1.txt")" && return 0
+  [[ "$1" == "downloaded_missing_files_logs"* ]] && printf '%s' "$(ensure_path "${PLEXODUS_DATA_DOWNLOADED_MISSING_FILES_LOGS_PATH}" "$1.json")" && return 0
 
   error "Missing output path for '$1'"
   printf '%s' ''
