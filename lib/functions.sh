@@ -396,7 +396,7 @@ function setxattr() {
       attr -s "$1" -V "$2" "$3" 1>&2
     fi
   else
-    echo "setxattr('$1' '$2' '$3') File '$3' does not exist." 1>&2
+    error "setxattr('$1' '$2' '$3') File '$3' does not exist."
   fi
 }
 
@@ -1286,4 +1286,77 @@ on_same_device() {
     file_b_device="$(${STAT_CMD} -f "%Sdr" "$2")"
   fi
   [ "$file_a_device" == "$file_b_device" ] # && return 0 || return 1
+}
+
+hash_to_json() {
+  local _h
+  declare -n _h="$1"
+  [ "${#_h[@]}" == "0" ] && echo '{}' && return 0
+
+  local _output=""
+  #FIXME: handle escaping in keys and values
+  for key in "${!_h[@]}"; do
+    _output+="\"$key\": \"${_h["$key"]}\","
+  done
+  echo "{${_output::-1}}"
+  return 0
+}
+
+array_to_json() {
+  local _a
+  declare -n _a="$1"
+
+  [ "${#_a[@]}" == "0" ] && echo '[]' && return 0
+
+  local _output=""
+  #FIXME: handle escaping in values
+  for value in "${_a[@]}"; do
+    _output+="\"${value}\", "
+  done
+  echo "[${_output::-2}]"
+  return 0
+}
+
+download_to_local_filepath() {
+  remote_url="$1"
+  local_filepath="$2"
+  json_source_fp="$3"
+  downloaded_fps="$("$PT_PATH/bin/retrieve_googleusercontent_url.sh" "$remote_url")"
+  exit_code="$?"
+  if (( $exit_code == 0 )); then
+    if [ "$downloaded_fps" == "" -o "${downloaded_fps//*$'\n'}" == "" ]; then
+      error "[\$?=$exit_code] Error while retrieving $remote_url"
+      echo "$remote_url"
+      return 255
+    fi
+
+    downloaded_fp="$(realpath "${downloaded_fps//*$'\n'}")"
+    [ -f "$downloaded_fp" ] && setxattr "json_source" "$json_source_fp" "$downloaded_fp" 1>&2 && setxattr "remote_url" "$remote_url" "$downloaded_fp" 1>&2
+
+    if [ "$local_filepath" == "" ]; then
+      echo "$downloaded_fp"
+      return 0
+    fi
+
+    if [ -f "$local_filepath" ]; then
+      debug "file '$local_filepath' already exists"
+      echo "$local_filepath"
+      return 0
+    fi
+
+    link_file "$downloaded_fp" "$local_filepath"
+    exit_code="$?"
+    if (( $exit_code == 0 ));then
+      debug "linking succeeded: $downloaded_fp -> $local_filepath"
+      realpath --no-symlinks "$local_filepath" || printf '%s\n' "$downloaded_fp"
+    else
+      error "linking exited with $exit_code"
+      echo "$downloaded_fp"
+    fi
+    return 0
+  else
+    error "[\$?=$exit_code] Error while retrieving $remote_url"
+    echo "$remote_url"
+    return $exit_code
+  fi
 }
