@@ -1,11 +1,11 @@
 # Plexodus-Tools
 A collection of tools to process the Google Plus-related data from Google Takeout.
 
-Copyright (C) 2018 Filip H.F. "FiXato" Slagter
+Copyright (C) 2018-2020 Filip H.F. "FiXato" Slagter
 
 ## Google+ Shutting down April 2019
 With the [announcement of Google+ shutting its doors for consumers](https://www.blog.google/technology/safety-security/project-strobe/), and the [second announcement of Google+ expediting its shutdown](https://www.blog.google/technology/safety-security/expediting-changes-google-plus/), those of us who've accumulated a large collection of posts and other data over the lifetime of the platform, are in need of tools to process the data archives that Google are providing us through [Google Takeout](https://takeout.google.com), and possibly live data through the [Google+ API](https://developers.google.com/+/web/api/rest/).
-With the shutdown originally being scheduled for August 2019, but following the second announcement, expedited to April 2nd, 2019, and the Google+ APIs being turned off even sooner, on Sunday March 7th, 2019 at the latest, time is quickly running out.
+With the shutdown originally being scheduled for August 2019, but following the second announcement, expedited to April 2nd, 2019, and the Google+ APIs being turned off even sooner, on Sunday March 7th, 2019 at the latest, time has ran out.
 
 This repository will hopefully provide some of those tools.
 
